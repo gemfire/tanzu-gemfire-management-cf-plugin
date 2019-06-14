@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type BasicPlugin struct{}
@@ -44,34 +45,29 @@ type MemberStatus struct {
 	Message string
 }
 
-
-const incorrectUserInputMessage string = `Your request was denied.
-You are missing a username, password, or the correct endpoint.`
-const invalidPCCInstanceMessage string = `The PCC instance you provided is not a deployed PCC instance.
-To deploy this instance, run: cf create-service p-cloudcache your_instance_name`
-const noServiceKeyMessage string = `Please create a service key for %s.
-To create a key enter: cf create-service-key %s your_key_name
+const missingInformationMessage string = `Your request was denied.
+You are missing a username, password, or the correct endpoint.
 `
+const incorrectUserInputMessage string = `Your request was denied.
+The format of your request is incorrect.
 
-func collectCloudCacheServices() (cloudCachesAvailable []string) {
-	cmd := exec.Command("cf", "services")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-	servicesTable := &out
-	tableStr := servicesTable.String()
-	splitTable := strings.Split(tableStr, "\n")
-	for _, value := range splitTable {
-		line := strings.Fields(value)
-		if len(line) > 0 && line[1] == "p-cloudcache" {
-			cloudCachesAvailable = append(cloudCachesAvailable, line[0])
-		}
-	}
-	return
-}
+For help see: cf cli --help`
+const invalidPCCInstanceMessage string = `You entered %s which not a deployed PCC instance.
+To deploy this as an instance, enter: 
+
+	cf create-service p-cloudcache <region_plan> %s
+
+For help see: cf create-service --help
+
+`
+const noServiceKeyMessage string = `Please create a service key for %s.
+To create a key enter: 
+
+	cf create-service-key %s <your_key_name>
+	
+For help see: cf create-service-key --help
+
+`
 
 func getServiceKeyFromPCCInstance(pccService string) (serviceKey string, err error) {
 	cmd := exec.Command("cf", "service-keys", pccService)
@@ -79,12 +75,15 @@ func getServiceKeyFromPCCInstance(pccService string) (serviceKey string, err err
 	cmd.Stdout = &out
 	err = cmd.Run()
 	if err != nil {
-		log.Fatal(err)
+		return "", errors.New(invalidPCCInstanceMessage)
 	}
 	servKeyOutput := &out
 	keysStr := servKeyOutput.String()
 	splitKeys := strings.Split(keysStr, "\n")
 	hasKey := false
+	if strings.Contains(splitKeys[1], "No service key for service instance"){
+		return "", errors.New(noServiceKeyMessage)
+	}
 	for _, value := range splitKeys {
 		line := strings.Fields(value)
 		if len(line) > 0 {
@@ -151,7 +150,7 @@ func getEndpoint(clusterCommand string) (endpoint string){
 	} else if clusterCommand == "list-members"{
 		urlEnding = "members"
 	}
-	endpoint = "http://localhost:7070/geode-management/v2/" + urlEnding //TODO: must change !!!
+	endpoint = "http://localhost:7070/geode-management/v2/" + urlEnding //TODO: this method will eventually be deleted
 	return
 }
 
@@ -295,6 +294,7 @@ func editResponseOnGroup(urlResponse string, groups []string, clusterCommand str
 }
 
 func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
+	start := time.Now()
 	if args[0] == "CLI-MESSAGE-UNINSTALL"{
 		return
 	}
@@ -311,11 +311,11 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	urlResponse := getUrlOutput(endpointLink)
 	hasJ := false
 	for _, arg := range args {
-		if strings.HasPrefix(arg, "--groups="){
-			groups = strings.Split(arg[9:], ",")
+		if strings.HasPrefix(arg, "-g="){
+			groups = strings.Split(arg[3:], ",")
 			urlResponse = editResponseOnGroup(urlResponse, groups, clusterCommand)
 		}
-		if arg == "--j"{
+		if arg == "-j"{
 			hasJ = true
 		}
 	}
@@ -329,11 +329,6 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		password = os.Getenv("CFPASSWORD")
 		endpoint = os.Getenv("CFENDPOINT")
 	} else {
-		pccServicesAvailable := collectCloudCacheServices()
-		if err := ValidatePCCInstance(pccInUse, pccServicesAvailable); err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
 		serviceKey, err := getServiceKeyFromPCCInstance(pccInUse)
 		if err != nil{
 			fmt.Printf(err.Error(), pccInUse, pccInUse)
@@ -351,8 +346,10 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println()
 		fmt.Println(successMessage)
 	} else {
-		fmt.Println(incorrectUserInputMessage)
+		fmt.Println(missingInformationMessage)
 	}
+	t := time.Now()
+	fmt.Println(t.Sub(start))
 }
 
 
@@ -373,16 +370,15 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 			{
 				Name:     "cli",
 				HelpText: "cli's help text",
-
-				// UsageDetails is optional
-				// It is used to show help of usage of each command
 				UsageDetails: plugin.Usage{
 					Usage: "   cf cli [action] [pcc_instance] [*options] (* = optional)\n" +
 						"	Actions: \n" +
 						"		list-regions, list-members\n" +
 						"	Options: \n" +
-						"		--h : this help screen\n" +
-						"		--j : json output of API endpoint\n",
+						"		-h : this help screen\n" +
+						"		-j : json output of API endpoint\n" +
+						"		-g : followed by group(s), split by comma, only data within those groups\n" +
+						"			(example: cf cli list-regions --g=group1,group2)",
 				},
 			},
 		},

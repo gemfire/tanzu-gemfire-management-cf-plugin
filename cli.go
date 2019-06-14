@@ -189,7 +189,7 @@ func getTableHeadersFromClusterCommand(clusterCommand string) (tableHeaders []st
 	return
 }
 
-func getAnswerFromUrlResponse(clusterCommand string, urlResponse string) (response string){
+func GetAnswerFromUrlResponse(clusterCommand string, urlResponse string) (response string){
 	urlOutput := ClusterManagementResult{}
 	err := json.Unmarshal([]byte(urlResponse), &urlOutput)
 	if err != nil {
@@ -232,7 +232,7 @@ func getAnswerFromUrlResponse(clusterCommand string, urlResponse string) (respon
 }
 
 
-func getJsonFromUrlResponse(urlResponse string) (jsonOutput string){
+func GetJsonFromUrlResponse(urlResponse string) (jsonOutput string){
 	urlOutput := ClusterManagementResult{}
 	err := json.Unmarshal([]byte(urlResponse), &urlOutput)
 	if err != nil {
@@ -264,7 +264,7 @@ func isRegionInGroups(regionInGroup bool, resultVal interface{}, groups []string
 	return
 }
 
-func editResponseOnGroup(urlResponse string, groups []string, clusterCommand string) (editedUrlResponse string){
+func EditResponseOnGroup(urlResponse string, groups []string, clusterCommand string) (editedUrlResponse string){
 	urlOutput := ClusterManagementResult{}
 	err := json.Unmarshal([]byte(urlResponse), &urlOutput)
 	if err != nil {
@@ -313,14 +313,14 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	for _, arg := range args {
 		if strings.HasPrefix(arg, "-g="){
 			groups = strings.Split(arg[3:], ",")
-			urlResponse = editResponseOnGroup(urlResponse, groups, clusterCommand)
+			urlResponse = EditResponseOnGroup(urlResponse, groups, clusterCommand)
 		}
 		if arg == "-j"{
 			hasJ = true
 		}
 	}
 	if hasJ{
-		fmt.Println(getJsonFromUrlResponse(urlResponse))
+		fmt.Println(GetJsonFromUrlResponse(urlResponse))
 		return
 	}
 	fmt.Println("PCC in use: " + pccInUse)
@@ -340,7 +340,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	successMessage := fmt.Sprintf("Cluster Command: %s \nEndpoint: %s \nUsername: %s \nPassword: %s \n",
 		clusterCommand, endpoint, username, password)
 	if username != "" && password != "" && clusterCommand != "" && endpoint != "" {
-		answer := getAnswerFromUrlResponse(clusterCommand, urlResponse)
+		answer := GetAnswerFromUrlResponse(clusterCommand, urlResponse)
 		fmt.Println()
 		fmt.Println(answer)
 		fmt.Println()

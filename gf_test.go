@@ -88,3 +88,14 @@ func TestGetJsonFromUrlResponse(t *testing.T) {
 		t.Error("Unexpected Error")
 	}
 }
+
+func TestFill(t *testing.T) {
+	columnSize := 20
+	value := "some string"
+	filler := "-"
+	response := Fill(columnSize, value, filler)
+	expectedResponse := " some string--------"
+	if response != expectedResponse{
+		t.Error("Unexpected Error")
+	}
+}

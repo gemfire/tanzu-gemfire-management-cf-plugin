@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"code.cloudfoundry.org/cli/cf/errors"
 	"code.cloudfoundry.org/cli/plugin"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -51,7 +52,7 @@ You are missing a username, password, or the correct endpoint.
 const incorrectUserInputMessage string = `Your request was denied.
 The format of your request is incorrect.
 
-For help see: cf cli --help`
+For help see: cf gf --help`
 const invalidPCCInstanceMessage string = `You entered %s which not a deployed PCC instance.
 To deploy this as an instance, enter: 
 
@@ -125,6 +126,7 @@ func getUsernamePasswordEndpoint(pccService string, key string) (username string
 		log.Fatal(err)
 	}
 	endpoint = serviceKey.Urls.Gfsh
+	endpoint = strings.Replace(endpoint, "gemfire/v1", "geode-management/v2", 1)
 	for _ , user := range serviceKey.Users {
 		if strings.HasPrefix(user.Username, "cluster_operator") {
 			username = user.Username
@@ -143,19 +145,25 @@ func ValidatePCCInstance(ourPCCInstance string, pccInstancesAvailable []string) 
 	return errors.New(invalidPCCInstanceMessage)
 }
 
-func getEndpoint(clusterCommand string) (endpoint string){
+func getCompleteEndpoint(endpoint string, clusterCommand string) (string){
 	urlEnding := ""
 	if clusterCommand == "list-regions"{
-		urlEnding = "regions"
+		urlEnding = "/regions"
 	} else if clusterCommand == "list-members"{
-		urlEnding = "members"
+		urlEnding = "/members"
 	}
-	endpoint = "http://localhost:7070/geode-management/v2/" + urlEnding //TODO: this method will eventually be deleted
-	return
+	endpoint = endpoint + urlEnding
+	return endpoint
 }
 
-func getUrlOutput(endpointUrl string) (urlResponse string){
-	resp, err := http.Get(endpointUrl)
+func getUrlOutput(endpointUrl string, username string, password string) (urlResponse string){
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+	req, err := http.NewRequest("GET", endpointUrl, nil)
+	req.SetBasicAuth(username, password)
+	resp, err := client.Do(req)
 	if err != nil{
 		log.Fatal(err)
 	}
@@ -167,7 +175,8 @@ func getUrlOutput(endpointUrl string) (urlResponse string){
 	urlResponse = fmt.Sprintf("%s", respInAscii)
 	return
 }
-func fill(columnSize int, value string, filler string) (response string){
+
+func Fill(columnSize int, value string, filler string) (response string){
 	if len(value) > columnSize - 1{
 		response = " " + value[:columnSize-1]
 		return
@@ -203,22 +212,22 @@ func GetAnswerFromUrlResponse(clusterCommand string, urlResponse string) (respon
 
 	tableHeaders := getTableHeadersFromClusterCommand(clusterCommand)
 	for _, header := range tableHeaders {
-		response += fill(20, header, " ") + "|"
+		response += Fill(20, header, " ") + "|"
 	}
-	response += "\n" + fill (20 * len(tableHeaders) + 5, "", "-") + "\n"
+	response += "\n" + Fill (20 * len(tableHeaders) + 5, "", "-") + "\n"
 
 	memberCount := 0
 	for _, result := range urlOutput.Result{
 		memberCount++
 		for _, key := range tableHeaders {
 			if result[key] == nil {
-				response += fill(20, "", " ") + "|"
+				response += Fill(20, "", " ") + "|"
 			} else {
 				resultVal := result[key]
 				if fmt.Sprintf("%T", result[key]) == "float64"{
 					resultVal = fmt.Sprintf("%.0f", result[key])
 				}
-				response += fill(20, fmt.Sprintf("%s",resultVal), " ") + "|"
+				response += Fill(20, fmt.Sprintf("%s",resultVal), " ") + "|"
 			}
 		}
 		response += "\n"
@@ -246,13 +255,13 @@ func GetJsonFromUrlResponse(urlResponse string) (jsonOutput string){
 	return
 }
 
-func isRegionInGroups(regionInGroup bool, resultVal interface{}, groups []string) (isInGroups bool){
+func isRegionInGroups(regionInGroup bool, groupsWeHave interface{}, groupsWeWant []string) (isInGroups bool){
 	if regionInGroup{
 		isInGroups = true
 		return
 	}
-	for _, group := range groups{
-		resultValToStr := fmt.Sprintf("%s", resultVal)
+	for _, group := range groupsWeWant{
+		resultValToStr := fmt.Sprintf("%s", groupsWeHave)
 		for  _, regionName := range strings.Split(resultValToStr[1:len(resultValToStr)-1], " "){
 			if regionName == group{
 				isInGroups = true
@@ -278,6 +287,9 @@ func EditResponseOnGroup(urlResponse string, groups []string, clusterCommand str
 			if key == "groups"{
 				regionInGroups = isRegionInGroups(regionInGroups, result[key], groups)
 			}
+			if regionInGroups{
+				break
+			}
 		}
 		if regionInGroups{
 			newUrlOutputResult += fmt.Sprintf("%s",result)
@@ -298,7 +310,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	if args[0] == "CLI-MESSAGE-UNINSTALL"{
 		return
 	}
-	var username, password, endpoint, pccInUse, clusterCommand string
+	var username, password, endpoint, pccInUse, clusterCommand, serviceKey string
 	var groups []string
 	if len(args) >= 3 {
 		pccInUse = args[2]
@@ -307,8 +319,22 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println(incorrectUserInputMessage)
 		return
 	}
-	endpointLink := getEndpoint(clusterCommand)
-	urlResponse := getUrlOutput(endpointLink)
+	if os.Getenv("CFLOGIN") != "" && os.Getenv("CFPASSWORD") != "" && os.Getenv("CFENDPOINT") != "" {
+		username = os.Getenv("CFLOGIN")
+		password = os.Getenv("CFPASSWORD")
+		endpoint = os.Getenv("CFENDPOINT")
+	} else {
+		var err error
+		serviceKey, err = getServiceKeyFromPCCInstance(pccInUse)
+		if err != nil{
+			fmt.Printf(err.Error(), pccInUse, pccInUse)
+			os.Exit(1)
+		}
+		username, password, endpoint = getUsernamePasswordEndpoint(pccInUse, serviceKey)
+	}
+
+	endpoint = getCompleteEndpoint(endpoint, clusterCommand)
+	urlResponse := getUrlOutput(endpoint, username, password)
 	hasJ := false
 	for _, arg := range args {
 		if strings.HasPrefix(arg, "-g="){
@@ -324,27 +350,13 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		return
 	}
 	fmt.Println("PCC in use: " + pccInUse)
-	if os.Getenv("CFLOGIN") != "" && os.Getenv("CFPASSWORD") != "" && os.Getenv("CFENDPOINT") != "" {
-		username = os.Getenv("CFLOGIN")
-		password = os.Getenv("CFPASSWORD")
-		endpoint = os.Getenv("CFENDPOINT")
-	} else {
-		serviceKey, err := getServiceKeyFromPCCInstance(pccInUse)
-		if err != nil{
-			fmt.Printf(err.Error(), pccInUse, pccInUse)
-			os.Exit(1)
-		}
-		fmt.Println("Service key: " + serviceKey)
-		username, password, endpoint = getUsernamePasswordEndpoint(pccInUse, serviceKey)
-	}
-	successMessage := fmt.Sprintf("Cluster Command: %s \nEndpoint: %s \nUsername: %s \nPassword: %s \n",
-		clusterCommand, endpoint, username, password)
+	fmt.Println("Service key: " + serviceKey)
+
 	if username != "" && password != "" && clusterCommand != "" && endpoint != "" {
 		answer := GetAnswerFromUrlResponse(clusterCommand, urlResponse)
 		fmt.Println()
 		fmt.Println(answer)
 		fmt.Println()
-		fmt.Println(successMessage)
 	} else {
 		fmt.Println(missingInformationMessage)
 	}
@@ -355,7 +367,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 
 func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
-		Name: "CLI_InDev",
+		Name: "GF_InDev",
 		Version: plugin.VersionType{
 			Major: 1,
 			Minor: 0,
@@ -368,17 +380,17 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 		},
 		Commands: []plugin.Command{
 			{
-				Name:     "cli",
-				HelpText: "cli's help text",
+				Name:     "gf",
+				HelpText: "gf's help text",
 				UsageDetails: plugin.Usage{
-					Usage: "   cf cli [action] [pcc_instance] [*options] (* = optional)\n" +
+					Usage: "   cf gf [action] [pcc_instance] [*options] (* = optional)\n" +
 						"	Actions: \n" +
 						"		list-regions, list-members\n" +
 						"	Options: \n" +
 						"		-h : this help screen\n" +
 						"		-j : json output of API endpoint\n" +
 						"		-g : followed by group(s), split by comma, only data within those groups\n" +
-						"			(example: cf cli list-regions --g=group1,group2)",
+						"			(example: cf gf list-regions --g=group1,group2)",
 				},
 			},
 		},

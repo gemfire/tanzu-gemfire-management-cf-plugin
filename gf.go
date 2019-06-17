@@ -50,7 +50,7 @@ You are missing a username, password, or the correct endpoint.
 const incorrectUserInputMessage string = `Your request was denied.
 The format of your request is incorrect.
 
-For help see: cf gf --help`
+For help see: cf cli --help`
 const invalidPCCInstanceMessage string = `You entered %s which not a deployed PCC instance.
 To deploy this as an instance, enter: 
 

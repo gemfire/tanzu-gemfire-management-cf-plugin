@@ -17,7 +17,8 @@ require (
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.2.0 // indirect
-	github.com/onsi/ginkgo v1.8.0 // indirect
+	github.com/onsi/ginkgo v1.8.0
+	github.com/onsi/gomega v1.5.0
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/vito/go-interact v0.0.0-20171111012221-fa338ed9e9ec // indirect
 	golang.org/x/crypto v0.0.0-20190617133340-57b3e21c3d56 // indirect

@@ -1,17 +1,15 @@
 package main
 
 import (
-	"bytes"
 	"code.cloudfoundry.org/cli/cf/errors"
 	"code.cloudfoundry.org/cli/plugin"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -69,18 +67,13 @@ To create a key enter:
 For help see: cf create-service-key --help
 
 `
+const GenericErrorMessage string = `Cannot retrieve credentials. Error: %s`
+const InvalidServiceKeyResponse string = `The cf service-key response is invalid.`
 
-func getServiceKeyFromPCCInstance(pccService string) (serviceKey string, err error) {
-	cmd := exec.Command("cf", "service-keys", pccService)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err = cmd.Run()
-	if err != nil {
-		return "", errors.New(invalidPCCInstanceMessage)
-	}
-	servKeyOutput := &out
-	keysStr := servKeyOutput.String()
-	splitKeys := strings.Split(keysStr, "\n")
+
+func GetServiceKeyFromPCCInstance(cf cfservice.CfService, pccService string) (serviceKey string, err error) {
+	servKeyOutput, err := cf.Cmd("service-keys", pccService)
+	splitKeys := strings.Split(servKeyOutput, "\n")
 	hasKey := false
 	if strings.Contains(splitKeys[1], "No service key for service instance"){
 		return "", errors.New(noServiceKeyMessage)
@@ -102,20 +95,18 @@ func getServiceKeyFromPCCInstance(pccService string) (serviceKey string, err err
 	return
 }
 
-func getUsernamePasswordEndpoint(pccService string, key string) (username string, password string, endpoint string) {
+func GetUsernamePasswordEndpoint(cf cfservice.CfService, pccService string, key string) (username string, password string, endpoint string, err error) {
 	username = ""
 	password = ""
 	endpoint = ""
-	cmd := exec.Command("cf", "service-key", pccService, key)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
+	keyInfo, err := cf.Cmd("service-key", pccService, key)
 	if err != nil {
-		log.Fatal(err)
+		return "", "", "", err
 	}
-	servKeyOutput := &out
-	keyInfo := servKeyOutput.String()
 	splitKeyInfo := strings.Split(keyInfo, "\n")
+	if len(splitKeyInfo) < 2{
+		return "", "", "", errors.New(InvalidServiceKeyResponse)
+	}
 	splitKeyInfo = splitKeyInfo[2:] //take out first two lines of cf service-key ... output
 	joinKeyInfo := strings.Join(splitKeyInfo, "\n")
 
@@ -123,7 +114,7 @@ func getUsernamePasswordEndpoint(pccService string, key string) (username string
 
 	err = json.Unmarshal([]byte(joinKeyInfo), &serviceKey)
 	if err != nil {
-		log.Fatal(err)
+		return "", "", "", err
 	}
 	endpoint = serviceKey.Urls.Gfsh
 	endpoint = strings.Replace(endpoint, "gemfire/v1", "geode-management/v2", 1)
@@ -156,7 +147,7 @@ func getCompleteEndpoint(endpoint string, clusterCommand string) (string){
 	return endpoint
 }
 
-func getUrlOutput(endpointUrl string, username string, password string) (urlResponse string){
+func getUrlOutput(endpointUrl string, username string, password string) (urlResponse string, err error){
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -165,12 +156,12 @@ func getUrlOutput(endpointUrl string, username string, password string) (urlResp
 	req.SetBasicAuth(username, password)
 	resp, err := client.Do(req)
 	if err != nil{
-		log.Fatal(err)
+		return "", err
 	}
 	respInAscii, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil{
-		log.Fatal(1)
+		return "", err
 	}
 	urlResponse = fmt.Sprintf("%s", respInAscii)
 	return
@@ -198,11 +189,11 @@ func getTableHeadersFromClusterCommand(clusterCommand string) (tableHeaders []st
 	return
 }
 
-func GetAnswerFromUrlResponse(clusterCommand string, urlResponse string) (response string){
+func GetAnswerFromUrlResponse(clusterCommand string, urlResponse string) (response string, err error){
 	urlOutput := ClusterManagementResult{}
-	err := json.Unmarshal([]byte(urlResponse), &urlOutput)
+	err = json.Unmarshal([]byte(urlResponse), &urlOutput)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	response = "Status Code: " + urlOutput.StatusCode + "\n"
 	if urlOutput.StatusMessage != ""{
@@ -241,15 +232,15 @@ func GetAnswerFromUrlResponse(clusterCommand string, urlResponse string) (respon
 }
 
 
-func GetJsonFromUrlResponse(urlResponse string) (jsonOutput string){
+func GetJsonFromUrlResponse(urlResponse string) (jsonOutput string, err error){
 	urlOutput := ClusterManagementResult{}
-	err := json.Unmarshal([]byte(urlResponse), &urlOutput)
+	err = json.Unmarshal([]byte(urlResponse), &urlOutput)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	jsonExtracted, err := json.MarshalIndent(urlOutput, "", "  ")
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	jsonOutput = string(jsonExtracted)
 	return
@@ -273,11 +264,11 @@ func isRegionInGroups(regionInGroup bool, groupsWeHave interface{}, groupsWeWant
 	return
 }
 
-func EditResponseOnGroup(urlResponse string, groups []string, clusterCommand string) (editedUrlResponse string){
+func EditResponseOnGroup(urlResponse string, groups []string, clusterCommand string) (editedUrlResponse string, err error){
 	urlOutput := ClusterManagementResult{}
-	err := json.Unmarshal([]byte(urlResponse), &urlOutput)
+	err = json.Unmarshal([]byte(urlResponse), &urlOutput)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	var newUrlOutputResult string
 	var newResult []map[string]interface{}
@@ -299,7 +290,7 @@ func EditResponseOnGroup(urlResponse string, groups []string, clusterCommand str
 	urlOutput.Result = newResult
 	byteResponse, err := json.Marshal(urlOutput)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	editedUrlResponse = string(byteResponse)
 	return
@@ -310,6 +301,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	if args[0] == "CLI-MESSAGE-UNINSTALL"{
 		return
 	}
+	var err error
 	var username, password, endpoint, pccInUse, clusterCommand, serviceKey string
 	var groups []string
 	if len(args) >= 3 {
@@ -325,35 +317,57 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		endpoint = os.Getenv("CFENDPOINT")
 	} else {
 		var err error
-		serviceKey, err = getServiceKeyFromPCCInstance(pccInUse)
+		cfClient := &cfservice.Cf{}
+		serviceKey, err = GetServiceKeyFromPCCInstance(cfClient, pccInUse)
 		if err != nil{
 			fmt.Printf(err.Error(), pccInUse, pccInUse)
 			os.Exit(1)
 		}
-		username, password, endpoint = getUsernamePasswordEndpoint(pccInUse, serviceKey)
+		username, password, endpoint, err = GetUsernamePasswordEndpoint(cfClient, pccInUse, serviceKey)
+		if err != nil{
+			fmt.Println(GenericErrorMessage, err.Error())
+			os.Exit(1)
+		}
 	}
 
 	endpoint = getCompleteEndpoint(endpoint, clusterCommand)
-	urlResponse := getUrlOutput(endpoint, username, password)
+	urlResponse, err := getUrlOutput(endpoint, username, password)
+	if err != nil{
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 	hasJ := false
 	for _, arg := range args {
 		if strings.HasPrefix(arg, "-g="){
 			groups = strings.Split(arg[3:], ",")
-			urlResponse = EditResponseOnGroup(urlResponse, groups, clusterCommand)
+			urlResponse, err = EditResponseOnGroup(urlResponse, groups, clusterCommand)
+			if err != nil{
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 		}
 		if arg == "-j"{
 			hasJ = true
 		}
 	}
 	if hasJ{
-		fmt.Println(GetJsonFromUrlResponse(urlResponse))
+		jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
+		if err != nil{
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+		fmt.Println(jsonToBePrinted)
 		return
 	}
 	fmt.Println("PCC in use: " + pccInUse)
 	fmt.Println("Service key: " + serviceKey)
 
 	if username != "" && password != "" && clusterCommand != "" && endpoint != "" {
-		answer := GetAnswerFromUrlResponse(clusterCommand, urlResponse)
+		answer, err := GetAnswerFromUrlResponse(clusterCommand, urlResponse)
+		if err != nil{
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
 		fmt.Println()
 		fmt.Println(answer)
 		fmt.Println()

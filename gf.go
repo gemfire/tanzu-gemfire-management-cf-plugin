@@ -246,14 +246,13 @@ func GetJsonFromUrlResponse(urlResponse string) (jsonOutput string, err error){
 	return
 }
 
-func isRegionInGroups(regionInGroup bool, groupsWeHave interface{}, groupsWeWant []string) (isInGroups bool){
+func isRegionInGroups(regionInGroup bool, groupsWeHave []string, groupsWeWant []string) (isInGroups bool){
 	if regionInGroup{
 		isInGroups = true
 		return
 	}
 	for _, group := range groupsWeWant{
-		resultValToStr := fmt.Sprintf("%s", groupsWeHave)
-		for  _, regionName := range strings.Split(resultValToStr[1:len(resultValToStr)-1], " "){
+		for  _, regionName := range groupsWeHave {
 			if regionName == group{
 				isInGroups = true
 				return
@@ -276,7 +275,7 @@ func EditResponseOnGroup(urlResponse string, groups []string, clusterCommand str
 		regionInGroups:= false
 		for _, key :=range getTableHeadersFromClusterCommand(clusterCommand){
 			if key == "groups"{
-				regionInGroups = isRegionInGroups(regionInGroups, result[key], groups)
+				regionInGroups = isRegionInGroups(regionInGroups, toSlice(result[key]), groups)
 			}
 			if regionInGroups{
 				break
@@ -294,6 +293,19 @@ func EditResponseOnGroup(urlResponse string, groups []string, clusterCommand str
 	}
 	editedUrlResponse = string(byteResponse)
 	return
+}
+
+// Convert an implicit slice of strings, represented by interface{}, into an actual []string
+func toSlice(input interface{}) []string {
+	result := make([]string, 0)
+
+	if input != nil {
+		for _, entry := range input.([]interface{}) {
+			result = append(result, entry.(string))
+		}
+	}
+
+	return result
 }
 
 func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {

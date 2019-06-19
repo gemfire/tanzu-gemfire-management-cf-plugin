@@ -46,33 +46,64 @@ type MemberStatus struct {
 
 const missingInformationMessage string = `Your request was denied.
 You are missing a username, password, or the correct endpoint.
+
+For help see: cf gf --help
 `
 const incorrectUserInputMessage string = `Your request was denied.
 The format of your request is incorrect.
 
-For help see: cf cli --help`
-const invalidPCCInstanceMessage string = `You entered %s which not a deployed PCC instance.
-To deploy this as an instance, enter: 
-
-	cf create-service p-cloudcache <region_plan> %s
-
-For help see: cf create-service --help
-
+For help see: cf gf --help
 `
+
 const noServiceKeyMessage string = `Please create a service key for %s.
 To create a key enter: 
 
 	cf create-service-key %s <your_key_name>
 	
 For help see: cf create-service-key --help
-
 `
 const GenericErrorMessage string = `Cannot retrieve credentials. Error: %s`
 const InvalidServiceKeyResponse string = `The cf service-key response is invalid.`
+const ProvidedOneOfUsernamePassword string = `You provided either a username or password, but not both.
+Please enter username and password:
 
+	cf gf <your_cluster_command> -u=<your_username> -p=<your_password>
+
+For help see: cf gf --help
+`
+const NoRegionGivenMessage string = `You need to provide a region to list your indexes from.
+The proper format is:
+
+	cf gf list-indexes <your_pcc_instance> -r=<your_region>
+
+To see your available regions:
+	
+	cf gf list-regions <your_pcc_intance>
+
+For help see: cf gf --help
+`
+const NotAuthenticatedMessage string = `The username and password is incorrect.
+
+For help see: cf gf --help
+`
+const NonExistentRegionMessage string = `The region you selected does not exist.
+To see your active regions, enter:
+	
+	cf gf list-regions <your_pcc_instance>
+
+For help see: cf gf --help
+`
+const NeedToProvideUsernamePassWordMessage string = `You need to provide your username and password.
+The proper format is: cf gf <your_cluster_command> <your_pcc_instance> -u=<your_username -p=<your_password>
+
+For help see: cf gf --help
+`
 
 func GetServiceKeyFromPCCInstance(cf cfservice.CfService, pccService string) (serviceKey string, err error) {
 	servKeyOutput, err := cf.Cmd("service-keys", pccService)
+	if err != nil{
+		return "", err
+	}
 	splitKeys := strings.Split(servKeyOutput, "\n")
 	hasKey := false
 	if strings.Contains(splitKeys[1], "No service key for service instance"){
@@ -127,24 +158,25 @@ func GetUsernamePasswordEndpoint(cf cfservice.CfService, pccService string, key 
 	return
 }
 
-func ValidatePCCInstance(ourPCCInstance string, pccInstancesAvailable []string) (error){
-	for _, pccInst := range pccInstancesAvailable {
-		if ourPCCInstance == pccInst {
-			return nil
-		}
-	}
-	return errors.New(invalidPCCInstanceMessage)
-}
-
-func getCompleteEndpoint(endpoint string, clusterCommand string) (string){
+func getCompleteEndpoint(endpoint string, clusterCommand string, region string) (string, error){
 	urlEnding := ""
-	if clusterCommand == "list-regions"{
+	switch clusterCommand{
+	case "list-regions":
 		urlEnding = "/regions"
-	} else if clusterCommand == "list-members"{
+	case "list-members":
 		urlEnding = "/members"
+	case "list-gateway-receivers":
+		urlEnding = "/gateways/receivers"
+	case "list-indexes":
+		if region == ""{
+			return "", errors.New(NoRegionGivenMessage)
+		}
+		urlEnding = "/regions/" + region + "/indexes"
+	default:
+		return endpoint, nil
 	}
 	endpoint = endpoint + urlEnding
-	return endpoint
+	return endpoint, nil
 }
 
 func getUrlOutput(endpointUrl string, username string, password string) (urlResponse string, err error){
@@ -179,11 +211,14 @@ func Fill(columnSize int, value string, filler string) (response string){
 
 
 func getTableHeadersFromClusterCommand(clusterCommand string) (tableHeaders []string){
-	if clusterCommand == "list-regions"{
+	switch clusterCommand {
+	case "list-regions":
 		tableHeaders = append(tableHeaders, "name", "type", "groups", "entryCount", "regionAttributes")
-	} else if clusterCommand =="list-members"{
+	case "list-members":
 		tableHeaders = append(tableHeaders, "id", "host", "status", "pid")
-	} else{
+	case "list-gateway-receivers":
+		tableHeaders = append(tableHeaders, "hostnameForSenders", "uri", "group", "class")
+	default:
 		return
 	}
 	return
@@ -194,6 +229,11 @@ func GetAnswerFromUrlResponse(clusterCommand string, urlResponse string) (respon
 	err = json.Unmarshal([]byte(urlResponse), &urlOutput)
 	if err != nil {
 		return "", err
+	}
+	if urlOutput.StatusCode == "UNAUTHENTICATED"{
+		return "", errors.New(NotAuthenticatedMessage)
+	} else if urlOutput.StatusCode == "ENTITY_NOT_FOUND"{
+		return "", errors.New(NonExistentRegionMessage)
 	}
 	response = "Status Code: " + urlOutput.StatusCode + "\n"
 	if urlOutput.StatusMessage != ""{
@@ -227,6 +267,8 @@ func GetAnswerFromUrlResponse(clusterCommand string, urlResponse string) (respon
 		response += "\nNumber of Regions: " + strconv.Itoa(memberCount)
 	} else if clusterCommand == "list-members"{
 		response += "\nNumber of Members: " + strconv.Itoa(memberCount)
+	} else if clusterCommand == "list-indexes" {
+		response += "\nNumber of Indices in your Region: " + strconv.Itoa(memberCount)
 	}
 	return
 }
@@ -298,13 +340,11 @@ func EditResponseOnGroup(urlResponse string, groups []string, clusterCommand str
 // Convert an implicit slice of strings, represented by interface{}, into an actual []string
 func toSlice(input interface{}) []string {
 	result := make([]string, 0)
-
 	if input != nil {
 		for _, entry := range input.([]interface{}) {
 			result = append(result, entry.(string))
 		}
 	}
-
 	return result
 }
 
@@ -314,7 +354,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		return
 	}
 	var err error
-	var username, password, endpoint, pccInUse, clusterCommand, serviceKey string
+	var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region string
 	var groups []string
 	if len(args) >= 3 {
 		pccInUse = args[2]
@@ -330,7 +370,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	} else {
 		var err error
 		cfClient := &cfservice.Cf{}
-		serviceKey, err = GetServiceKeyFromPCCInstance(cfClient, pccInUse)
+		serviceKey, err =  GetServiceKeyFromPCCInstance(cfClient, pccInUse)
 		if err != nil{
 			fmt.Printf(err.Error(), pccInUse, pccInUse)
 			os.Exit(1)
@@ -342,26 +382,50 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		}
 	}
 
-	endpoint = getCompleteEndpoint(endpoint, clusterCommand)
+	if err != nil{
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	hasJ, hasG, hasU, hasP := false, false, false, false
+	for _, arg := range args {
+		if strings.HasPrefix(arg, "-g="){
+			hasG = true
+			groups = strings.Split(arg[3:], ",")
+			if err != nil{
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
+		} else if arg == "-j"{
+			hasJ = true
+		} else if strings.HasPrefix(arg, "-r="){
+			region = arg[3:]
+		} else if strings.HasPrefix(arg, "-u="){
+			hasU = true
+			username = arg[3:]
+		} else if strings.HasPrefix(arg, "-p="){
+			password = arg[3:]
+			hasP = true
+		}
+	}
+	if (hasU && !hasP) || (!hasU && hasP){
+		err = errors.New(ProvidedOneOfUsernamePassword)
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	endpoint, err = getCompleteEndpoint(endpoint, clusterCommand, region)
+	if err != nil{
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 	urlResponse, err := getUrlOutput(endpoint, username, password)
 	if err != nil{
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	hasJ := false
-	for _, arg := range args {
-		if strings.HasPrefix(arg, "-g="){
-			groups = strings.Split(arg[3:], ",")
-			urlResponse, err = EditResponseOnGroup(urlResponse, groups, clusterCommand)
-			if err != nil{
-				fmt.Println(err.Error())
-				os.Exit(1)
-			}
-		}
-		if arg == "-j"{
-			hasJ = true
-		}
+	if hasG{
+		urlResponse, err = EditResponseOnGroup(urlResponse, groups, clusterCommand)
 	}
+
 	if hasJ{
 		jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
 		if err != nil{
@@ -371,9 +435,6 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println(jsonToBePrinted)
 		return
 	}
-	fmt.Println("PCC in use: " + pccInUse)
-	fmt.Println("Service key: " + serviceKey)
-
 	if username != "" && password != "" && clusterCommand != "" && endpoint != "" {
 		answer, err := GetAnswerFromUrlResponse(clusterCommand, urlResponse)
 		if err != nil{
@@ -383,13 +444,14 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println()
 		fmt.Println(answer)
 		fmt.Println()
+	} else if username == "" && password == "" &&clusterCommand != "" && endpoint != ""{
+		fmt.Println(NeedToProvideUsernamePassWordMessage)
 	} else {
 		fmt.Println(missingInformationMessage)
 	}
 	t := time.Now()
 	fmt.Println(t.Sub(start))
 }
-
 
 func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
@@ -411,12 +473,14 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 				UsageDetails: plugin.Usage{
 					Usage: "   cf gf [action] [pcc_instance] [*options] (* = optional)\n" +
 						"	Actions: \n" +
-						"		list-regions, list-members\n" +
+						"		list-regions, list-members, list-gateway-receivers, list-indexes\n" +
 						"	Options: \n" +
 						"		-h : this help screen\n" +
 						"		-j : json output of API endpoint\n" +
-						"		-g : followed by group(s), split by comma, only data within those groups\n" +
-						"			(example: cf gf list-regions --g=group1,group2)",
+						"		-g : followed by equals group(s), split by comma, only data within those groups\n" +
+						"			(example: cf gf list-regions -g=group1,group2)\n" +
+						"		-u : followed by equals username (-u=<your_username>)\n" +
+						"		-p : followed by equals password (-p=<your_password>)",
 				},
 			},
 		},

@@ -3,6 +3,7 @@ package cfservice
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"os/exec"
 )
 
@@ -12,8 +13,12 @@ To deploy this as an instance, enter:
 	cf create-service p-cloudcache <region_plan> %s
 
 For help see: cf create-service --help
-
 `
+const invalidServiceKeyResponse string = `The cf service-key response is invalid.
+
+For help see: cf create-service-key --help
+`
+
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . CfService
 
@@ -30,7 +35,15 @@ func (c *Cf) Cmd(name string, options ...string) (string, error){
 	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
-		return "", errors.New(invalidPCCInstanceMessage)
+		fmt.Println("options: ")
+		switch options[0] {
+		case "service-keys":
+			return "", errors.New(invalidPCCInstanceMessage)
+		case "service-key":
+			return "", errors.New(invalidServiceKeyResponse)
+		default:
+			return "", err
+		}
 	}
 	return (&out).String(), nil
 }

@@ -139,12 +139,35 @@ No service key for service instance oowen
 			Expect(response).To(Equal(expectedResponse))
 		})
 	})
+	Context("Handling Regions and Listing Indexes", func(){
+		It("Handling unrecognized regions", func(){
+			clusterCommand := "list-indexes"
+			urlResponse := `{"statusCode":"ENTITY_NOT_FOUND","statusMessage":"RegionConfig with id = sdljf not found.","result":[]}`
+			_, err := GetAnswerFromUrlResponse(clusterCommand, urlResponse)
+			Expect(err).To(Not(BeNil()))
+		})
+		It("No region provided when listing indexes", func(){
+			endpoint := " https://cloudcache-7fe65c41-cca5-43c2-afaa-019ef452c6a1.sys.mammothlakes.cf-app.com/geode-management/v2"
+			clusterCommand := "list-indexes"
+			region := ""
+			_, err := getCompleteEndpoint(endpoint, clusterCommand, region)
+			Expect(err).To(Not(BeNil()))
+		})
+		It("Locating correct endpoint for listing index", func(){
+			previousEndpoint := "https://cloudcache-7fe65c41-cca5-43c2-afaa-019ef452c6a1.sys.mammothlakes.cf-app.com/geode-management/v2"
+			clusterCommand := "list-indexes"
+			region := "name1"
+			endpoint, _ := getCompleteEndpoint(previousEndpoint, clusterCommand, region)
+			expectedEndpoint := "https://cloudcache-7fe65c41-cca5-43c2-afaa-019ef452c6a1.sys.mammothlakes.cf-app.com/geode-management/v2/regions/name1/indexes"
+			Expect(endpoint).To(Equal(expectedEndpoint))
+		})
+	})
 	Context("Safekeeping tests", func(){
-		It("Validate PCC instance", func(){
-			ourPCCInstance := "pcc1"
-			pccInstancesAvailable := []string{"pcc1", "pcc2", "pcc3"}
-			err := ValidatePCCInstance(ourPCCInstance, pccInstancesAvailable)
-			Expect(err).To(BeNil())
+		It("Handling unauthenticated requests", func(){
+			clusterCommand := "list-indexes"
+			urlResponse := `{"statusCode":"UNAUTHENTICATED","statusMessage":"Authentication error. Please check your credentials.","result":[]}`
+			_, err := GetAnswerFromUrlResponse(clusterCommand, urlResponse)
+			Expect(err).To(Not(BeNil()))
 		})
 		It("Validate answer in table form", func(){
 			clusterCommand := "list-members"

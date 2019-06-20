@@ -3,7 +3,6 @@ package cfservice
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"os/exec"
 )
 
@@ -35,7 +34,6 @@ func (c *Cf) Cmd(name string, options ...string) (string, error){
 	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println("options: ")
 		switch options[0] {
 		case "service-keys":
 			return "", errors.New(invalidPCCInstanceMessage)

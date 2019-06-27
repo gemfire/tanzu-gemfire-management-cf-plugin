@@ -1,9 +1,11 @@
 #Getting Started:
 
 ###Prerequisites:
+* You have installed CF CLI
+    * https://docs.cloudfoundry.org/cf-cli/install-go-cli.html
 * You are logged into CF
-    * `cf login...`
-       * Credentials can be found in Ops Manager &rarr; PAS tile &rarr; UAA &rarr; Admin Credentials
+    * `cf login…`
+       * Credentials can be found in CF Ops Manager &rarr; PAS tile &rarr; UAA &rarr; Admin Credentials
 * You have a PCC instance running.
     * `cf create-service p-cloudcache dev-plan myPCCInstance`
 * Your PCC instance has a service key.

@@ -23,7 +23,7 @@ type ServiceKeyUsers struct {
 }
 
 type ServiceKeyUrls struct {
-	Gfsh string `json:"gfsh"`
+	Management string `json:"management"`
 }
 
 type ServiceKey struct {
@@ -159,8 +159,7 @@ func GetUsernamePasswordEndpoint(cf cfservice.CfService, pccService string, key 
 	if err != nil {
 		return "", "", "", err
 	}
-	endpoint = serviceKey.Urls.Gfsh
-	endpoint = strings.Replace(endpoint, "gemfire/v1", "geode-management/v2", 1)
+	endpoint = serviceKey.Urls.Management
 	for _ , user := range serviceKey.Users {
 		if strings.HasPrefix(user.Username, "cluster_operator") {
 			username = user.Username
@@ -194,6 +193,22 @@ func getCompleteEndpoint(endpoint string, clusterCommand string, region string) 
 	return endpoint, nil
 }
 
+func getTableHeadersFromClusterCommand(clusterCommand string) (tableHeaders []string){
+	switch clusterCommand {
+	case "list-regions":
+		tableHeaders = []string{"name", "type", "groups", "entryCount", "regionAttributes"}
+	case "list-members":
+		tableHeaders = []string{"id", "host", "status", "pid"}
+	case "list-gateway-receivers":
+		tableHeaders = []string{"hostnameForSenders", "uri", "group", "class"}
+	case "list-indexes":
+		tableHeaders = []string{"name", "type", "fromClause", "expression"}
+	default:
+		return
+	}
+	return
+}
+
 func getUrlOutput(endpointUrl string, username string, password string) (urlResponse string, err error){
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -224,22 +239,6 @@ func Fill(columnSize int, value string, filler string) (response string){
 	return
 }
 
-
-func getTableHeadersFromClusterCommand(clusterCommand string) (tableHeaders []string){
-	switch clusterCommand {
-	case "list-regions":
-		tableHeaders = []string{"name", "type", "groups", "entryCount", "regionAttributes"}
-	case "list-members":
-		tableHeaders = []string{"id", "host", "status", "pid"}
-	case "list-gateway-receivers":
-		tableHeaders = []string{"hostnameForSenders", "uri", "group", "class"}
-	case "list-indexes":
-		tableHeaders = []string{"name", "type", "fromClause", "expression"}
-	default:
-		return
-	}
-	return
-}
 
 func GetAnswerFromUrlResponse(clusterCommand string, urlResponse string) (response string, err error){
 	urlOutput := ClusterManagementResult{}
@@ -281,13 +280,14 @@ func GetAnswerFromUrlResponse(clusterCommand string, urlResponse string) (respon
 		response += "\n"
 	}
 
-	if clusterCommand == "list-regions"{
-		response += "\nNumber of Regions: " + strconv.Itoa(memberCount)
-	} else if clusterCommand == "list-members"{
-		response += "\nNumber of Members: " + strconv.Itoa(memberCount)
-	} else if clusterCommand == "list-indexes" {
-		response += "\nNumber of Indices in your Region: " + strconv.Itoa(memberCount)
-	}
+	//if clusterCommand == "list-regions"{
+	//	response += "\nNumber of Regions: " + strconv.Itoa(memberCount)
+	//} else if clusterCommand == "list-members"{
+	//	response += "\nNumber of Members: " + strconv.Itoa(memberCount)
+	//} else if clusterCommand == "list-indexes" {
+	//	response += "\nNumber of Indices in your Region: " + strconv.Itoa(memberCount)
+	//}
+	response += "\nNumber of Results: " + strconv.Itoa(memberCount)
 	if strings.Contains(response, Ellipsis){
 		response += "\nTo see the full output, append -j to your command."
 	}
@@ -464,7 +464,6 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	if hasG{
 		urlResponse, err = EditResponseOnGroup(urlResponse, groups, clusterCommand)
 	}
-
 	if hasJ{
 		jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
 		if err != nil{
@@ -523,7 +522,8 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 						"		-g : followed by equals group(s), split by comma, only data within those groups\n" +
 						"			(example: cf gf list-regions -g=group1,group2)\n" +
 						"		-u : followed by equals username (-u=<your_username>)\n" +
-						"		-p : followed by equals password (-p=<your_password>)",
+						"		-p : followed by equals password (-p=<your_password>)\n" +
+						"		-r : followed by equals region (-p=<your_region>)",
 				},
 			},
 		},

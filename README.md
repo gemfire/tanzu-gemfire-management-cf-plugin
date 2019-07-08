@@ -13,14 +13,14 @@
 
 ## Running the Plugin:
 1. Clone the repository 
-  - `git clone git@github.com:gemfire/cloudcache-management-cf-plugin.git`
-2. Build `gf.go` 
-  - `go build gf.go`
+    - `git clone git@github.com:gemfire/cloudcache-management-cf-plugin.git`
+2. Build `pcc.go` 
+    - `go build pcc.go`
 3. Install the plugin 
-  - `cf install-plugin gf`
+    - `cf install-plugin pcc`
 4. Run commands 
 
 5. help
-  - `cf gf --help`
+    - `cf pcc --help`
     
 

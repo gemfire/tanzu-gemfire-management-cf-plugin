@@ -1,6 +1,6 @@
-#Getting Started:
+# Getting Started:
 
-###Prerequisites:
+## Prerequisites:
 * You have installed CF CLI
     * https://docs.cloudfoundry.org/cf-cli/install-go-cli.html
 * You are logged into CF
@@ -11,10 +11,16 @@
 * Your PCC instance has a service key.
     * `cf create-service-key myPCCInstance myKey`
 
-###Running the Plugin:
-1. Clone the repository &rarr; `git clone git@github.com:gemfire/cloudcache-management-cf-plugin.git`
-2. Build `gf.go` &rarr; `go build gf.go`
-3. Install the plugin &rarr; `cf install-plugin gf`
-4. Run commands (for help &rarr; `cf gf --help`)
+## Running the Plugin:
+1. Clone the repository 
+  - `git clone git@github.com:gemfire/cloudcache-management-cf-plugin.git`
+2. Build `gf.go` 
+  - `go build gf.go`
+3. Install the plugin 
+  - `cf install-plugin gf`
+4. Run commands 
+
+5. help
+  - `cf gf --help`
     
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"code.cloudfoundry.org/cli/cf/errors"
 	"code.cloudfoundry.org/cli/plugin"
 	"crypto/tls"
@@ -13,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	//"flag"
 )
 
 type BasicPlugin struct{}
@@ -24,6 +26,7 @@ type ServiceKeyUsers struct {
 
 type ServiceKeyUrls struct {
 	Management string `json:"management"`
+	Gfsh string `json:"gfsh"`
 }
 
 type ServiceKey struct {
@@ -31,11 +34,16 @@ type ServiceKey struct {
 	Users []ServiceKeyUsers `json:"users"`
 }
 
-type ClusterManagementResult struct {
+type ClusterManagementResults struct {
 	StatusCode string `json:"statusCode"`
 	StatusMessage string `json:"statusMessage"`
 	MemberStatus []MemberStatus `json:"memberStatus"`
-	Result []map[string]interface{} `json:"result"`
+	Results []IndividualClusterManagementResult `json:"result"`
+}
+
+type IndividualClusterManagementResult struct {
+	Config map[string]interface{} `json:"config"`
+	RuntimeInfo []map[string]interface{} `json:"runtimeInfo"`
 }
 
 type MemberStatus struct {
@@ -44,15 +52,20 @@ type MemberStatus struct {
 	Message string
 }
 
+type PostJson struct {
+	name string `json:"name"`
+	_type string `json:"type"`
+}
+
 const MissingInformationMessage string = `Your request was denied.
 You are missing a username, password, or the correct endpoint.
 
-For help see: cf gf --help
+For help see: cf pcc --help
 `
 const IncorrectUserInputMessage string = `Your request was denied.
 The format of your request is incorrect.
 
-For help see: cf gf --help
+For help see: cf pcc --help
 `
 
 const NoServiceKeyMessage string = `Please create a service key for %s.
@@ -67,49 +80,53 @@ const InvalidServiceKeyResponse string = `The cf service-key response is invalid
 const ProvidedUsernameAndNotPassword string = `You did not specify your password.
 Please enter username and password:
 
-	cf gf %s %s -u=%s -p=<your_password>
+	cf pcc %s %s -u=%s -p=<your_password>
 
-For help see: cf gf --help
+For help see: cf pcc --help
 `
 const ProvidedPasswordAndNotUsername string = `You did not specify your username.
 Please enter username and password:
 
-	cf gf %s %s -u=<your_username> -p=%s
+	cf pcc %s %s -u=<your_username> -p=%s
 
-For help see: cf gf --help
+For help see: cf pcc --help
 `
 const NoRegionGivenMessage string = `You need to provide a region to list your indexes from.
 The proper format is:
 
-	cf gf list-indexes %s -r=<your_region>
+	cf pcc %s list regions -r=<your_region>
 
 To see your available regions:
 	
-	cf gf list-regions %s
+	cf pcc %s list regions
 
-For help see: cf gf --help
+For help see: cf pcc --help
 `
 const NotAuthenticatedMessage string = `The username and password is incorrect.
 
-For help see: cf gf --help
+For help see: cf pcc --help
 `
 const NonExistentRegionMessage string = `The region you selected does not exist.
 To see your active regions, enter:
 	
-	cf gf list-regions %s
+	cf pcc %s list regions
 
-For help see: cf gf --help
+For help see: cf pcc --help
 `
 const NeedToProvideUsernamePassWordMessage string = `You need to provide your username and password.
-The proper format is: cf gf %s %s -u=<your_username> -p=<your_password>
+The proper format is: cf pcc %s %s -u=<your_username> -p=<your_password>
 
-For help see: cf gf --help
+For help see: cf pcc --help
 `
 const UnsupportedClusterCommandMessage string = `You entered an unsupported cluster command.
 
-For help see: cf gf --help`
+For help see: cf pcc --help`
 
 const Ellipsis string = "…"
+
+var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region, group, regionJSONfile, ca_cert, httpAction string
+var hasGroup, isJSONOutput = false, false
+
 
 func GetServiceKeyFromPCCInstance(cf cfservice.CfService, pccService string) (serviceKey string, err error) {
 	servKeyOutput, err := cf.Cmd("service-keys", pccService)
@@ -160,6 +177,7 @@ func GetUsernamePasswordEndpoint(cf cfservice.CfService, pccService string, key 
 		return "", "", "", err
 	}
 	endpoint = serviceKey.Urls.Management
+	endpoint = strings.TrimSuffix(serviceKey.Urls.Gfsh, "gemfire/v1") + "management/v2"
 	for _ , user := range serviceKey.Users {
 		if strings.HasPrefix(user.Username, "cluster_operator") {
 			username = user.Username
@@ -169,16 +187,16 @@ func GetUsernamePasswordEndpoint(cf cfservice.CfService, pccService string, key 
 	return
 }
 
-func getCompleteEndpoint(endpoint string, clusterCommand string, region string) (string, error){
+func getCompleteEndpoint(endpoint string, clusterCommand string) (string, error){
 	urlEnding := ""
 	switch clusterCommand{
-	case "list-regions":
+	case "list regions":
 		urlEnding = "/regions"
-	case "list-members":
+	case "list members":
 		urlEnding = "/members"
-	case "list-gateway-receivers":
+	case "list gateway-receivers":
 		urlEnding = "/gateways/receivers"
-	case "list-indexes":
+	case "list indexes":
 		if region == ""{
 			return "", errors.New(NoRegionGivenMessage)
 		}
@@ -186,22 +204,24 @@ func getCompleteEndpoint(endpoint string, clusterCommand string, region string) 
 			region = region[1:]
 		}
 		urlEnding = "/regions/" + region + "/indexes"
+	case "post region":
+		urlEnding = "/regions"
 	default:
 		return endpoint, nil
 	}
-	endpoint = endpoint + urlEnding
+	endpoint = endpoint + urlEnding + "?group=" + group
 	return endpoint, nil
 }
 
 func getTableHeadersFromClusterCommand(clusterCommand string) (tableHeaders []string){
 	switch clusterCommand {
-	case "list-regions":
+	case "list regions":
 		tableHeaders = []string{"name", "type", "groups", "entryCount", "regionAttributes"}
-	case "list-members":
+	case "list members":
 		tableHeaders = []string{"id", "host", "status", "pid"}
-	case "list-gateway-receivers":
+	case "list gateway-receivers":
 		tableHeaders = []string{"hostnameForSenders", "uri", "group", "class"}
-	case "list-indexes":
+	case "list indexes":
 		tableHeaders = []string{"name", "type", "fromClause", "expression"}
 	default:
 		return
@@ -209,12 +229,22 @@ func getTableHeadersFromClusterCommand(clusterCommand string) (tableHeaders []st
 	return
 }
 
-func getUrlOutput(endpointUrl string, username string, password string) (urlResponse string, err error){
+func getUrlOutput(endpointUrl string, username string, password string, httpAction string) (urlResponse string, err error){
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
-	req, err := http.NewRequest("GET", endpointUrl, nil)
+	//urlOutput := ClusterManagementResult{}
+	//err = json.Unmarshal([]byte(urlResponse), &urlOutput)
+	postJsonResults := PostJson{}
+	if httpAction == "POST"{
+		err = json.Unmarshal([]byte(regionJSONfile), &postJsonResults)
+	}
+	requestBody, err := json.Marshal(postJsonResults)
+	if err != nil {
+		return "",err
+	}
+	req, err := http.NewRequest(httpAction, endpointUrl, bytes.NewBuffer(requestBody))
 	req.SetBasicAuth(username, password)
 	resp, err := client.Do(req)
 	if err != nil{
@@ -240,8 +270,8 @@ func Fill(columnSize int, value string, filler string) (response string){
 }
 
 
-func GetAnswerFromUrlResponse(clusterCommand string, urlResponse string) (response string, err error){
-	urlOutput := ClusterManagementResult{}
+func GetTableFromUrlResponse(clusterCommand string, urlResponse string) (response string, err error){
+	urlOutput := ClusterManagementResults{}
 	err = json.Unmarshal([]byte(urlResponse), &urlOutput)
 	if err != nil {
 		return "", err
@@ -264,15 +294,21 @@ func GetAnswerFromUrlResponse(clusterCommand string, urlResponse string) (respon
 	response += "\n" + Fill (20 * len(tableHeaders) + 5, "", "-") + "\n"
 
 	memberCount := 0
-	for _, result := range urlOutput.Result{
+	for _, result := range urlOutput.Results{
 		memberCount++
+		if err != nil {
+			return "", err
+		}
 		for _, key := range tableHeaders {
-			if result[key] == nil {
+			if result.RuntimeInfo[0][key] == nil && result.Config[key] == nil {
 				response += Fill(20, "", " ") + "|"
 			} else {
-				resultVal := result[key]
-				if fmt.Sprintf("%T", result[key]) == "float64"{
-					resultVal = fmt.Sprintf("%.0f", result[key])
+				resultVal := result.Config[key]
+				if resultVal == nil{
+					resultVal = result.RuntimeInfo[0][key]
+				}
+				if fmt.Sprintf("%T", resultVal) == "float64"{
+					resultVal = fmt.Sprintf("%.0f", resultVal)
 				}
 				response += Fill(20, fmt.Sprintf("%s",resultVal), " ") + "|"
 			}
@@ -280,13 +316,6 @@ func GetAnswerFromUrlResponse(clusterCommand string, urlResponse string) (respon
 		response += "\n"
 	}
 
-	//if clusterCommand == "list-regions"{
-	//	response += "\nNumber of Regions: " + strconv.Itoa(memberCount)
-	//} else if clusterCommand == "list-members"{
-	//	response += "\nNumber of Members: " + strconv.Itoa(memberCount)
-	//} else if clusterCommand == "list-indexes" {
-	//	response += "\nNumber of Indices in your Region: " + strconv.Itoa(memberCount)
-	//}
 	response += "\nNumber of Results: " + strconv.Itoa(memberCount)
 	if strings.Contains(response, Ellipsis){
 		response += "\nTo see the full output, append -j to your command."
@@ -296,7 +325,7 @@ func GetAnswerFromUrlResponse(clusterCommand string, urlResponse string) (respon
 
 
 func GetJsonFromUrlResponse(urlResponse string) (jsonOutput string, err error){
-	urlOutput := ClusterManagementResult{}
+	urlOutput := ClusterManagementResults{}
 	err = json.Unmarshal([]byte(urlResponse), &urlOutput)
 	if err != nil {
 		return "", err
@@ -309,68 +338,9 @@ func GetJsonFromUrlResponse(urlResponse string) (jsonOutput string, err error){
 	return
 }
 
-func isRegionInGroups(regionInGroup bool, groupsWeHave []string, groupsWeWant []string) (isInGroups bool){
-	if regionInGroup{
-		isInGroups = true
-		return
-	}
-	for _, group := range groupsWeWant{
-		for  _, regionName := range groupsWeHave {
-			if regionName == group{
-				isInGroups = true
-				return
-			}
-		}
-	}
-	isInGroups = false
-	return
-}
-
-func EditResponseOnGroup(urlResponse string, groups []string, clusterCommand string) (editedUrlResponse string, err error){
-	urlOutput := ClusterManagementResult{}
-	err = json.Unmarshal([]byte(urlResponse), &urlOutput)
-	if err != nil {
-		return "", err
-	}
-	var newUrlOutputResult string
-	var newResult []map[string]interface{}
-	for _, result := range urlOutput.Result{
-		regionInGroups:= false
-		for _, key :=range getTableHeadersFromClusterCommand(clusterCommand){
-			if key == "groups"{
-				regionInGroups = isRegionInGroups(regionInGroups, toSlice(result[key]), groups)
-			}
-			if regionInGroups{
-				break
-			}
-		}
-		if regionInGroups{
-			newUrlOutputResult += fmt.Sprintf("%s",result)
-			newResult = append(newResult, result)
-		}
-	}
-	urlOutput.Result = newResult
-	byteResponse, err := json.Marshal(urlOutput)
-	if err != nil {
-		return "", err
-	}
-	editedUrlResponse = string(byteResponse)
-	return
-}
-
-// Convert an implicit slice of strings, represented by interface{}, into an actual []string
-func toSlice(input interface{}) []string {
-	result := make([]string, 0)
-	if input != nil {
-		for _, entry := range input.([]interface{}) {
-			result = append(result, entry.(string))
-		}
-	}
-	return result
-}
 
 func isSupportedClusterCommand(clusterCommandFromUser string) (error){
-	clusterCommandsWeSupport := []string{"list-members", "list-regions", "list-gateway-receivers", "list-indexes"}
+	clusterCommandsWeSupport := []string{"list members", "list regions", "list gateway-receivers", "list indexes", "post region"}
 	for _,command := range clusterCommandsWeSupport{
 		if clusterCommandFromUser == command{
 			return nil
@@ -379,33 +349,35 @@ func isSupportedClusterCommand(clusterCommandFromUser string) (error){
 	return errors.New(UnsupportedClusterCommandMessage)
 }
 
+
 func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
+	cfClient := &cfservice.Cf{}
 	start := time.Now()
 	if args[0] == "CLI-MESSAGE-UNINSTALL"{
 		return
 	}
 	var err error
-	var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region string
-	var groups []string
-	if len(args) >= 3 {
-		pccInUse = args[2]
-		clusterCommand = args[1]
+	//var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region string
+	if len(args) >= 4 {
+		pccInUse = args[1]
+		clusterCommand = args[2] + " " + args[3]
 	} else{
 		fmt.Println(IncorrectUserInputMessage)
 		return
 	}
+
 	err = isSupportedClusterCommand(clusterCommand)
 	if err != nil{
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	if os.Getenv("CFLOGIN") != "" && os.Getenv("CFPASSWORD") != "" && os.Getenv("CFENDPOINT") != "" {
+	// at this point, we have a valid clusterCommand
+
+	if os.Getenv("CFLOGIN") != "" && os.Getenv("CFPASSWORD") != ""{
 		username = os.Getenv("CFLOGIN")
 		password = os.Getenv("CFPASSWORD")
-		endpoint = os.Getenv("CFENDPOINT")
 	} else {
 		var err error
-		cfClient := &cfservice.Cf{}
 		serviceKey, err =  GetServiceKeyFromPCCInstance(cfClient, pccInUse)
 		if err != nil{
 			fmt.Printf(err.Error(), pccInUse, pccInUse)
@@ -417,64 +389,71 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 			os.Exit(1)
 		}
 	}
+
 	if err != nil{
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	hasJ, hasG, hasU, hasP := false, false, false, false
 	for _, arg := range args {
 		if strings.HasPrefix(arg, "-g="){
-			hasG = true
-			groups = strings.Split(arg[3:], ",")
+			hasGroup = true
+			group = arg[3:]
 			if err != nil{
 				fmt.Println(err.Error())
 				os.Exit(1)
 			}
 		} else if arg == "-j"{
-			hasJ = true
+			isJSONOutput = true
 		} else if strings.HasPrefix(arg, "-r="){
 			region = arg[3:]
 		} else if strings.HasPrefix(arg, "-u="){
-			hasU = true
 			username = arg[3:]
 		} else if strings.HasPrefix(arg, "-p="){
 			password = arg[3:]
-			hasP = true
+		} else if strings.HasPrefix(arg, "-j="){
+			regionJSONfile = arg[3:]
+		} else if strings.HasPrefix(arg, "-cacert="){
+			ca_cert=arg[8:]
 		}
 	}
-	if (hasU && !hasP) {
-		err = errors.New(ProvidedUsernameAndNotPassword)
-		fmt.Printf(err.Error(), clusterCommand, pccInUse, username)
+
+	if username == "" && password == "" {
+		fmt.Println(NeedToProvideUsernamePassWordMessage, pccInUse, clusterCommand)
 		os.Exit(1)
-	} else if(!hasU && hasP){
+	} else if username != "" && password == "" {
+		err = errors.New(ProvidedUsernameAndNotPassword)
+		fmt.Printf(err.Error(), pccInUse, clusterCommand, username)
+		os.Exit(1)
+	} else if username=="" && password!="" {
 		err = errors.New(ProvidedPasswordAndNotUsername)
-		fmt.Printf(err.Error(), clusterCommand, pccInUse, password)
+		fmt.Printf(err.Error(), pccInUse, clusterCommand, password)
 		os.Exit(1)
 	}
-	endpoint, err = getCompleteEndpoint(endpoint, clusterCommand, region)
+
+	// at this point, we should have non-empty username and password
+	endpoint, err = getCompleteEndpoint(endpoint, clusterCommand)
 	if err != nil{
 		fmt.Printf(err.Error(), pccInUse, pccInUse)
 		os.Exit(1)
 	}
-	urlResponse, err := getUrlOutput(endpoint, username, password)
-	if err != nil{
+
+	//preform post commands
+	if strings.HasPrefix(clusterCommand, "post"){
+		httpAction = "POST"
+		fmt.Println(endpoint)
+	} else {
+		httpAction = "GET"
+
+	}
+
+	urlResponse, err := getUrlOutput(endpoint, username, password, httpAction)
+	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	if hasG{
-		urlResponse, err = EditResponseOnGroup(urlResponse, groups, clusterCommand)
-	}
-	if hasJ{
-		jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
-		if err != nil{
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-		fmt.Println(jsonToBePrinted)
-		return
-	}
-	if username != "" && password != "" && clusterCommand != "" && endpoint != "" {
-		answer, err := GetAnswerFromUrlResponse(clusterCommand, urlResponse)
+
+	if !isJSONOutput{
+		answer, err := GetTableFromUrlResponse(clusterCommand, urlResponse)
 		if err != nil{
 			if err.Error() == NotAuthenticatedMessage{
 				fmt.Printf(err.Error())
@@ -486,18 +465,22 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println()
 		fmt.Println(answer)
 		fmt.Println()
-	} else if username == "" && password == "" &&clusterCommand != "" && endpoint != ""{
-		fmt.Println(NeedToProvideUsernamePassWordMessage, clusterCommand, pccInUse)
+		t := time.Now()
+		fmt.Println(t.Sub(start))
 	} else {
-		fmt.Println(MissingInformationMessage)
+		jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+		fmt.Println(jsonToBePrinted)
 	}
-	t := time.Now()
-	fmt.Println(t.Sub(start))
+	return
 }
 
 func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
-		Name: "GF_InDev",
+		Name: "PCC_InDev",
 		Version: plugin.VersionType{
 			Major: 1,
 			Minor: 0,
@@ -510,20 +493,22 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 		},
 		Commands: []plugin.Command{
 			{
-				Name:     "gf",
-				HelpText: "gf's help text",
+				Name:     "pcc",
+				HelpText: "Commands to interact with geode cluster.\n",
 				UsageDetails: plugin.Usage{
-					Usage: "	cf  gf  <action>  <pcc_instance>  [*options]  (* = optional)\n" +
-						"	Actions: \n" +
-						"		list-regions, list-members, list-gateway-receivers, list-indexes\n" +
-						"	Options: \n" +
-						"		-h : this help screen\n" +
-						"		-j : json output of API endpoint\n" +
-						"		-g : followed by equals group(s), split by comma, only data within those groups\n" +
-						"			(example: cf gf list-regions -g=group1,group2)\n" +
-						"		-u : followed by equals username (-u=<your_username>)\n" +
-						"		-p : followed by equals password (-p=<your_password>)\n" +
-						"		-r : followed by equals region (-p=<your_region>)",
+					Usage: "	cf  pcc  <pcc_instance>  <action>  <data_type>  [*options]  (* = optional)\n\n" +
+						"	Actions: list, post" +
+						"	Data Types: regions, members, gateway-receivers, indexes\n",
+					Options: map[string]string{
+						"h" : "this help screen\n",
+						"g" : "followed by equals group(s), split by comma, only data within those groups\n"+
+						"		(example: cf pcc <instance> list-regions -g=group1)\n",
+						"u" : "followed by equals username (-u=<your_username>) [$CFLOGIN]\n",
+						"p" : "followed by equals password (-p=<your_password>) [$CFPASSWORD]\n",
+						"r" : "followed by equals region (-r=<your_region>)\n",
+						"j" : "json input for region post",
+						"cacert" : "ca-certification needed to post region",
+					},
 				},
 			},
 		},

@@ -12,15 +12,15 @@
     * `cf create-service-key myPCCInstance myKey`
 
 ## Running the Plugin:
-1. Clone the repository 
+1. Clone the Repository 
     - `git clone git@github.com:gemfire/cloudcache-management-cf-plugin.git`
-2. Build `pcc.go` 
-    - `go build pcc.go`
-3. Install the plugin 
+2. Build the Plugin 
+    - Enter `go build` from the `cloudcache-management-cf-plugin` directory
+3. Install the Plugin 
     - `cf install-plugin pcc`
-4. Run commands 
+4. Run Commands 
 
-5. help
+5. For Help
     - `cf pcc --help`
     
 

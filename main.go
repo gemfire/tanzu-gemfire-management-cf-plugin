@@ -7,13 +7,14 @@ import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
 	"os"
 	"strings"
-	"time"
 )
 
 
-var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region, group, regionJSONfile, ca_cert, httpAction string
+var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region, regionJSONfile, group, ca_cert, httpAction string
 var hasGroup, isJSONOutput = false, false
 
+var parameters map[string]string
+var APICallStruct RestAPICall
 
 
 func main() {
@@ -22,7 +23,7 @@ func main() {
 
 func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	cfClient := &cfservice.Cf{}
-	start := time.Now()
+	//start := time.Now()
 	if args[0] == "CLI-MESSAGE-UNINSTALL"{
 		return
 	}
@@ -32,11 +33,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	err = isSupportedClusterCommand(clusterCommand)
-	if err != nil{
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
+
 	// at this point, we have a valid clusterCommand
 	serviceKey, err =  GetServiceKeyFromPCCInstance(cfClient, pccInUse)
 	if err != nil{
@@ -59,8 +56,10 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+	APICallStruct.parameters = make(map[string]string)
 	for _, arg := range args {
 		if strings.HasPrefix(arg, "-g="){
+			APICallStruct.parameters["g"] = "true"
 			hasGroup = true
 			group = arg[3:]
 			if err != nil{
@@ -68,17 +67,18 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 				os.Exit(1)
 			}
 		} else if arg == "-j"{
+			APICallStruct.parameters["j"] ="true"
 			isJSONOutput = true
 		} else if strings.HasPrefix(arg, "-r="){
+			APICallStruct.parameters["r"] = "true"
 			region = arg[3:]
 		} else if strings.HasPrefix(arg, "-u="){
 			username = arg[3:]
 		} else if strings.HasPrefix(arg, "-p="){
 			password = arg[3:]
-		} else if strings.HasPrefix(arg, "-j="){
-			regionJSONfile = arg[3:]
 		} else if strings.HasPrefix(arg, "-cacert="){
 			ca_cert=arg[8:]
+			APICallStruct.parameters["cacert"] = ca_cert
 		}
 	}
 
@@ -95,51 +95,48 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		os.Exit(1)
 	}
 
-	// at this point, we should have non-empty username and password
-	endpoint, err = getCompleteEndpoint(endpoint, clusterCommand)
+	//Todo method needed
+	//TODO some http call pass the APICallStruct as param
+	httpAction, err := getHttpRequestMethod(APICallStruct)
 	if err != nil{
-		fmt.Printf(err.Error(), pccInUse, pccInUse)
+		fmt.Printf(err.Error(), httpAction)
 		os.Exit(1)
-	}
-
-	//preform post commands
-	if strings.HasPrefix(clusterCommand, "post"){
-		httpAction = "POST"
-	} else {
-		httpAction = "GET"
-
 	}
 	urlResponse, err := getUrlOutput(endpoint, username, password, httpAction)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
+	fmt.Println(urlResponse)
 
-	if !isJSONOutput{
-		answer, err := GetTableFromUrlResponse(clusterCommand, urlResponse)
+	//urlResponse := "" //todo INSERT SOMETHING FROM NEW API ENDPOINT
+	//if !isJSONOutput{
+	//	answer, err := GetTableFromUrlResponse(clusterCommand, urlResponse)
+	//
+	//	if err != nil{
+	//		if err.Error() == NotAuthenticatedMessage{
+	//			fmt.Printf(err.Error())
+	//			os.Exit(1)
+	//		}
+	//		fmt.Printf(err.Error(), pccInUse)
+	//		os.Exit(1)
+	//	}
+	//
+	//	fmt.Println()
+	//	fmt.Println(answer)
+	//	fmt.Println()
+	//	t := time.Now()
+	//	fmt.Println(t.Sub(start))
+	//} else {
+	//	jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
+	//	if err != nil {
+	//		fmt.Println(err.Error())
+	//		os.Exit(1)
+	//	}
+	//	fmt.Println(jsonToBePrinted)
+	//}
 
-		if err != nil{
-			if err.Error() == NotAuthenticatedMessage{
-				fmt.Printf(err.Error())
-				os.Exit(1)
-			}
-			fmt.Printf(err.Error(), pccInUse)
-			os.Exit(1)
-		}
-
-		fmt.Println()
-		fmt.Println(answer)
-		fmt.Println()
-		t := time.Now()
-		fmt.Println(t.Sub(start))
-	} else {
-		jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-		fmt.Println(jsonToBePrinted)
-	}
+	fmt.Println(username)
+	fmt.Println(password)
+	fmt.Println(endpoint)
+	fmt.Println(httpAction)
+	fmt.Printf("%+v\n", APICallStruct)
 	return
 }
 
@@ -162,7 +159,7 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 				HelpText: "Commands to interact with geode cluster.\n",
 				UsageDetails: plugin.Usage{
 					Usage: "	cf  pcc  <*pcc_instance>  <action>  <data_type>  [*options]  (* = optional)\n\n" +
-						"	Actions: list, post\n\n" +
+						"	Actions: list, create, get, delete\n\n" +
 						"	Data Types: regions, members, gateway-receivers, indexes\n\n" +
 						"	Note: pcc_instance can be saved at [$CFPCC], then omit pcc_instance from command ",
 					Options: map[string]string{

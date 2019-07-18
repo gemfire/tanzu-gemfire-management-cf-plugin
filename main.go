@@ -7,7 +7,6 @@ import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
 	"os"
 	"strings"
-	"time"
 )
 
 
@@ -22,7 +21,6 @@ func main() {
 
 func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	cfClient := &cfservice.Cf{}
-	start := time.Now()
 	if args[0] == "CLI-MESSAGE-UNINSTALL"{
 		return
 	}
@@ -130,8 +128,6 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println()
 		fmt.Println(answer)
 		fmt.Println()
-		t := time.Now()
-		fmt.Println(t.Sub(start))
 	} else {
 		jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
 		if err != nil {
@@ -162,7 +158,7 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 				HelpText: "Commands to interact with geode cluster.\n",
 				UsageDetails: plugin.Usage{
 					Usage: "	cf  pcc  <*pcc_instance>  <action>  <data_type>  [*options]  (* = optional)\n\n" +
-						"	Actions: list, post\n\n" +
+						"	Actions: list\n\n" +
 						"	Data Types: regions, members, gateway-receivers, indexes\n\n" +
 						"	Note: pcc_instance can be saved at [$CFPCC], then omit pcc_instance from command ",
 					Options: map[string]string{

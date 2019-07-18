@@ -6,13 +6,17 @@ import (
 	"fmt"
 	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
 	"os"
-	"strings"
 )
 
 
-var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region, group, regionJSONfile, ca_cert, httpAction string
+var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region, jsonFile, group, id string
 var hasGroup, isJSONOutput = false, false
 
+var APICallStruct RestAPICall
+var firstResponse SwaggerInfo
+var availableEndpoints []IndividualEndpoint
+var indivEndpoint IndividualEndpoint
+const firstEndpoint = "http://localhost:7070/management/experimental/api-docs"
 
 
 func main() {
@@ -30,11 +34,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	err = isSupportedClusterCommand(clusterCommand)
-	if err != nil{
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
+
 	// at this point, we have a valid clusterCommand
 	serviceKey, err =  GetServiceKeyFromPCCInstance(cfClient, pccInUse)
 	if err != nil{
@@ -44,9 +44,9 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	if os.Getenv("CFLOGIN") != "" && os.Getenv("CFPASSWORD") != ""{
 		username = os.Getenv("CFLOGIN")
 		password = os.Getenv("CFPASSWORD")
-		_, _, endpoint, err = GetUsernamePasswordEndpoint(cfClient, pccInUse, serviceKey)
+		_, _, endpoint, err = GetUsernamePasswordEndpoint(cfClient)
 	} else {
-		username, password, endpoint, err = GetUsernamePasswordEndpoint(cfClient, pccInUse, serviceKey)
+		username, password, endpoint, err = GetUsernamePasswordEndpoint(cfClient)
 		if err != nil{
 			fmt.Println(GenericErrorMessage, err.Error())
 			os.Exit(1)
@@ -57,32 +57,16 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	for _, arg := range args {
-		if strings.HasPrefix(arg, "-g="){
-			hasGroup = true
-			group = arg[3:]
-			if err != nil{
-				fmt.Println(err.Error())
-				os.Exit(1)
-			}
-		} else if arg == "-j"{
-			isJSONOutput = true
-		} else if strings.HasPrefix(arg, "-r="){
-			region = arg[3:]
-		} else if strings.HasPrefix(arg, "-u="){
-			username = arg[3:]
-		} else if strings.HasPrefix(arg, "-p="){
-			password = arg[3:]
-		} else if strings.HasPrefix(arg, "-j="){
-			regionJSONfile = arg[3:]
-		} else if strings.HasPrefix(arg, "-cacert="){
-			ca_cert=arg[8:]
-		}
+	APICallStruct.parameters = make(map[string]string)
+
+	err = parseArguments(args)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
 	}
 
-
 	if username == "" && password == "" {
-		fmt.Println(NeedToProvideUsernamePassWordMessage, pccInUse, clusterCommand)
+		fmt.Printf(NeedToProvideUsernamePassWordMessage, pccInUse, clusterCommand)
 		os.Exit(1)
 	} else if username != "" && password == "" {
 		err = errors.New(ProvidedUsernameAndNotPassword)
@@ -94,51 +78,48 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		os.Exit(1)
 	}
 
-	// at this point, we should have non-empty username and password
-	endpoint, err = getCompleteEndpoint(endpoint, clusterCommand)
-	if err != nil{
-		fmt.Printf(err.Error(), pccInUse, pccInUse)
-		os.Exit(1)
-	}
 
-
-	//preform post commands
-	if strings.HasPrefix(clusterCommand, "post"){
-		httpAction = "POST"
-	} else {
-		httpAction = "GET"
-
-	}
-	urlResponse, err := getUrlOutput(endpoint, username, password, httpAction)
+	err = executeFirstRequest()
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	if !isJSONOutput{
-		answer, err := GetTableFromUrlResponse(clusterCommand, urlResponse)
-
-		if err != nil{
-			if err.Error() == NotAuthenticatedMessage{
-				fmt.Printf(err.Error())
-				os.Exit(1)
-			}
-			fmt.Printf(err.Error(), pccInUse)
-			os.Exit(1)
-		}
-
-
-		fmt.Println()
-		fmt.Println(answer)
-		fmt.Println()
-	} else {
-		jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-		fmt.Println(jsonToBePrinted)
+	indivEndpoint, err = mapUserInputToAvailableEndpoint()
+	if err != nil{
+		fmt.Println(err.Error())
+		os.Exit(1)
 	}
+
+	err = hasIDifNeeded()
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	err = hasRegionIfNeeded()
+	if err != nil {
+		fmt.Printf(err.Error(), pccInUse)
+		os.Exit(1)
+	}
+	urlResponse, err := executeSecondRequest()
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
+	if err != nil {
+		fmt.Print(err.Error())
+		os.Exit(1)
+	}
+	fmt.Println(jsonToBePrinted)
+
+	//table, err := GetTableFromUrlResponse(APICallStruct.command, urlResponse)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	os.Exit(1)
+	//}
+	//fmt.Println(table)
 	return
 }
 
@@ -161,16 +142,17 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 				HelpText: "Commands to interact with geode cluster.\n",
 				UsageDetails: plugin.Usage{
 					Usage: "	cf  pcc  <*pcc_instance>  <action>  <data_type>  [*options]  (* = optional)\n\n" +
-						"	Actions: list\n\n" +
-						"	Data Types: regions, members, gateway-receivers, indexes\n\n" +
-						"	Note: pcc_instance can be saved at [$CFPCC], then omit pcc_instance from command ",
+						"Supported commands:	" +
+						printAvailableCommands()+
+						"\nNote: pcc_instance can be saved at [$CFPCC], then omit <pcc_instance> from command ",
 					Options: map[string]string{
 						"h" : "this help screen\n",
 						"u" : "followed by equals username (-u=<your_username>) [$CFLOGIN]\n",
 						"p" : "followed by equals password (-p=<your_password>) [$CFPASSWORD]\n",
 						"r" : "followed by equals region (-r=<your_region>)\n",
-						"j" : "json input for region post\n",
-						"cacert" : "ca-certification needed to post region\n",
+						"id" : "followed by an identifier required for any get command\n",
+						"d" : "followed by @<json_file_path> OR single quoted JSON input \n" +
+							"	     JSON required for creating/post commands\n",
 					},
 				},
 			},

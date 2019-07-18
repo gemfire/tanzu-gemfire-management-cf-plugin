@@ -16,25 +16,24 @@ type ServiceKey struct {
 	Users []ServiceKeyUsers `json:"users"`
 }
 
-type ClusterManagementResults struct {
-	StatusCode string `json:"statusCode"`
-	StatusMessage string `json:"statusMessage"`
-	MemberStatus []MemberStatus `json:"memberStatus"`
-	Results []IndividualClusterManagementResult `json:"result"`
+type RestAPICall struct {
+	command string
+	parameters map[string]string
 }
 
-type IndividualClusterManagementResult struct {
-	Config map[string]interface{} `json:"config"`
-	RuntimeInfo []map[string]interface{} `json:"runtimeInfo"`
+type IndividualEndpoint struct {
+	HttpMethod string 	`json:"httpMethod"`
+	Url string 			`json:"url"`
+	CommandCall string 	`json:"summary"`
 }
 
-type MemberStatus struct {
-	ServerName string
-	Success bool
-	Message string
+
+type SwaggerInfo struct {
+	Paths map[string]map[string]FurtherEndpointDetails `json:"paths"`
 }
 
-type PostJson struct {
-	name string `json:"name"`
-	_type string `json:"type"`
+type FurtherEndpointDetails struct {
+	Summary string `json:"summary"`
 }
+
+

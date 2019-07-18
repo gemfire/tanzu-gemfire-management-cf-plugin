@@ -16,8 +16,8 @@
 ## Running the Plugin:
 1. Clone the Repository 
     - `git clone git@github.com:gemfire/cloudcache-management-cf-plugin.git`
-2. Start the Plugin 
-    - Run `./start.sh` from the `cloudcache-management-cf-plugin` directory
+2. Run the start script
+    -  `./start.sh` from the `cloudcache-management-cf-plugin` directory
 3. Run Commands 
 
 4. For Help

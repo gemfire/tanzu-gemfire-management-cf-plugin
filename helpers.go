@@ -1,17 +1,16 @@
 package main
 
 import (
-	"bytes"
+	"code.cloudfoundry.org/cli/cf/errors"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
+	"io"
 	"io/ioutil"
 	"net/http"
-	"strconv"
-	"strings"
-	"code.cloudfoundry.org/cli/cf/errors"
-	"fmt"
 	"os"
+	"strings"
 )
 
 func GetServiceKeyFromPCCInstance(cf cfservice.CfService, pccService string) (serviceKey string, err error) {
@@ -41,11 +40,11 @@ func GetServiceKeyFromPCCInstance(cf cfservice.CfService, pccService string) (se
 	return
 }
 
-func GetUsernamePasswordEndpoint(cf cfservice.CfService, pccService string, key string) (username string, password string, endpoint string, err error) {
+func GetUsernamePasswordEndpoint(cf cfservice.CfService) (username string, password string, endpoint string, err error) {
 	username = ""
 	password = ""
 	endpoint = ""
-	keyInfo, err := cf.Cmd("service-key", pccService, key)
+	keyInfo, err := cf.Cmd("service-key", pccInUse, serviceKey)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -55,7 +54,6 @@ func GetUsernamePasswordEndpoint(cf cfservice.CfService, pccService string, key 
 	}
 	splitKeyInfo = splitKeyInfo[2:] //take out first two lines of cf service-key ... output
 	joinKeyInfo := strings.Join(splitKeyInfo, "\n")
-
 	serviceKey := ServiceKey{}
 
 	err = json.Unmarshal([]byte(joinKeyInfo), &serviceKey)
@@ -63,7 +61,7 @@ func GetUsernamePasswordEndpoint(cf cfservice.CfService, pccService string, key 
 		return "", "", "", err
 	}
 	endpoint = serviceKey.Urls.Management
-	endpoint = strings.TrimSuffix(serviceKey.Urls.Gfsh, "gemfire/v1") + "management/v2"
+	endpoint = strings.TrimSuffix(serviceKey.Urls.Gfsh, "gemfire/v1") + "management/experimental/cli"
 	for _ , user := range serviceKey.Users {
 		if strings.HasPrefix(user.Username, "cluster_operator") {
 			username = user.Username
@@ -73,68 +71,58 @@ func GetUsernamePasswordEndpoint(cf cfservice.CfService, pccService string, key 
 	return
 }
 
-func getCompleteEndpoint(endpoint string, clusterCommand string) (string, error){
-	urlEnding := ""
-	switch clusterCommand{
-	case "list regions":
-		urlEnding = "/regions"
-	case "list members":
-		urlEnding = "/members"
-	case "list gateway-receivers":
-		urlEnding = "/gateways/receivers"
-	case "list indexes":
-		if region == ""{
-			return "", errors.New(NoRegionGivenMessage)
-		}
-		if strings.HasPrefix(region, "/"){
-			region = region[1:]
-		}
-		urlEnding = "/regions/" + region + "/indexes"
-	case "post region":
-		urlEnding = "/regions"
-	default:
-		return endpoint, nil
-	}
-	endpoint = endpoint + urlEnding + "?group=" + group
-	return endpoint, nil
-}
 
-func getTableHeadersFromClusterCommand(clusterCommand string) (tableHeaders []string){
-	switch clusterCommand {
-	case "list regions":
-		tableHeaders = []string{"name", "type", "groups", "entryCount", "regionAttributes"}
-	case "list members":
-		tableHeaders = []string{"id", "host", "status", "pid"}
-	case "list gateway-receivers":
-		tableHeaders = []string{"hostnameForSenders", "uri", "group", "class"}
-	case "list indexes":
-		tableHeaders = []string{"name", "type", "fromClause", "expression"}
-	default:
-		return
+func executeCommand(endpointUrl string, httpAction string) (urlResponse string, err error){
+	if httpAction == "POST"{
+		return executePostCommand(endpointUrl)
 	}
-	return
-}
-
-func getUrlOutput(endpointUrl string, username string, password string, httpAction string) (urlResponse string, err error){
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
-	postJsonResults := PostJson{}
-	if httpAction == "POST"{
-		err = json.Unmarshal([]byte(regionJSONfile), &postJsonResults)
-	}
-	requestBody, err := json.Marshal(postJsonResults)
+
 	if err != nil {
 		return "", err
 	}
-	req, err := http.NewRequest(httpAction, endpointUrl, bytes.NewBuffer(requestBody))
+
+	req, err := http.NewRequest(httpAction, endpointUrl, nil)
 	req.SetBasicAuth(username, password)
 	resp, err := client.Do(req)
 	if err != nil{
 		return "", err
 	}
+	return getUrlOutput(resp)
+}
 
+func executePostCommand(endpointUrl string) (urlResponse string, err error){
+	if jsonFile == ""{
+		return "", errors.New(NoJsonFileProvidedMessage)
+	}
+	var f io.Reader
+	var req *http.Request
+	if jsonFile[0] == '@' && len(jsonFile) > 1{
+		f, err = os.Open(jsonFile[1:])
+		if err != nil {
+			return "", err
+		}
+	} else{
+		f = strings.NewReader(jsonFile)
+	}
+	req, err = http.NewRequest("POST", endpointUrl, f)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	return getUrlOutput(resp)
+}
+
+func getUrlOutput(resp *http.Response) (urlResponse string, err error) {
 	respInAscii, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil{
@@ -142,97 +130,7 @@ func getUrlOutput(endpointUrl string, username string, password string, httpActi
 	}
 
 	urlResponse = fmt.Sprintf("%s", respInAscii)
-	return
-}
-
-func Fill(columnSize int, value string, filler string) (response string){
-	if len(value) > columnSize - 1{
-		response = " " + value[:columnSize-len([]rune(Ellipsis)) -1] + Ellipsis
-		return
-	}
-	numFillerChars := columnSize - len(value) - 1
-	response = " " + value + strings.Repeat(filler, numFillerChars)
-	return
-}
-
-
-func GetTableFromUrlResponse(clusterCommand string, urlResponse string) (response string, err error){
-	urlOutput := ClusterManagementResults{}
-	err = json.Unmarshal([]byte(urlResponse), &urlOutput)
-	if err != nil {
-		return "", err
-	}
-	if urlOutput.StatusCode == "UNAUTHENTICATED"{
-		return "", errors.New(NotAuthenticatedMessage)
-	} else if urlOutput.StatusCode == "ENTITY_NOT_FOUND"{
-		return "", errors.New(NonExistentRegionMessage)
-	}
-	response = "Status Code: " + urlOutput.StatusCode + "\n"
-	if urlOutput.StatusMessage != ""{
-		response += "Status Message: " + urlOutput.StatusMessage + "\n"
-	}
-	response += "\n"
-
-	tableHeaders := getTableHeadersFromClusterCommand(clusterCommand)
-	for _, header := range tableHeaders {
-		response += Fill(20, header, " ") + "|"
-	}
-	response += "\n" + Fill (20 * len(tableHeaders) + 5, "", "-") + "\n"
-
-	memberCount := 0
-	for _, result := range urlOutput.Results{
-		memberCount++
-		if err != nil {
-			return "", err
-		}
-		for _, key := range tableHeaders {
-			if result.RuntimeInfo[0][key] == nil && result.Config[key] == nil {
-				response += Fill(20, "", " ") + "|"
-			} else {
-				resultVal := result.Config[key]
-				if resultVal == nil{
-					resultVal = result.RuntimeInfo[0][key]
-				}
-				if fmt.Sprintf("%T", resultVal) == "float64"{
-					resultVal = fmt.Sprintf("%.0f", resultVal)
-				}
-				response += Fill(20, fmt.Sprintf("%s",resultVal), " ") + "|"
-			}
-		}
-		response += "\n"
-	}
-
-	response += "\nNumber of Results: " + strconv.Itoa(memberCount)
-	if strings.Contains(response, Ellipsis){
-		response += "\nTo see the full output, append -j to your command."
-	}
-	return
-}
-
-
-func GetJsonFromUrlResponse(urlResponse string) (jsonOutput string, err error){
-	urlOutput := ClusterManagementResults{}
-	err = json.Unmarshal([]byte(urlResponse), &urlOutput)
-	if err != nil {
-		return "", err
-	}
-	jsonExtracted, err := json.MarshalIndent(urlOutput, "", "  ")
-	if err != nil {
-		return "", err
-	}
-	jsonOutput = string(jsonExtracted)
-	return
-}
-
-
-func isSupportedClusterCommand(clusterCommandFromUser string) (error){
-	clusterCommandsWeSupport := []string{"list members", "list regions", "list gateway-receivers", "list indexes", "post region"}
-	for _,command := range clusterCommandsWeSupport{
-		if clusterCommandFromUser == command{
-			return nil
-		}
-	}
-	return errors.New(UnsupportedClusterCommandMessage)
+	return urlResponse, nil
 }
 
 func isUsingPCCfromEnvironmentVariables(args []string) bool{
@@ -245,12 +143,63 @@ func isUsingPCCfromEnvironmentVariables(args []string) bool{
 func getPCCInUseAndClusterCommand(args []string) (error){
 	if isUsingPCCfromEnvironmentVariables(args){
 		pccInUse = os.Getenv("CFPCC")
-		clusterCommand = args[1] + " " + args[2]
-	} else if len(args) >= 4 {
+		APICallStruct.command = args[1]
+		if len(args) > 2 && !strings.HasPrefix(args[2], "-"){
+			APICallStruct.command += " " + args[2]
+		}
+	} else if len(args) >= 3 {
 		pccInUse = args[1]
-		clusterCommand = args[2] + " " + args[3]
+		APICallStruct.command = args[2]
+		if len(args) > 3 && !strings.HasPrefix(args[3], "-"){
+			APICallStruct.command += " " + args[3]
+		}
 	} else{
 		return errors.New(IncorrectUserInputMessage)
+	}
+	return nil
+}
+
+func executeFirstRequest() (error){
+	urlResponse, err := executeCommand(firstEndpoint, "GET")
+	err = json.Unmarshal([]byte(urlResponse), &firstResponse)
+	storeResponse(firstResponse)
+	return err
+}
+
+func storeResponse(pathMap  SwaggerInfo) {
+	for url, v := range pathMap.Paths {
+		for methodType := range v {
+			var endpoint IndividualEndpoint
+			endpoint.Url = url
+			endpoint.HttpMethod = methodType
+			endpoint.CommandCall = pathMap.Paths[url][methodType].Summary
+			availableEndpoints = append(availableEndpoints, endpoint)
+		}
+	}
+}
+
+func executeSecondRequest() (string, error){
+	secondEndpoint := "http://localhost:7070/management" + indivEndpoint.Url
+	urlResponse, err := executeCommand(secondEndpoint, strings.ToUpper(indivEndpoint.HttpMethod))
+	return urlResponse, err
+}
+
+func hasIDifNeeded() (error){
+	if strings.Contains(indivEndpoint.Url, "{id}"){
+		if id == ""{
+			return errors.New(NoIDGivenMessage)
+		}
+		indivEndpoint.Url = strings.Replace(indivEndpoint.Url, "{id}", id, 1)
+	}
+	return nil
+}
+
+func hasRegionIfNeeded() (error){
+	if strings.Contains(indivEndpoint.Url, "{regionName}"){
+		if region == ""{
+			return errors.New(NoRegionGivenMessage)
+		}
+		indivEndpoint.Url = strings.Replace(indivEndpoint.Url, "{regionName}", region, 1)
 	}
 	return nil
 }

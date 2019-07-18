@@ -6,6 +6,8 @@
 * You are logged into CF
     * `cf login…`
        * Credentials can be found in CF Ops Manager &rarr; PAS tile &rarr; UAA &rarr; Admin Credentials
+       * Example: 
+       `cf login --skip-ssl-validation -a https://api.sys.ENVNAME.cf-app.com -u admin -p admin_credential_pw`
 * You have a PCC instance running.
     * `cf create-service p-cloudcache dev-plan myPCCInstance`
 * Your PCC instance has a service key.
@@ -14,13 +16,11 @@
 ## Running the Plugin:
 1. Clone the Repository 
     - `git clone git@github.com:gemfire/cloudcache-management-cf-plugin.git`
-2. Build the Plugin 
-    - Enter `go build` from the `cloudcache-management-cf-plugin` directory
-3. Install the Plugin 
-    - `cf install-plugin pcc`
-4. Run Commands 
+2. Start the Plugin 
+    - Run `./start.sh` from the `cloudcache-management-cf-plugin` directory
+3. Run Commands 
 
-5. For Help
+4. For Help
     - `cf pcc --help`
     
 

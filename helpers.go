@@ -55,7 +55,6 @@ func GetUsernamePasswordEndpoint(cf cfservice.CfService, pccService string, key 
 	}
 	splitKeyInfo = splitKeyInfo[2:] //take out first two lines of cf service-key ... output
 	joinKeyInfo := strings.Join(splitKeyInfo, "\n")
-
 	serviceKey := ServiceKey{}
 
 	err = json.Unmarshal([]byte(joinKeyInfo), &serviceKey)
@@ -228,30 +227,20 @@ func GetTableFromUrlResponse(clusterCommand string, urlResponse string) (respons
 }
 
 
-//func GetJsonFromUrlResponse(urlResponse string) (jsonOutput string, err error){
-//	urlOutput := ClusterManagementResults{}
-//	err = json.Unmarshal([]byte(urlResponse), &urlOutput)
-//	if err != nil {
-//		return "", err
-//	}
-//	jsonExtracted, err := json.MarshalIndent(urlOutput, "", "  ")
-//	if err != nil {
-//		return "", err
-//	}
-//	jsonOutput = string(jsonExtracted)
-//	return
-//}
+func GetJsonFromUrlResponse(urlResponse string) (jsonOutput string, err error){
+	urlOutput := ClusterManagementResults{}
+	err = json.Unmarshal([]byte(urlResponse), &urlOutput)
+	if err != nil {
+		return "", err
+	}
+	jsonExtracted, err := json.MarshalIndent(urlOutput, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	jsonOutput = string(jsonExtracted)
+	return
+}
 
-
-//func isSupportedClusterCommand(clusterCommandFromUser string) (error){
-//	clusterCommandsWeSupport := []string{"list members", "list regions", "list gateway-receivers", "list indexes", "post region"}
-//	for _,command := range clusterCommandsWeSupport{
-//		if clusterCommandFromUser == command{
-//			return nil
-//		}
-//	}
-//	return errors.New(UnsupportedClusterCommandMessage)
-//}
 
 func isUsingPCCfromEnvironmentVariables(args []string) bool{
 	if os.Getenv("CFPCC") != "" && len(args) >= 3 && args[1] != os.Getenv("CFPCC"){
@@ -265,12 +254,12 @@ func getPCCInUseAndClusterCommand(args []string) (error){
 		pccInUse = os.Getenv("CFPCC")
 		APICallStruct.action = args[1]
 		APICallStruct.target = args[2]
-		APICallStruct.command = APICallStruct.action + " " + APICallStruct.target
+		APICallStruct.command = APICallStruct.action + "_" + APICallStruct.target
 	} else if len(args) >= 4 {
 		pccInUse = args[1]
 		APICallStruct.action = args[2]
 		APICallStruct.target = args[3]
-		APICallStruct.command = APICallStruct.action + " " + APICallStruct.target
+		APICallStruct.command = APICallStruct.action + "_" + APICallStruct.target
 	} else{
 		return errors.New(IncorrectUserInputMessage)
 	}

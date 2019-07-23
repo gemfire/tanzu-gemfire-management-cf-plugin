@@ -3,6 +3,7 @@ package main
 import (
 	"code.cloudfoundry.org/cli/cf/errors"
 	"code.cloudfoundry.org/cli/plugin"
+	"encoding/json"
 	"fmt"
 	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
 	"os"
@@ -23,7 +24,6 @@ func main() {
 
 func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	cfClient := &cfservice.Cf{}
-	//start := time.Now()
 	if args[0] == "CLI-MESSAGE-UNINSTALL"{
 		return
 	}
@@ -95,48 +95,29 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		os.Exit(1)
 	}
 
-	//Todo method needed
-	//TODO some http call pass the APICallStruct as param
-	httpAction, err := getHttpRequestMethod(APICallStruct)
-	if err != nil{
-		fmt.Printf(err.Error(), httpAction)
+	firstEndpoint := "http://localhost:7070/management/v2/cli" +"?command="+APICallStruct.command
+	urlResponse, err := getUrlOutput(firstEndpoint, username, password, "GET")
+
+	response := ResponseFromAPI{}
+	err = json.Unmarshal([]byte(urlResponse), &response)
+	if err != nil {
+		fmt.Println(IncorrectUserInputMessage)
 		os.Exit(1)
 	}
-	urlResponse, err := getUrlOutput(endpoint, username, password, httpAction)
-	fmt.Println(urlResponse)
+	secondEndpoint := "http://localhost:7070/management/v2/" + response.Url
+	urlResponse, err = getUrlOutput(secondEndpoint, username, password, response.HttpMethod)
+	if err != nil {
+		fmt.Println("her222222")
+		fmt.Println(IncorrectUserInputMessage)
+		os.Exit(1)
+	}
 
-	//urlResponse := "" //todo INSERT SOMETHING FROM NEW API ENDPOINT
-	//if !isJSONOutput{
-	//	answer, err := GetTableFromUrlResponse(clusterCommand, urlResponse)
-	//
-	//	if err != nil{
-	//		if err.Error() == NotAuthenticatedMessage{
-	//			fmt.Printf(err.Error())
-	//			os.Exit(1)
-	//		}
-	//		fmt.Printf(err.Error(), pccInUse)
-	//		os.Exit(1)
-	//	}
-	//
-	//	fmt.Println()
-	//	fmt.Println(answer)
-	//	fmt.Println()
-	//	t := time.Now()
-	//	fmt.Println(t.Sub(start))
-	//} else {
-	//	jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
-	//	if err != nil {
-	//		fmt.Println(err.Error())
-	//		os.Exit(1)
-	//	}
-	//	fmt.Println(jsonToBePrinted)
-	//}
-
-	fmt.Println(username)
-	fmt.Println(password)
-	fmt.Println(endpoint)
-	fmt.Println(httpAction)
-	fmt.Printf("%+v\n", APICallStruct)
+	jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	fmt.Println(jsonToBePrinted)
 	return
 }
 

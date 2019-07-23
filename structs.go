@@ -40,3 +40,9 @@ type RestAPICall struct {
 	command string
 	parameters map[string]string
 }
+
+type ResponseFromAPI struct {
+	HttpMethod string 	`json:"httpMethod"`
+	Url string 			`json:"url"`
+}
+

@@ -80,6 +80,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		}
 	}
 
+
 	if username == "" && password == "" {
 		fmt.Println(NeedToProvideUsernamePassWordMessage, pccInUse, clusterCommand)
 		os.Exit(1)
@@ -99,6 +100,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Printf(err.Error(), pccInUse, pccInUse)
 		os.Exit(1)
 	}
+
 
 	//preform post commands
 	if strings.HasPrefix(clusterCommand, "post"){
@@ -124,6 +126,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 			fmt.Printf(err.Error(), pccInUse)
 			os.Exit(1)
 		}
+
 
 		fmt.Println()
 		fmt.Println(answer)

@@ -3,7 +3,6 @@ package main
 import (
 	"code.cloudfoundry.org/cli/cf/errors"
 	"code.cloudfoundry.org/cli/plugin"
-	"encoding/json"
 	"fmt"
 	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
 	"os"
@@ -11,11 +10,12 @@ import (
 )
 
 
-var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region, regionJSONfile, group, ca_cert, httpAction string
+var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region, regionJSONfile, group, id, httpAction string
 var hasGroup, isJSONOutput = false, false
 
 var parameters map[string]string
 var APICallStruct RestAPICall
+var firstResponse ResponseFromAPI
 
 
 func main() {
@@ -43,9 +43,9 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	if os.Getenv("CFLOGIN") != "" && os.Getenv("CFPASSWORD") != ""{
 		username = os.Getenv("CFLOGIN")
 		password = os.Getenv("CFPASSWORD")
-		_, _, endpoint, err = GetUsernamePasswordEndpoint(cfClient, pccInUse, serviceKey)
+		_, _, endpoint, err = GetUsernamePasswordEndpoint(cfClient)
 	} else {
-		username, password, endpoint, err = GetUsernamePasswordEndpoint(cfClient, pccInUse, serviceKey)
+		username, password, endpoint, err = GetUsernamePasswordEndpoint(cfClient)
 		if err != nil{
 			fmt.Println(GenericErrorMessage, err.Error())
 			os.Exit(1)
@@ -76,14 +76,14 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 			username = arg[3:]
 		} else if strings.HasPrefix(arg, "-p="){
 			password = arg[3:]
-		} else if strings.HasPrefix(arg, "-cacert="){
-			ca_cert=arg[8:]
-			APICallStruct.parameters["cacert"] = ca_cert
+		} else if strings.HasPrefix(arg, "-id="){
+			id=arg[4:]
+			APICallStruct.parameters["id"] = id
 		}
 	}
 
 	if username == "" && password == "" {
-		fmt.Println(NeedToProvideUsernamePassWordMessage, pccInUse, clusterCommand)
+		fmt.Printf(NeedToProvideUsernamePassWordMessage, pccInUse, clusterCommand)
 		os.Exit(1)
 	} else if username != "" && password == "" {
 		err = errors.New(ProvidedUsernameAndNotPassword)
@@ -96,28 +96,41 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	}
 
 	firstEndpoint := "http://localhost:7070/management/v2/cli" +"?command="+APICallStruct.command
-	urlResponse, err := getUrlOutput(firstEndpoint, username, password, "GET")
-
-	response := ResponseFromAPI{}
-	err = json.Unmarshal([]byte(urlResponse), &response)
+	err = executeFirstRequest(firstEndpoint)
 	if err != nil {
-		fmt.Println(IncorrectUserInputMessage)
+		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	secondEndpoint := "http://localhost:7070/management/v2/" + response.Url
-	urlResponse, err = getUrlOutput(secondEndpoint, username, password, response.HttpMethod)
+
+	err = hasIDifNeeded()
 	if err != nil {
-		fmt.Println("her222222")
-		fmt.Println(IncorrectUserInputMessage)
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	err = hasRegionIfNeeded()
+	if err != nil {
+		fmt.Printf(err.Error(), pccInUse)
+		os.Exit(1)
+	}
+	urlResponse, err := executeSecondRequest()
+	if err != nil {
+		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
 	jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Print(err.Error())
 		os.Exit(1)
 	}
 	fmt.Println(jsonToBePrinted)
+
+	//table, err := GetTableFromUrlResponse(APICallStruct.command, urlResponse)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	os.Exit(1)
+	//}
+	//fmt.Println(table)
 	return
 }
 
@@ -149,7 +162,7 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 						"p" : "followed by equals password (-p=<your_password>) [$CFPASSWORD]\n",
 						"r" : "followed by equals region (-r=<your_region>)\n",
 						"j" : "json input for region post\n",
-						"cacert" : "ca-certification needed to post region\n",
+						"id" : "followed by an identifier required for any get command\n",
 					},
 				},
 			},

@@ -1,3 +1,3 @@
-go build main.go helpers.go strings.go structs.go formatting.go
+go build main.go helpers.go strings.go structs.go formatting.go argument_parser.go
 echo Y | cf install-plugin main
 cf pcc --help

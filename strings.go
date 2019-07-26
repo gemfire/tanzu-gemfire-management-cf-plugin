@@ -60,6 +60,9 @@ const NoIDGivenMessage string = `An identifier is required for all get commands.
 
 Please re-enter your command appended with -id=<your_object_of_interest>
 `
+const NoJsonFileProvidedMessage string = `A JSON configuration file is required for all create/post commands.
+
+Please re-enter your command appended with -d=<your_json_configuration_file>`
 
 
 const Ellipsis string = "…"

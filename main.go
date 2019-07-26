@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
 	"os"
-	"strings"
 )
 
 
-var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region, regionJSONfile, group, id, httpAction string
+var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region, jsonFile, group, id, httpAction string
 var hasGroup, isJSONOutput = false, false
 
 var parameters map[string]string
@@ -57,30 +56,13 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		os.Exit(1)
 	}
 	APICallStruct.parameters = make(map[string]string)
-	for _, arg := range args {
-		if strings.HasPrefix(arg, "-g="){
-			APICallStruct.parameters["g"] = "true"
-			hasGroup = true
-			group = arg[3:]
-			if err != nil{
-				fmt.Println(err.Error())
-				os.Exit(1)
-			}
-		} else if arg == "-j"{
-			APICallStruct.parameters["j"] ="true"
-			isJSONOutput = true
-		} else if strings.HasPrefix(arg, "-r="){
-			APICallStruct.parameters["r"] = "true"
-			region = arg[3:]
-		} else if strings.HasPrefix(arg, "-u="){
-			username = arg[3:]
-		} else if strings.HasPrefix(arg, "-p="){
-			password = arg[3:]
-		} else if strings.HasPrefix(arg, "-id="){
-			id=arg[4:]
-			APICallStruct.parameters["id"] = id
-		}
+
+	err = parseArguments(args)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
 	}
+
 
 	if username == "" && password == "" {
 		fmt.Printf(NeedToProvideUsernamePassWordMessage, pccInUse, clusterCommand)
@@ -95,7 +77,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		os.Exit(1)
 	}
 
-	firstEndpoint := "http://localhost:7070/management/v2/cli" +"?command="+APICallStruct.command
+	firstEndpoint := "http://localhost:7070/management/experimental/cli" +"?command="+APICallStruct.command
 	err = executeFirstRequest(firstEndpoint)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -153,16 +135,19 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 				HelpText: "Commands to interact with geode cluster.\n",
 				UsageDetails: plugin.Usage{
 					Usage: "	cf  pcc  <*pcc_instance>  <action>  <data_type>  [*options]  (* = optional)\n\n" +
-						"	Actions: list, create, get, delete\n\n" +
-						"	Data Types: regions, members, gateway-receivers, indexes\n\n" +
-						"	Note: pcc_instance can be saved at [$CFPCC], then omit pcc_instance from command ",
+						"Supported commands:	list regions, list members, list index, list gateway-receivers,\n" +
+						"			get region, get member, get index, configure pdx,\n" +
+						"			create region, delete region, create gateway-receiver,\n" +
+						"			start rebalance, list rebalance, check rebalance\n\n"+
+						"Note: pcc_instance can be saved at [$CFPCC], then omit <pcc_instance> from command ",
 					Options: map[string]string{
 						"h" : "this help screen\n",
 						"u" : "followed by equals username (-u=<your_username>) [$CFLOGIN]\n",
 						"p" : "followed by equals password (-p=<your_password>) [$CFPASSWORD]\n",
 						"r" : "followed by equals region (-r=<your_region>)\n",
-						"j" : "json input for region post\n",
 						"id" : "followed by an identifier required for any get command\n",
+						"d" : "followed by @<json_file_path> OR quoted json input \n" +
+							"	     JSON required for creating/post commands\n",
 					},
 				},
 			},

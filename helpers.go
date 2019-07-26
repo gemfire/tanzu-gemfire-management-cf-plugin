@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bytes"
 	"code.cloudfoundry.org/cli/cf/errors"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -61,7 +61,7 @@ func GetUsernamePasswordEndpoint(cf cfservice.CfService) (username string, passw
 		return "", "", "", err
 	}
 	endpoint = serviceKey.Urls.Management
-	endpoint = strings.TrimSuffix(serviceKey.Urls.Gfsh, "gemfire/v1") + "management/v2/cli"
+	endpoint = strings.TrimSuffix(serviceKey.Urls.Gfsh, "gemfire/v1") + "management/experimental/cli"
 	for _ , user := range serviceKey.Users {
 		if strings.HasPrefix(user.Username, "cluster_operator") {
 			username = user.Username
@@ -72,23 +72,57 @@ func GetUsernamePasswordEndpoint(cf cfservice.CfService) (username string, passw
 }
 
 
-func getUrlOutput(endpointUrl string, httpAction string) (urlResponse string, err error){
+func executeCommand(endpointUrl string, httpAction string) (urlResponse string, err error){
+	if httpAction == "POST"{
+		return executePostCommand(endpointUrl)
+	}
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
-	requestBody, err := json.Marshal(APICallStruct)
 
 	if err != nil {
 		return "", err
 	}
-	req, err := http.NewRequest(httpAction, endpointUrl, bytes.NewBuffer(requestBody))
+
+	req, err := http.NewRequest(httpAction, endpointUrl, nil)
 	req.SetBasicAuth(username, password)
 	resp, err := client.Do(req)
 	if err != nil{
 		return "", err
 	}
+	return getUrlOutput(resp)
+}
 
+func executePostCommand(endpointUrl string) (urlResponse string, err error){
+	if jsonFile == ""{
+		return "", errors.New(NoJsonFileProvidedMessage)
+	}
+	var f io.Reader
+	var req *http.Request
+	if jsonFile[0] == '@' && len(jsonFile) > 1{
+		f, err = os.Open(jsonFile[1:])
+		if err != nil {
+			return "", err
+		}
+	} else{
+		f = strings.NewReader(jsonFile)
+	}
+	req, err = http.NewRequest("POST", endpointUrl, f)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	return getUrlOutput(resp)
+}
+
+func getUrlOutput(resp *http.Response) (urlResponse string, err error) {
 	respInAscii, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil{
@@ -96,9 +130,8 @@ func getUrlOutput(endpointUrl string, httpAction string) (urlResponse string, er
 	}
 
 	urlResponse = fmt.Sprintf("%s", respInAscii)
-	return
+	return urlResponse, nil
 }
-
 
 func isUsingPCCfromEnvironmentVariables(args []string) bool{
 	if os.Getenv("CFPCC") != "" && len(args) >= 3 && args[1] != os.Getenv("CFPCC"){
@@ -110,12 +143,12 @@ func isUsingPCCfromEnvironmentVariables(args []string) bool{
 func getPCCInUseAndClusterCommand(args []string) (error){
 	if isUsingPCCfromEnvironmentVariables(args){
 		pccInUse = os.Getenv("CFPCC")
-		APICallStruct.action = args[1]
+		APICallStruct.action = synonymConverter(args[1])
 		APICallStruct.target = args[2]
 		APICallStruct.command = APICallStruct.action + "_" + APICallStruct.target
 	} else if len(args) >= 4 {
 		pccInUse = args[1]
-		APICallStruct.action = args[2]
+		APICallStruct.action = synonymConverter(args[2])
 		APICallStruct.target = args[3]
 		APICallStruct.command = APICallStruct.action + "_" + APICallStruct.target
 	} else{
@@ -124,17 +157,27 @@ func getPCCInUseAndClusterCommand(args []string) (error){
 	return nil
 }
 
+func synonymConverter(initialWord string) (string){
+	if initialWord == "post"{
+		return "create"
+	} else if initialWord == "check"{
+		return "list"
+	} else{
+		return initialWord
+	}
+}
+
 func executeFirstRequest(endpoint string) (error){
-	urlResponse, err := getUrlOutput(endpoint, "GET")
-	fmt.Println(endpoint)
+	urlResponse, err := executeCommand(endpoint, "GET")
+	//fmt.Println(endpoint)
 	err = json.Unmarshal([]byte(urlResponse), &firstResponse)
 	return err
 }
 
 func executeSecondRequest() (string, error){
-	secondEndpoint := "http://localhost:7070/management/v2/" + firstResponse.Url
-	fmt.Println(secondEndpoint)
-	urlResponse, err := getUrlOutput(secondEndpoint, firstResponse.HttpMethod)
+	secondEndpoint := "http://localhost:7070/management/experimental" + firstResponse.Url
+	//fmt.Println(secondEndpoint)
+	urlResponse, err := executeCommand(secondEndpoint, firstResponse.HttpMethod)
 	return urlResponse, err
 }
 

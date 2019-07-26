@@ -16,7 +16,7 @@ type ServiceKey struct {
 	Users []ServiceKeyUsers `json:"users"`
 }
 
-type ClusterManagementResults struct {
+type ClusterManagementResults struct { //may want to abstract
 	StatusCode string `json:"statusCode"`
 	StatusMessage string `json:"statusMessage"`
 	MemberStatus []MemberStatus `json:"memberStatus"`

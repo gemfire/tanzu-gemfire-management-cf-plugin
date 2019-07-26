@@ -51,7 +51,7 @@ var _ = Describe("cf gf plugin", func() {
 `
 			expectedUsername :="cluster_operator_ygTWCaBfqtFHuTWxdaOMQ"
 			expectedPassword := "W97ghWi4p2YF5MsfRCu6Eg"
-			expectedEndpoint := "https://cloudcache-7fe65c41-cca5-43c2-afaa-019ef452c6a1.sys.mammothlakes.cf-app.com/management/v2/cli"
+			expectedEndpoint := "https://cloudcache-7fe65c41-cca5-43c2-afaa-019ef452c6a1.sys.mammothlakes.cf-app.com/management/experimental/cli"
 			fakeCf.CmdReturns(keyInfo, nil)
 			username, password, endpoint, err := GetUsernamePasswordEndpoint(fakeCf)
 			Expect(username).To(Equal(expectedUsername))
@@ -118,21 +118,8 @@ No service key for service instance oowen
 		})
 	})
 
-	Context("Handling Regions and Listing Indexes", func(){
-		It("Handling unrecognized regions", func(){
-			clusterCommand := "list indexes"
-			urlResponse := `{"statusCode":"ENTITY_NOT_FOUND","statusMessage":"RegionConfig with id = sdljf not found.","result":[]}`
-			_, err := GetTableFromUrlResponse(clusterCommand, urlResponse)
-			Expect(err).To(Not(BeNil()))
-		})
-	})
+
 	Context("Safekeeping tests", func(){
-		It("Handling unauthenticated requests", func(){
-			clusterCommand := "list indexes"
-			urlResponse := `{"statusCode":"UNAUTHENTICATED","statusMessage":"Authentication error. Please check your credentials.","result":[]}`
-			_, err := GetTableFromUrlResponse(clusterCommand, urlResponse)
-			Expect(err).To(Not(BeNil()))
-		})
 		It("Validate table filling", func(){
 			columnSize := 20
 			value := "some string"

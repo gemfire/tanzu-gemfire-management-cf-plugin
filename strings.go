@@ -29,18 +29,6 @@ Please enter username and password:
 
 For help see: cf pcc --help
 `
-
-const NotAuthenticatedMessage string = `The username and password is incorrect.
-
-For help see: cf pcc --help
-`
-const NonExistentRegionMessage string = `The region you selected does not exist.
-To see your active regions, enter:
-	
-	cf pcc %s list regions
-
-For help see: cf pcc --help
-`
 const NeedToProvideUsernamePassWordMessage string = `You need to provide your username and password.
 The proper format is: cf pcc %s %s -u=<your_username> -p=<your_password>
 
@@ -63,6 +51,11 @@ Please re-enter your command appended with -id=<your_object_of_interest>
 const NoJsonFileProvidedMessage string = `A JSON configuration file is required for all create/post commands.
 
 Please re-enter your command appended with -d=<your_json_configuration_file>`
+
+const NoEndpointFoundMessage string = `No endpoint was found for your request.
+
+For help see: cf pcc --help
+`
 
 
 const Ellipsis string = "…"

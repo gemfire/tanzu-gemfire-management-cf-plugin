@@ -7,7 +7,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("cf gf plugin", func() {
+var firstEndpoint = "http://localhost:7070/management/experimental/api-docs"
+
+var _ = Describe("cf cli plugin", func() {
 	Context("Retrieving Username, Password, and Endpoint", func() {
 		It("Returns correct information", func() {
 			fakeCf := &cloudcachemanagementcfpluginfakes.FakeCfService{}
@@ -129,4 +131,115 @@ No service key for service instance oowen
 			Expect(response).To(Equal(expectedResponse))
 		})
 	})
+	Context("Input Mapping tests", func(){
+		It("list members", func(){
+			APICallStruct.action = "list"
+			APICallStruct.target = "members"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/members"))
+			Expect(endpoint.HttpMethod).To(Equal("get"))
+		})
+		It("get member", func(){
+			APICallStruct.action = "get"
+			APICallStruct.target = "member"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/members/{id}"))
+			Expect(endpoint.HttpMethod).To(Equal("get"))
+		})
+		It("list regions", func(){
+			APICallStruct.action = "list"
+			APICallStruct.target = "regions"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/regions"))
+			Expect(endpoint.HttpMethod).To(Equal("get"))
+		})
+		It("get region", func(){
+			APICallStruct.action = "get"
+			APICallStruct.target = "region"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/regions/{id}"))
+			Expect(endpoint.HttpMethod).To(Equal("get"))
+		})
+		It("list indexes", func(){
+			APICallStruct.action = "list"
+			APICallStruct.target = "indexes"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/regions/{regionName}/indexes"))
+			Expect(endpoint.HttpMethod).To(Equal("get"))
+		})
+		It("get index", func(){
+			APICallStruct.action = "get"
+			APICallStruct.target = "index"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/regions/{regionName}/indexes/{id}"))
+			Expect(endpoint.HttpMethod).To(Equal("get"))
+		})
+		It("start rebalance", func(){
+			APICallStruct.action = "create" //see synonymConverter("start")
+			APICallStruct.target = "rebalance"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/operations/rebalances"))
+			Expect(endpoint.HttpMethod).To(Equal("post"))
+		})
+		It("list rebalances", func(){
+			APICallStruct.action = "list"
+			APICallStruct.target = "rebalances"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/operations/rebalances"))
+			Expect(endpoint.HttpMethod).To(Equal("get"))
+		})
+		It("check rebalance", func(){
+			APICallStruct.action = "get" //see synonymConverter("check")
+			APICallStruct.target = "rebalance"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/operations/rebalances/{id}"))
+			Expect(endpoint.HttpMethod).To(Equal("get"))
+		})
+		It("create region", func(){
+			APICallStruct.action = "create"
+			APICallStruct.target = "region"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/regions"))
+			Expect(endpoint.HttpMethod).To(Equal("post"))
+		})
+		It("delete region", func(){
+			APICallStruct.action = "delete"
+			APICallStruct.target = "region"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/regions/{id}"))
+			Expect(endpoint.HttpMethod).To(Equal("delete"))
+		})
+		It("list cli", func(){
+			APICallStruct.action = "list"
+			APICallStruct.target = "cli"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/cli"))
+			Expect(endpoint.HttpMethod).To(Equal("get"))
+		})
+		It("list ping", func(){
+			APICallStruct.action = "list"
+			APICallStruct.target = "ping"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/ping"))
+			Expect(endpoint.HttpMethod).To(Equal("get"))
+		})
+		It("configure pdx", func(){
+			APICallStruct.action = "configure"
+			APICallStruct.target = "pdx"
+			endpoint := processUserCallInTest()
+			Expect(endpoint.Url).To(Equal("/experimental/configurations/pdx"))
+			Expect(endpoint.HttpMethod).To(Equal("post"))
+		})
+
+
+
+	})
 })
+
+func processUserCallInTest() (endpoint IndividualEndpoint){
+	err := executeFirstRequest(firstEndpoint)
+	Expect(err).To(BeNil())
+	endpoint, err = mapUserInputToAvailableEndpoint()
+	Expect(err).To(BeNil())
+	return
+}

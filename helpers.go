@@ -145,58 +145,58 @@ func getPCCInUseAndClusterCommand(args []string) (error){
 		pccInUse = os.Getenv("CFPCC")
 		APICallStruct.action = synonymConverter(args[1])
 		APICallStruct.target = args[2]
-		APICallStruct.command = APICallStruct.action + "_" + APICallStruct.target
+		APICallStruct.command = APICallStruct.action + " " + APICallStruct.target
 	} else if len(args) >= 4 {
 		pccInUse = args[1]
 		APICallStruct.action = synonymConverter(args[2])
 		APICallStruct.target = args[3]
-		APICallStruct.command = APICallStruct.action + "_" + APICallStruct.target
+		APICallStruct.command = APICallStruct.action + " " + APICallStruct.target
 	} else{
 		return errors.New(IncorrectUserInputMessage)
 	}
 	return nil
 }
 
-func synonymConverter(initialWord string) (string){
-	if initialWord == "post"{
-		return "create"
-	} else if initialWord == "check"{
-		return "list"
-	} else{
-		return initialWord
-	}
-}
-
 func executeFirstRequest(endpoint string) (error){
 	urlResponse, err := executeCommand(endpoint, "GET")
-	//fmt.Println(endpoint)
 	err = json.Unmarshal([]byte(urlResponse), &firstResponse)
+	storeResponse(firstResponse)
 	return err
 }
 
+func storeResponse(pathMap  SwaggerInfo) {
+	for url, v := range pathMap.Paths {
+		for methodType := range v {
+			var endpoint IndividualEndpoint
+			endpoint.Url = url
+			endpoint.HttpMethod = methodType
+			availableEndpoints = append(availableEndpoints, endpoint)
+		}
+	}
+}
+
 func executeSecondRequest() (string, error){
-	secondEndpoint := "http://localhost:7070/management/experimental" + firstResponse.Url
-	//fmt.Println(secondEndpoint)
-	urlResponse, err := executeCommand(secondEndpoint, firstResponse.HttpMethod)
+	secondEndpoint := "http://localhost:7070/management" + indivEndpoint.Url
+	urlResponse, err := executeCommand(secondEndpoint, strings.ToUpper(indivEndpoint.HttpMethod))
 	return urlResponse, err
 }
 
 func hasIDifNeeded() (error){
-	if strings.Contains(firstResponse.Url, "{id}"){
+	if strings.Contains(indivEndpoint.Url, "{id}"){
 		if id == ""{
 			return errors.New(NoIDGivenMessage)
 		}
-		firstResponse.Url = strings.Replace(firstResponse.Url, "{id}", id, 1)
+		indivEndpoint.Url = strings.Replace(indivEndpoint.Url, "{id}", id, 1)
 	}
 	return nil
 }
 
 func hasRegionIfNeeded() (error){
-	if strings.Contains(firstResponse.Url, "{regionName}"){
+	if strings.Contains(indivEndpoint.Url, "{regionName}"){
 		if region == ""{
 			return errors.New(NoRegionGivenMessage)
 		}
-		firstResponse.Url = strings.Replace(firstResponse.Url, "{regionName}", region, 1)
+		indivEndpoint.Url = strings.Replace(indivEndpoint.Url, "{regionName}", region, 1)
 	}
 	return nil
 }

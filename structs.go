@@ -16,24 +16,6 @@ type ServiceKey struct {
 	Users []ServiceKeyUsers `json:"users"`
 }
 
-type ClusterManagementResults struct { //may want to abstract
-	StatusCode string `json:"statusCode"`
-	StatusMessage string `json:"statusMessage"`
-	MemberStatus []MemberStatus `json:"memberStatus"`
-	Results []IndividualClusterManagementResult `json:"result"`
-}
-
-type IndividualClusterManagementResult struct {
-	Config map[string]interface{} `json:"config"`
-	RuntimeInfo []map[string]interface{} `json:"runtimeInfo"`
-}
-
-type MemberStatus struct {
-	ServerName string
-	Success bool
-	Message string
-}
-
 type RestAPICall struct {
 	action string
 	target string
@@ -41,8 +23,18 @@ type RestAPICall struct {
 	parameters map[string]string
 }
 
-type ResponseFromAPI struct {
+type IndividualEndpoint struct {
 	HttpMethod string 	`json:"httpMethod"`
 	Url string 			`json:"url"`
 }
+
+
+type SwaggerInfo struct {
+	Paths map[string]map[string]FurtherEndpointDetails `json:"paths"`
+}
+
+type FurtherEndpointDetails struct {
+	Summary string `json:"summary"`
+}
+
 

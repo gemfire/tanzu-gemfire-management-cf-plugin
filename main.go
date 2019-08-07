@@ -9,12 +9,13 @@ import (
 )
 
 
-var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region, jsonFile, group, id, httpAction string
+var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region, jsonFile, group, id string
 var hasGroup, isJSONOutput = false, false
 
-var parameters map[string]string
 var APICallStruct RestAPICall
-var firstResponse ResponseFromAPI
+var firstResponse SwaggerInfo
+var availableEndpoints []IndividualEndpoint
+var indivEndpoint IndividualEndpoint
 
 
 func main() {
@@ -63,7 +64,6 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		os.Exit(1)
 	}
 
-
 	if username == "" && password == "" {
 		fmt.Printf(NeedToProvideUsernamePassWordMessage, pccInUse, clusterCommand)
 		os.Exit(1)
@@ -77,9 +77,15 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		os.Exit(1)
 	}
 
-	firstEndpoint := "http://localhost:7070/management/experimental/cli" +"?command="+APICallStruct.command
+	firstEndpoint := "http://localhost:7070/management/experimental/api-docs"
 	err = executeFirstRequest(firstEndpoint)
 	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	indivEndpoint, err = mapUserInputToAvailableEndpoint()
+	if err != nil{
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
@@ -135,10 +141,10 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 				HelpText: "Commands to interact with geode cluster.\n",
 				UsageDetails: plugin.Usage{
 					Usage: "	cf  pcc  <*pcc_instance>  <action>  <data_type>  [*options]  (* = optional)\n\n" +
-						"Supported commands:	list regions, list members, list index, list gateway-receivers,\n" +
+						"Supported commands:	list regions, list members, list indexes, list gateway-receivers,\n" +
 						"			get region, get member, get index, configure pdx,\n" +
 						"			create region, delete region, create gateway-receiver,\n" +
-						"			start rebalance, list rebalance, check rebalance\n\n"+
+						"			start rebalance, list rebalances, check rebalance\n\n"+
 						"Note: pcc_instance can be saved at [$CFPCC], then omit <pcc_instance> from command ",
 					Options: map[string]string{
 						"h" : "this help screen\n",
@@ -146,7 +152,7 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 						"p" : "followed by equals password (-p=<your_password>) [$CFPASSWORD]\n",
 						"r" : "followed by equals region (-r=<your_region>)\n",
 						"id" : "followed by an identifier required for any get command\n",
-						"d" : "followed by @<json_file_path> OR quoted json input \n" +
+						"d" : "followed by @<json_file_path> OR single quoted json input \n" +
 							"	     JSON required for creating/post commands\n",
 					},
 				},

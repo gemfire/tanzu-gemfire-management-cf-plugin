@@ -23,4 +23,24 @@
 4. For Help
     - `cf pcc --help`
     
-
+## command format
+ 1. "cf pcc cluster1 get members"
+     - there are 3 parts in this command
+        1. "cf pcc" - commmand prefix
+        2. "cluster1" - service name
+        3. "get members" - actual command
+ 1. "cf pcc cluster1 get member -id=member1"
+     - there are 4 parts in this command
+        1. "cf pcc" - commmand prefix
+        2. "cluster1" - service name
+        3. "get member" - actual command
+        1. "-id=member1" - param for this command,  also you can input json as param in ""
+  1. "cf pcc cluster1 get member -id=member1 -j"
+     - there are 4 parts in this command
+        1. "cf pcc" - commmand prefix
+        2. "cluster1" - service name
+        3. "get member" - actual command
+        1. "-id=member1" - param for this command,  also you can input json as param in ""
+        1. "-j" - output option. 
+           - "-j" means that all the output will be shown in Json format
+           - "-t" means that all the output will be shown in table format. and also, you can specify which columns will be shown, by similar like this: "-t "name, address.zipcode, mobileNo""

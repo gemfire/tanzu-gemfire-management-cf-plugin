@@ -9,15 +9,13 @@ import (
 	"strings"
 )
 
+var username, password, locatorAddress, target, clusterCommand, serviceKey, region, jsonFile, group, id string
+var hasGroup, isJSONOutput, explicitTarget = false, false, false
 
-var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region, jsonFile, group, id string
-var hasGroup, isJSONOutput, usingPcc = false, false, false
-
-var APICallStruct RestAPICall
+var userCommand UserCommand
 var firstResponse SwaggerInfo
 var availableEndpoints []IndividualEndpoint
-var indivEndpoint IndividualEndpoint
-
+var endPoint IndividualEndpoint
 
 func main() {
 	plugin.Start(new(BasicPlugin))
@@ -25,12 +23,12 @@ func main() {
 
 func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	cfClient := &cfservice.Cf{}
-	if args[0] == "CLI-MESSAGE-UNINSTALL"{
+	if args[0] == "CLI-MESSAGE-UNINSTALL" {
 		return
 	}
 	var err error
-	err = getPCCInUseAndClusterCommand(args)
-	if err != nil{
+	err = getTargetAndClusterCommand(args)
+	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
@@ -38,24 +36,24 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	// first get credentials from environment
 	username = os.Getenv("CFLOGIN")
 	password = os.Getenv("CFPASSWORD")
-	usingPcc = !(strings.Contains(pccInUse, "http://") || strings.Contains(pccInUse, "https://"))
-	if !usingPcc {
-		endpoint = pccInUse + "/management/experimental/api-docs"
-	} else{
+	explicitTarget = strings.Contains(target, "http://") || strings.Contains(target, "https://")
+	if explicitTarget {
+		locatorAddress = target
+	} else {
 		// at this point, we have a valid clusterCommand
-		serviceKey, err =  GetServiceKeyFromPCCInstance(cfClient)
-		if err != nil{
-			fmt.Printf(err.Error(), pccInUse, pccInUse)
+		serviceKey, err = GetServiceKeyFromPCCInstance(cfClient)
+		if err != nil {
+			fmt.Printf(err.Error(), target, target)
 			os.Exit(1)
 		}
 
 		serviceKeyUser, serviceKeyPswd, url, err := GetUsernamePasswordEndpoinFromServiceKey(cfClient)
-		if err != nil{
+		if err != nil {
 			fmt.Println(GenericErrorMessage, err.Error())
 			os.Exit(1)
 		}
 
-		endpoint = url
+		locatorAddress = url
 
 		// then get the credentials from the serviceKey
 		if serviceKeyUser != "" && serviceKeyPswd != "" {
@@ -64,11 +62,11 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		}
 	}
 
-	if err != nil{
+	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	APICallStruct.parameters = make(map[string]string)
+	userCommand.parameters = make(map[string]string)
 
 	// lastly get the credentials from the command line
 	err = parseArguments(args)
@@ -76,30 +74,31 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	if usingPcc {
+
+	// if pcc instance is specified, username/password are required
+	if !explicitTarget {
 		if username == "" && password == "" {
-			fmt.Printf(NeedToProvideUsernamePassWordMessage, pccInUse, clusterCommand)
+			fmt.Printf(NeedToProvideUsernamePassWordMessage, target, clusterCommand)
 			os.Exit(1)
 		} else if username != "" && password == "" {
 			err = errors.New(ProvidedUsernameAndNotPassword)
-			fmt.Printf(err.Error(), pccInUse, clusterCommand, username)
+			fmt.Printf(err.Error(), target, clusterCommand, username)
 			os.Exit(1)
 		} else if username == "" && password != "" {
 			err = errors.New(ProvidedPasswordAndNotUsername)
-			fmt.Printf(err.Error(), pccInUse, clusterCommand, password)
+			fmt.Printf(err.Error(), target, clusterCommand, password)
 			os.Exit(1)
 		}
 	}
 
-
-	err = executeFirstRequest()
+	err = getEndPoints()
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	indivEndpoint, err = mapUserInputToAvailableEndpoint()
-	if err != nil{
+	endPoint, err = mapUserInputToAvailableEndpoint()
+	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
@@ -111,10 +110,11 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	}
 	err = hasRegionIfNeeded()
 	if err != nil {
-		fmt.Printf(err.Error(), pccInUse)
+		fmt.Printf(err.Error(), target)
 		os.Exit(1)
 	}
-	urlResponse, err := executeSecondRequest()
+
+	urlResponse, err := requestToEndPoint()
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
@@ -127,7 +127,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	}
 	fmt.Println(jsonToBePrinted)
 
-	//table, err := GetTableFromUrlResponse(APICallStruct.command, urlResponse)
+	//table, err := GetTableFromUrlResponse(userCommand.command, urlResponse)
 	//if err != nil {
 	//	fmt.Println(err.Error())
 	//	os.Exit(1)
@@ -154,17 +154,18 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 				Name:     "pcc",
 				HelpText: "Commands to interact with geode cluster.\n",
 				UsageDetails: plugin.Usage{
-					Usage: "	cf  pcc  <*pcc_instance>  <action>  <data_type>  [*options]  (* = optional)\n\n" +
+					Usage: "	cf  pcc  <*target>  <action>  <data_type>  [*options]  (* = optional)\n\n" +
 						"Supported commands:	" +
-						printAvailableCommands()+
-						"\nNote: pcc_instance can be saved at [$CFPCC], then omit <pcc_instance> from command ",
+						printAvailableCommands() +
+						"\nNote: target is either a pcc_instance or an explicit locator url in the form of: http(s)://host:port" +
+						"\n It can be saved at [$CFPCC], then omit <*target> from command ",
 					Options: map[string]string{
-						"h" : "this help screen\n",
-						"u" : "followed by equals username (-u=<your_username>) [$CFLOGIN]\n",
-						"p" : "followed by equals password (-p=<your_password>) [$CFPASSWORD]\n",
-						"r" : "followed by equals region (-r=<your_region>)\n",
-						"id" : "followed by an identifier required for any get command\n",
-						"d" : "followed by @<json_file_path> OR single quoted JSON input \n" +
+						"h":  "this help screen\n",
+						"u":  "followed by equals username (-u=<your_username>) [$CFLOGIN]\n",
+						"p":  "followed by equals password (-p=<your_password>) [$CFPASSWORD]\n",
+						"r":  "followed by equals region (-r=<your_region>)\n",
+						"id": "followed by an identifier required for any get command\n",
+						"d": "followed by @<json_file_path> OR single quoted JSON input \n" +
 							"	     JSON required for creating/post commands\n",
 					},
 				},

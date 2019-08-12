@@ -1,4 +1,5 @@
 package main
+
 type BasicPlugin struct{}
 
 type ServiceKeyUsers struct {
@@ -8,7 +9,7 @@ type ServiceKeyUsers struct {
 
 type ServiceKeyUrls struct {
 	Management string `json:"management"`
-	Gfsh string `json:"gfsh"`
+	Gfsh       string `json:"gfsh"`
 }
 
 type ServiceKey struct {
@@ -16,17 +17,16 @@ type ServiceKey struct {
 	Users []ServiceKeyUsers `json:"users"`
 }
 
-type RestAPICall struct {
-	command string
+type UserCommand struct {
+	command    string
 	parameters map[string]string
 }
 
 type IndividualEndpoint struct {
-	HttpMethod string 	`json:"httpMethod"`
-	Url string 			`json:"url"`
-	CommandCall string 	`json:"summary"`
+	HttpMethod  string `json:"httpMethod"`
+	Url         string `json:"url"`
+	CommandCall string `json:"summary"`
 }
-
 
 type SwaggerInfo struct {
 	Paths map[string]map[string]FurtherEndpointDetails `json:"paths"`
@@ -35,5 +35,3 @@ type SwaggerInfo struct {
 type FurtherEndpointDetails struct {
 	Summary string `json:"summary"`
 }
-
-

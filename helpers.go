@@ -14,13 +14,13 @@ import (
 )
 
 func GetServiceKeyFromPCCInstance(cf cfservice.CfService) (serviceKey string, err error) {
-	servKeyOutput, err := cf.Cmd("service-keys", pccInUse)
-	if err != nil{
+	servKeyOutput, err := cf.Cmd("service-keys", target)
+	if err != nil {
 		return "", err
 	}
 	splitKeys := strings.Split(servKeyOutput, "\n")
 	hasKey := false
-	if strings.Contains(splitKeys[1], "No service key for service instance"){
+	if strings.Contains(splitKeys[1], "No service key for service instance") {
 		return "", errors.New(NoServiceKeyMessage)
 	}
 	for _, value := range splitKeys {
@@ -44,7 +44,7 @@ func GetUsernamePasswordEndpoinFromServiceKey(cf cfservice.CfService) (username 
 	username = ""
 	password = ""
 	endpoint = ""
-	keyInfo, err := cf.Cmd("service-key", pccInUse, serviceKey)
+	keyInfo, err := cf.Cmd("service-key", target, serviceKey)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -62,9 +62,9 @@ func GetUsernamePasswordEndpoinFromServiceKey(cf cfservice.CfService) (username 
 	}
 	endpoint = serviceKey.Urls.Management
 	if endpoint == "" {
-		endpoint = strings.TrimSuffix(serviceKey.Urls.Gfsh, "gemfire/v1") + "management/experimental/api-docs"
+		endpoint = strings.TrimSuffix(serviceKey.Urls.Gfsh, "gemfire/v1")
 	}
-	for _ , user := range serviceKey.Users {
+	for _, user := range serviceKey.Users {
 		if strings.HasPrefix(user.Username, "cluster_operator") {
 			username = user.Username
 			password = user.Password
@@ -73,9 +73,8 @@ func GetUsernamePasswordEndpoinFromServiceKey(cf cfservice.CfService) (username 
 	return
 }
 
-
-func executeCommand(endpointUrl string, httpAction string) (urlResponse string, err error){
-	if httpAction == "POST"{
+func executeCommand(endpointUrl string, httpAction string) (urlResponse string, err error) {
+	if httpAction == "POST" {
 		return executePostCommand(endpointUrl)
 	}
 	tr := &http.Transport{
@@ -90,24 +89,24 @@ func executeCommand(endpointUrl string, httpAction string) (urlResponse string, 
 	req, err := http.NewRequest(httpAction, endpointUrl, nil)
 	req.SetBasicAuth(username, password)
 	resp, err := client.Do(req)
-	if err != nil{
+	if err != nil {
 		return "", err
 	}
 	return getUrlOutput(resp)
 }
 
-func executePostCommand(endpointUrl string) (urlResponse string, err error){
-	if jsonFile == ""{
+func executePostCommand(endpointUrl string) (urlResponse string, err error) {
+	if jsonFile == "" {
 		return "", errors.New(NoJsonFileProvidedMessage)
 	}
 	var f io.Reader
 	var req *http.Request
-	if jsonFile[0] == '@' && len(jsonFile) > 1{
+	if jsonFile[0] == '@' && len(jsonFile) > 1 {
 		f, err = os.Open(jsonFile[1:])
 		if err != nil {
 			return "", err
 		}
-	} else{
+	} else {
 		f = strings.NewReader(jsonFile)
 	}
 	req, err = http.NewRequest("POST", endpointUrl, f)
@@ -127,7 +126,7 @@ func executePostCommand(endpointUrl string) (urlResponse string, err error){
 func getUrlOutput(resp *http.Response) (urlResponse string, err error) {
 	respInAscii, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
-	if err != nil{
+	if err != nil {
 		return "", err
 	}
 
@@ -135,73 +134,69 @@ func getUrlOutput(resp *http.Response) (urlResponse string, err error) {
 	return urlResponse, nil
 }
 
-func isUsingPCCfromEnvironmentVariables(args []string) bool{
-	if os.Getenv("CFPCC") != "" && len(args) >= 3 && args[1] != os.Getenv("CFPCC"){
+func isUsingPCCfromEnvironmentVariables(args []string) bool {
+	if os.Getenv("CFPCC") != "" && len(args) >= 3 && args[1] != os.Getenv("CFPCC") {
 		return true
 	}
 	return false
 }
 
-func getPCCInUseAndClusterCommand(args []string) (error){
-	if isUsingPCCfromEnvironmentVariables(args){
-		pccInUse = os.Getenv("CFPCC")
-		APICallStruct.command = args[1]
-		if len(args) > 2 && !strings.HasPrefix(args[2], "-"){
-			APICallStruct.command += " " + args[2]
+func getTargetAndClusterCommand(args []string) error {
+	if isUsingPCCfromEnvironmentVariables(args) {
+		target = os.Getenv("CFPCC")
+		userCommand.command = args[1]
+		if len(args) > 2 && !strings.HasPrefix(args[2], "-") {
+			userCommand.command += " " + args[2]
 		}
 	} else if len(args) >= 3 {
-		pccInUse = args[1]
-		APICallStruct.command = args[2]
-		if len(args) > 3 && !strings.HasPrefix(args[3], "-"){
-			APICallStruct.command += " " + args[3]
+		target = args[1]
+		userCommand.command = args[2]
+		if len(args) > 3 && !strings.HasPrefix(args[3], "-") {
+			userCommand.command += " " + args[3]
 		}
-	} else{
+	} else {
 		return errors.New(IncorrectUserInputMessage)
 	}
 	return nil
 }
 
-func executeFirstRequest() (error){
-	urlResponse, err := executeCommand(endpoint, "GET")
+func getEndPoints() error {
+	urlResponse, err := executeCommand(locatorAddress+"/management/experimental/api-docs", "GET")
 	err = json.Unmarshal([]byte(urlResponse), &firstResponse)
-	storeResponse(firstResponse)
-	return err
-}
-
-func storeResponse(pathMap  SwaggerInfo) {
-	for url, v := range pathMap.Paths {
+	for url, v := range firstResponse.Paths {
 		for methodType := range v {
 			var endpoint IndividualEndpoint
 			endpoint.Url = url
 			endpoint.HttpMethod = methodType
-			endpoint.CommandCall = pathMap.Paths[url][methodType].Summary
+			endpoint.CommandCall = firstResponse.Paths[url][methodType].Summary
 			availableEndpoints = append(availableEndpoints, endpoint)
 		}
 	}
+	return err
 }
 
-func executeSecondRequest() (string, error){
-	secondEndpoint := "http://localhost:7070/management" + indivEndpoint.Url
-	urlResponse, err := executeCommand(secondEndpoint, strings.ToUpper(indivEndpoint.HttpMethod))
+func requestToEndPoint() (string, error) {
+	secondEndpoint := locatorAddress + "/management" + endPoint.Url
+	urlResponse, err := executeCommand(secondEndpoint, strings.ToUpper(endPoint.HttpMethod))
 	return urlResponse, err
 }
 
-func hasIDifNeeded() (error){
-	if strings.Contains(indivEndpoint.Url, "{id}"){
-		if id == ""{
+func hasIDifNeeded() error {
+	if strings.Contains(endPoint.Url, "{id}") {
+		if id == "" {
 			return errors.New(NoIDGivenMessage)
 		}
-		indivEndpoint.Url = strings.Replace(indivEndpoint.Url, "{id}", id, 1)
+		endPoint.Url = strings.Replace(endPoint.Url, "{id}", id, 1)
 	}
 	return nil
 }
 
-func hasRegionIfNeeded() (error){
-	if strings.Contains(indivEndpoint.Url, "{regionName}"){
-		if region == ""{
+func hasRegionIfNeeded() error {
+	if strings.Contains(endPoint.Url, "{regionName}") {
+		if region == "" {
 			return errors.New(NoRegionGivenMessage)
 		}
-		indivEndpoint.Url = strings.Replace(indivEndpoint.Url, "{regionName}", region, 1)
+		endPoint.Url = strings.Replace(endPoint.Url, "{regionName}", region, 1)
 	}
 	return nil
 }

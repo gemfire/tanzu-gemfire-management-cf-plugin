@@ -134,29 +134,32 @@ func getUrlOutput(resp *http.Response) (urlResponse string, err error) {
 	return urlResponse, nil
 }
 
-func isUsingPCCfromEnvironmentVariables(args []string) bool {
-	if os.Getenv("CFPCC") != "" && len(args) >= 3 && args[1] != os.Getenv("CFPCC") {
-		return true
-	}
-	return false
-}
-
 func getTargetAndClusterCommand(args []string) error {
-	if isUsingPCCfromEnvironmentVariables(args) {
+	if os.Getenv("CFPCC") != "" {
 		target = os.Getenv("CFPCC")
-		userCommand.command = args[1]
-		if len(args) > 2 && !strings.HasPrefix(args[2], "-") {
-			userCommand.command += " " + args[2]
-		}
-	} else if len(args) >= 3 {
-		target = args[1]
-		userCommand.command = args[2]
-		if len(args) > 3 && !strings.HasPrefix(args[3], "-") {
-			userCommand.command += " " + args[3]
-		}
-	} else {
+	}
+
+	if len(args) < 2 {
 		return errors.New(IncorrectUserInputMessage)
 	}
+	var commands []string
+	if args[1] == target {
+		commands = args[2:]
+	} else if target == "" {
+		target = args[1]
+		commands = args[2:]
+	} else {
+		commands = args[1:]
+	}
+
+	// find the command name before the options
+	for _, command := range commands {
+		if strings.HasPrefix(command, "-") {
+			break
+		}
+		userCommand.command += command + " "
+	}
+	userCommand.command = strings.Trim(userCommand.command, " ")
 	return nil
 }
 

@@ -97,6 +97,13 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		os.Exit(1)
 	}
 
+	if userCommand.command == "commands" {
+		for _, command := range availableEndpoints {
+			fmt.Println(command.CommandCall)
+		}
+		os.Exit(0)
+	}
+
 	endPoint, err = mapUserInputToAvailableEndpoint()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -154,9 +161,8 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 				Name:     "pcc",
 				HelpText: "Commands to interact with geode cluster.\n",
 				UsageDetails: plugin.Usage{
-					Usage: "	cf  pcc  <*target>  <action>  <data_type>  [*options]  (* = optional)\n\n" +
-						"Supported commands:	" +
-						printAvailableCommands() +
+					Usage: "	cf  pcc  <*target>  <command>  [*options]  (* = optional)\n" +
+						"\nSupported commands:	use 'cf pcc <*target> commands' to see a list of supported commands \n" +
 						"\nNote: target is either a pcc_instance or an explicit locator url in the form of: http(s)://host:port" +
 						"\n It can be saved at [$CFPCC], then omit <*target> from command ",
 					Options: map[string]string{

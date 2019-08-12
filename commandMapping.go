@@ -12,12 +12,3 @@ func mapUserInputToAvailableEndpoint() (IndividualEndpoint, error) {
 	}
 	return IndividualEndpoint{}, errors.New(NoEndpointFoundMessage)
 }
-
-func printAvailableCommands() string {
-	getEndPoints()
-	toPrint := ""
-	for _, command := range availableEndpoints {
-		toPrint += "\n	" + command.CommandCall
-	}
-	return toPrint + "\n"
-}

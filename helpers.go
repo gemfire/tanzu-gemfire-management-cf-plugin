@@ -13,8 +13,8 @@ import (
 	"strings"
 )
 
-func GetServiceKeyFromPCCInstance(cf cfservice.CfService, pccService string) (serviceKey string, err error) {
-	servKeyOutput, err := cf.Cmd("service-keys", pccService)
+func GetServiceKeyFromPCCInstance(cf cfservice.CfService) (serviceKey string, err error) {
+	servKeyOutput, err := cf.Cmd("service-keys", pccInUse)
 	if err != nil{
 		return "", err
 	}
@@ -40,7 +40,7 @@ func GetServiceKeyFromPCCInstance(cf cfservice.CfService, pccService string) (se
 	return
 }
 
-func GetUsernamePasswordEndpoint(cf cfservice.CfService) (username string, password string, endpoint string, err error) {
+func GetUsernamePasswordEndpoinFromServiceKey(cf cfservice.CfService) (username string, password string, endpoint string, err error) {
 	username = ""
 	password = ""
 	endpoint = ""
@@ -49,7 +49,7 @@ func GetUsernamePasswordEndpoint(cf cfservice.CfService) (username string, passw
 		return "", "", "", err
 	}
 	splitKeyInfo := strings.Split(keyInfo, "\n")
-	if len(splitKeyInfo) < 2{
+	if len(splitKeyInfo) < 2 {
 		return "", "", "", errors.New(InvalidServiceKeyResponse)
 	}
 	splitKeyInfo = splitKeyInfo[2:] //take out first two lines of cf service-key ... output
@@ -61,7 +61,9 @@ func GetUsernamePasswordEndpoint(cf cfservice.CfService) (username string, passw
 		return "", "", "", err
 	}
 	endpoint = serviceKey.Urls.Management
-	endpoint = strings.TrimSuffix(serviceKey.Urls.Gfsh, "gemfire/v1") + "management/experimental/cli"
+	if endpoint == "" {
+		endpoint = strings.TrimSuffix(serviceKey.Urls.Gfsh, "gemfire/v1") + "management/experimental/api-docs"
+	}
 	for _ , user := range serviceKey.Users {
 		if strings.HasPrefix(user.Username, "cluster_operator") {
 			username = user.Username
@@ -160,7 +162,7 @@ func getPCCInUseAndClusterCommand(args []string) (error){
 }
 
 func executeFirstRequest() (error){
-	urlResponse, err := executeCommand(firstEndpoint, "GET")
+	urlResponse, err := executeCommand(endpoint, "GET")
 	err = json.Unmarshal([]byte(urlResponse), &firstResponse)
 	storeResponse(firstResponse)
 	return err

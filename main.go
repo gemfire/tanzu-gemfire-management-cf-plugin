@@ -6,17 +6,17 @@ import (
 	"fmt"
 	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
 	"os"
+	"strings"
 )
 
 
 var username, password, endpoint, pccInUse, clusterCommand, serviceKey, region, jsonFile, group, id string
-var hasGroup, isJSONOutput = false, false
+var hasGroup, isJSONOutput, usingPcc = false, false, false
 
 var APICallStruct RestAPICall
 var firstResponse SwaggerInfo
 var availableEndpoints []IndividualEndpoint
 var indivEndpoint IndividualEndpoint
-const firstEndpoint = "http://localhost:7070/management/experimental/api-docs"
 
 
 func main() {
@@ -35,21 +35,32 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		os.Exit(1)
 	}
 
-	// at this point, we have a valid clusterCommand
-	serviceKey, err =  GetServiceKeyFromPCCInstance(cfClient, pccInUse)
-	if err != nil{
-		fmt.Printf(err.Error(), pccInUse, pccInUse)
-		os.Exit(1)
-	}
-	if os.Getenv("CFLOGIN") != "" && os.Getenv("CFPASSWORD") != ""{
-		username = os.Getenv("CFLOGIN")
-		password = os.Getenv("CFPASSWORD")
-		_, _, endpoint, err = GetUsernamePasswordEndpoint(cfClient)
-	} else {
-		username, password, endpoint, err = GetUsernamePasswordEndpoint(cfClient)
+	// first get credentials from environment
+	username = os.Getenv("CFLOGIN")
+	password = os.Getenv("CFPASSWORD")
+	usingPcc = !(strings.Contains(pccInUse, "http://") || strings.Contains(pccInUse, "https://"))
+	if !usingPcc {
+		endpoint = pccInUse + "/management/experimental/api-docs"
+	} else{
+		// at this point, we have a valid clusterCommand
+		serviceKey, err =  GetServiceKeyFromPCCInstance(cfClient)
+		if err != nil{
+			fmt.Printf(err.Error(), pccInUse, pccInUse)
+			os.Exit(1)
+		}
+
+		serviceKeyUser, serviceKeyPswd, url, err := GetUsernamePasswordEndpoinFromServiceKey(cfClient)
 		if err != nil{
 			fmt.Println(GenericErrorMessage, err.Error())
 			os.Exit(1)
+		}
+
+		endpoint = url
+
+		// then get the credentials from the serviceKey
+		if serviceKeyUser != "" && serviceKeyPswd != "" {
+			username = serviceKeyUser
+			password = serviceKeyPswd
 		}
 	}
 
@@ -59,23 +70,25 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	}
 	APICallStruct.parameters = make(map[string]string)
 
+	// lastly get the credentials from the command line
 	err = parseArguments(args)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-
-	if username == "" && password == "" {
-		fmt.Printf(NeedToProvideUsernamePassWordMessage, pccInUse, clusterCommand)
-		os.Exit(1)
-	} else if username != "" && password == "" {
-		err = errors.New(ProvidedUsernameAndNotPassword)
-		fmt.Printf(err.Error(), pccInUse, clusterCommand, username)
-		os.Exit(1)
-	} else if username=="" && password!="" {
-		err = errors.New(ProvidedPasswordAndNotUsername)
-		fmt.Printf(err.Error(), pccInUse, clusterCommand, password)
-		os.Exit(1)
+	if usingPcc {
+		if username == "" && password == "" {
+			fmt.Printf(NeedToProvideUsernamePassWordMessage, pccInUse, clusterCommand)
+			os.Exit(1)
+		} else if username != "" && password == "" {
+			err = errors.New(ProvidedUsernameAndNotPassword)
+			fmt.Printf(err.Error(), pccInUse, clusterCommand, username)
+			os.Exit(1)
+		} else if username == "" && password != "" {
+			err = errors.New(ProvidedPasswordAndNotUsername)
+			fmt.Printf(err.Error(), pccInUse, clusterCommand, password)
+			os.Exit(1)
+		}
 	}
 
 

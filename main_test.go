@@ -54,7 +54,7 @@ var _ = Describe("cf cli plugin", func() {
 			expectedPassword := "W97ghWi4p2YF5MsfRCu6Eg"
 			expectedEndpoint := "https://cloudcache-7fe65c41-cca5-43c2-afaa-019ef452c6a1.sys.mammothlakes.cf-app.com/management/experimental/cli"
 			fakeCf.CmdReturns(keyInfo, nil)
-			username, password, endpoint, err := GetUsernamePasswordEndpoint(fakeCf)
+			username, password, endpoint, err := GetUsernamePasswordEndpoinFromServiceKey(fakeCf)
 			Expect(username).To(Equal(expectedUsername))
 			Expect(password).To(Equal(expectedPassword))
 			Expect(endpoint).To(Equal(expectedEndpoint))
@@ -63,13 +63,13 @@ var _ = Describe("cf cli plugin", func() {
 		It("Returns an error.", func(){
 			fakeCf := &cloudcachemanagementcfpluginfakes.FakeCfService{}
 			fakeCf.CmdReturns("", errors.New("CF Command Error"))
-			_, _, _, err := GetUsernamePasswordEndpoint(fakeCf)
+			_, _, _, err := GetUsernamePasswordEndpoinFromServiceKey(fakeCf)
 			Expect(err).To(Not(BeNil()))
 		})
 		It("Resolving incorrect JSON.", func(){
 			fakeCf := &cloudcachemanagementcfpluginfakes.FakeCfService{}
 			fakeCf.CmdReturns("{", nil)
-			_, _, _, err := GetUsernamePasswordEndpoint(fakeCf)
+			_, _, _, err := GetUsernamePasswordEndpoinFromServiceKey(fakeCf)
 			Expect(err).To(Not(BeNil()))
 		})
 		It("Resolving incomplete JSON.", func(){
@@ -80,7 +80,7 @@ var _ = Describe("cf cli plugin", func() {
  
 `
 			fakeCf.CmdReturns(keyInfo, nil)
-			_, _, _, err := GetUsernamePasswordEndpoint(fakeCf)
+			_, _, _, err := GetUsernamePasswordEndpoinFromServiceKey(fakeCf)
 			Expect(err).To(Not(BeNil()))
 		})
 	})

@@ -132,12 +132,6 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	}
 	fmt.Println(jsonToBePrinted)
 
-	//table, err := GetTableFromUrlResponse(userCommand.command, urlResponse)
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//	os.Exit(1)
-	//}
-	//fmt.Println(table)
 	return
 }
 

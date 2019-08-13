@@ -50,7 +50,9 @@ Please re-enter your command appended with -id=<your_object_of_interest>
 `
 const NoJsonFileProvidedMessage string = `A JSON configuration file is required for all create/post commands.
 
-Please re-enter your command appended with -d=<your_json_configuration_file>`
+Please re-enter your command appended with -d=<your_json_configuration_file>
+
+<your_json_configuration_file> is in form of @<json_file_path> OR single quoted JSON input.`
 
 const NoEndpointFoundMessage string = `No endpoint was found for your request.
 

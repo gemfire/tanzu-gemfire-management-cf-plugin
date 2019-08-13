@@ -61,7 +61,6 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 			password = serviceKeyPswd
 		}
 	}
-
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
@@ -96,7 +95,6 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-
 	if userCommand.command == "commands" {
 		for _, command := range availableEndpoints {
 			fmt.Println(command.CommandCall)
@@ -164,7 +162,7 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 					Usage: "	cf  pcc  <*target>  <command>  [*options]  (* = optional)\n" +
 						"\nSupported commands:	use 'cf pcc <*target> commands' to see a list of supported commands \n" +
 						"\nNote: target is either a pcc_instance or an explicit locator url in the form of: http(s)://host:port" +
-						"\n It can be saved at [$CFPCC], then omit <*target> from command ",
+						"\nIt can be saved at [$CFPCC], then omit <*target> from command ",
 					Options: map[string]string{
 						"h":  "this help screen\n",
 						"u":  "followed by equals username (-u=<your_username>) [$CFLOGIN]\n",

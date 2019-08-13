@@ -62,7 +62,7 @@ func GetUsernamePasswordEndpoinFromServiceKey(cf cfservice.CfService) (username 
 	}
 	endpoint = serviceKey.Urls.Management
 	if endpoint == "" {
-		endpoint = strings.TrimSuffix(serviceKey.Urls.Gfsh, "gemfire/v1")
+		endpoint = strings.TrimSuffix(serviceKey.Urls.Gfsh, "/gemfire/v1")
 	}
 	for _, user := range serviceKey.Users {
 		if strings.HasPrefix(user.Username, "cluster_operator") {

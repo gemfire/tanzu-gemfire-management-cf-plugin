@@ -1,0 +1,32 @@
+---
+
+resources:
+  - name: cloudcache-management-cf-plugin
+    type: git
+    source:
+      uri: git@github.com:gemfire/cloudcache-management-cf-plugin.git
+      branch: develop
+      private_key: ((gemfire-ci-private-key))
+
+jobs:
+  - name: build-cloudcache-management-cf-plugin
+    serial: true
+    plan:
+      - aggregate:
+          - get: cloudcache-management-cf-plugin
+            trigger: true
+      - task: build-image
+        timeout: 1h
+        image: alpine-tools-docker-image
+        config:
+          inputs:
+            - name: cloudcache-management-cf-plugin
+          outputs:
+            - name: results
+          platform: linux
+          run:
+            path: /bin/sh
+            args:
+            - -ec
+            - |
+              go build main.go helpers.go strings.go structs.go formatting.go argument_parser.go commandMapping.go

@@ -137,7 +137,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 
 func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
-		Name: "PCC_InDev",
+		Name: "pcc",
 		Version: plugin.VersionType{
 			Major: 1,
 			Minor: 0,

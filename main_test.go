@@ -129,11 +129,3 @@ No service key for service instance oowen
 		})
 	})
 })
-
-func processUserCallInTest() (endpoint IndividualEndpoint) {
-	err := getEndPoints()
-	Expect(err).To(BeNil())
-	endpoint, err = mapUserInputToAvailableEndpoint()
-	Expect(err).To(BeNil())
-	return
-}

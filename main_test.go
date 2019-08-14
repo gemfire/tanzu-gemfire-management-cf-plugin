@@ -51,7 +51,7 @@ var _ = Describe("cf cli plugin", func() {
 `
 			expectedUsername := "cluster_operator_ygTWCaBfqtFHuTWxdaOMQ"
 			expectedPassword := "W97ghWi4p2YF5MsfRCu6Eg"
-			expectedEndpoint := "https://cloudcache-7fe65c41-cca5-43c2-afaa-019ef452c6a1.sys.mammothlakes.cf-app.com/management/experimental/cli"
+			expectedEndpoint := "https://cloudcache-7fe65c41-cca5-43c2-afaa-019ef452c6a1.sys.mammothlakes.cf-app.com"
 			fakeCf.CmdReturns(keyInfo, nil)
 			username, password, endpoint, err := GetUsernamePasswordEndpoinFromServiceKey(fakeCf)
 			Expect(username).To(Equal(expectedUsername))
@@ -93,7 +93,7 @@ mykey
 
 `
 			fakeCf.CmdReturns(resultFromCFServiceKeys, nil)
-			response, err := GetServiceKeyFromPCCInstance(fakeCf, "jjack")
+			response, err := GetServiceKeyFromPCCInstance(fakeCf)
 			Expect(err).To(BeNil())
 			expectedResponse := "mykey"
 			Expect(response).To(Equal(expectedResponse))
@@ -104,7 +104,7 @@ mykey
 Service instance jjackk not found
 `
 			fakeCf.CmdReturns(resultFromCFServiceKeys, nil)
-			_, err := GetServiceKeyFromPCCInstance(fakeCf, "jjack")
+			_, err := GetServiceKeyFromPCCInstance(fakeCf)
 			Expect(err).To(Not(BeNil()))
 		})
 		It("Handling no service key available", func() {
@@ -113,7 +113,7 @@ Service instance jjackk not found
 No service key for service instance oowen
 `
 			fakeCf.CmdReturns(resultFromCFServiceKeys, nil)
-			_, err := GetServiceKeyFromPCCInstance(fakeCf, "oowen")
+			_, err := GetServiceKeyFromPCCInstance(fakeCf)
 			Expect(err).To(Not(BeNil()))
 		})
 	})
@@ -127,87 +127,6 @@ No service key for service instance oowen
 			expectedResponse := " some string--------"
 			Expect(response).To(Equal(expectedResponse))
 		})
-	})
-	Context("Input Mapping tests", func() {
-		It("list members", func() {
-			userCommand.command = "list members"
-			endpoint := processUserCallInTest()
-			Expect(endpoint.Url).To(Equal("/experimental/members"))
-			Expect(endpoint.HttpMethod).To(Equal("get"))
-		})
-		It("get member", func() {
-			userCommand.command = "get member"
-			endpoint := processUserCallInTest()
-			Expect(endpoint.Url).To(Equal("/experimental/members/{id}"))
-			Expect(endpoint.HttpMethod).To(Equal("get"))
-		})
-		It("list regions", func() {
-			userCommand.command = "list regions"
-			endpoint := processUserCallInTest()
-			Expect(endpoint.Url).To(Equal("/experimental/regions"))
-			Expect(endpoint.HttpMethod).To(Equal("get"))
-		})
-		It("get region", func() {
-			userCommand.command = "get region"
-			endpoint := processUserCallInTest()
-			Expect(endpoint.Url).To(Equal("/experimental/regions/{id}"))
-			Expect(endpoint.HttpMethod).To(Equal("get"))
-		})
-		It("list indexes", func() {
-			userCommand.command = "list indexes"
-			endpoint := processUserCallInTest()
-			Expect(endpoint.Url).To(Equal("/experimental/regions/{regionName}/indexes"))
-			Expect(endpoint.HttpMethod).To(Equal("get"))
-		})
-		It("get index", func() {
-			userCommand.command = "get index"
-			endpoint := processUserCallInTest()
-			Expect(endpoint.Url).To(Equal("/experimental/regions/{regionName}/indexes/{id}"))
-			Expect(endpoint.HttpMethod).To(Equal("get"))
-		})
-		It("start rebalance", func() {
-			userCommand.command = "start rebalance"
-			endpoint := processUserCallInTest()
-			Expect(endpoint.Url).To(Equal("/experimental/operations/rebalances"))
-			Expect(endpoint.HttpMethod).To(Equal("post"))
-		})
-		It("list rebalances", func() {
-			userCommand.command = "list rebalances"
-			endpoint := processUserCallInTest()
-			Expect(endpoint.Url).To(Equal("/experimental/operations/rebalances"))
-			Expect(endpoint.HttpMethod).To(Equal("get"))
-		})
-		It("check rebalance", func() {
-			userCommand.command = "check rebalance"
-			endpoint := processUserCallInTest()
-			Expect(endpoint.Url).To(Equal("/experimental/operations/rebalances/{id}"))
-			Expect(endpoint.HttpMethod).To(Equal("get"))
-		})
-		It("create region", func() {
-			userCommand.command = "create region"
-			endpoint := processUserCallInTest()
-			Expect(endpoint.Url).To(Equal("/experimental/regions"))
-			Expect(endpoint.HttpMethod).To(Equal("post"))
-		})
-		It("delete region", func() {
-			userCommand.command = "delete region"
-			endpoint := processUserCallInTest()
-			Expect(endpoint.Url).To(Equal("/experimental/regions/{id}"))
-			Expect(endpoint.HttpMethod).To(Equal("delete"))
-		})
-		It("ping", func() {
-			userCommand.command = "ping"
-			endpoint := processUserCallInTest()
-			Expect(endpoint.Url).To(Equal("/experimental/ping"))
-			Expect(endpoint.HttpMethod).To(Equal("get"))
-		})
-		It("configure pdx", func() {
-			userCommand.command = "configure pdx"
-			endpoint := processUserCallInTest()
-			Expect(endpoint.Url).To(Equal("/experimental/configurations/pdx"))
-			Expect(endpoint.HttpMethod).To(Equal("post"))
-		})
-
 	})
 })
 

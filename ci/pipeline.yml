@@ -17,8 +17,12 @@ jobs:
             trigger: true
       - task: build-image
         timeout: 1h
-        image: alpine-tools-docker-image
         config:
+          image_resource:
+            type: docker-image
+            source:
+              repository: golang
+              tag: latest
           inputs:
             - name: cloudcache-management-cf-plugin
           outputs:
@@ -29,4 +33,5 @@ jobs:
             args:
             - -ec
             - |
+              cd cloudcache-management-cf-plugin
               go build main.go helpers.go strings.go structs.go formatting.go argument_parser.go commandMapping.go

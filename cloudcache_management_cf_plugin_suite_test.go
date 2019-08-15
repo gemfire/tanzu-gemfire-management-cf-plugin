@@ -1,4 +1,4 @@
-package main_test
+package pcc_test
 
 import (
 	"testing"

@@ -1,4 +1,4 @@
-package main
+package pcc
 
 import (
 	"code.cloudfoundry.org/cli/cf/errors"

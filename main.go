@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var username, password, locatorAddress, target, clusterCommand, serviceKey, region, jsonFile, group, id string
+var username, password, locatorAddress, target, serviceKey, region, jsonFile, group, id string
 var hasGroup, isJSONOutput, explicitTarget = false, false, false
 
 var userCommand UserCommand
@@ -77,15 +77,15 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	// if pcc instance is specified, username/password are required
 	if !explicitTarget {
 		if username == "" && password == "" {
-			fmt.Printf(NeedToProvideUsernamePassWordMessage, target, clusterCommand)
+			fmt.Printf(NeedToProvideUsernamePassWordMessage, target, userCommand.command)
 			os.Exit(1)
 		} else if username != "" && password == "" {
 			err = errors.New(ProvidedUsernameAndNotPassword)
-			fmt.Printf(err.Error(), target, clusterCommand, username)
+			fmt.Printf(err.Error(), target, userCommand.command, username)
 			os.Exit(1)
 		} else if username == "" && password != "" {
 			err = errors.New(ProvidedPasswordAndNotUsername)
-			fmt.Printf(err.Error(), target, clusterCommand, password)
+			fmt.Printf(err.Error(), target, userCommand.command, password)
 			os.Exit(1)
 		}
 	}

@@ -1,4 +1,4 @@
-package pcc
+package main
 
 const IncorrectUserInputMessage string = `Your request was denied.
 The format of your request is incorrect.

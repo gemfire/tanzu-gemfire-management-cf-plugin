@@ -1,4 +1,4 @@
-package pcc
+package main
 
 import (
 	"strings"

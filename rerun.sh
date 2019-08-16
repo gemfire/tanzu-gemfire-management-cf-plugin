@@ -1,6 +1,6 @@
 cf uninstall-plugin pcc
 go build main.go helpers.go strings.go structs.go formatting.go argument_parser.go commandMapping.go
-echo Y | cf install-plugin pcc
+echo Y | cf install-plugin main
 
 echo "    _______  ________    ________  _______  _______"
 echo "   / _____/ / ______/   / ____  / / _____/ / _____/"

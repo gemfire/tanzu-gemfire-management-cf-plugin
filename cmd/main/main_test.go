@@ -1,9 +1,10 @@
-package test
+package main_test
 
 import (
 	"code.cloudfoundry.org/cli/cf/errors"
-	"github.com/gemfire/cloudcache-management-cf-plugin"
-	cloudcachemanagementcfpluginfakes "github.com/gemfire/cloudcache-management-cf-plugin/test/cloudcache-management-cf-pluginfakes"
+	"github.com/gemfire/cloudcache-management-cf-plugin/util/format"
+	"github.com/gemfire/cloudcache-management-cf-plugin/util/requests"
+	"github.com/gemfire/cloudcache-management-cf-plugin/util/requests/requestsfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -11,7 +12,7 @@ import (
 var _ = Describe("cf cli plugin", func() {
 	Context("Retrieving Username, Password, and Endpoint", func() {
 		It("Returns correct information", func() {
-			fakeCf := &cloudcachemanagementcfpluginfakes.FakeCfService{}
+			fakeCf := &requestsfakes.FakeCfService{}
 			keyInfo := `Getting key mykey for service instance jjack as admin...
 
 {
@@ -54,39 +55,39 @@ var _ = Describe("cf cli plugin", func() {
 			expectedPassword := "W97ghWi4p2YF5MsfRCu6Eg"
 			expectedEndpoint := "https://cloudcache-7fe65c41-cca5-43c2-afaa-019ef452c6a1.sys.mammothlakes.cf-app.com"
 			fakeCf.CmdReturns(keyInfo, nil)
-			username, password, endpoint, err := pcc.GetUsernamePasswordEndpoinFromServiceKey(fakeCf)
+			username, password, endpoint, err := requests.GetUsernamePasswordEndpoinFromServiceKey(fakeCf, "", "")
 			Expect(username).To(Equal(expectedUsername))
 			Expect(password).To(Equal(expectedPassword))
 			Expect(endpoint).To(Equal(expectedEndpoint))
 			Expect(err).To(BeNil())
 		})
 		It("Returns an error.", func() {
-			fakeCf := &cloudcachemanagementcfpluginfakes.FakeCfService{}
+			fakeCf := &requestsfakes.FakeCfService{}
 			fakeCf.CmdReturns("", errors.New("CF Command Error"))
-			_, _, _, err := pcc.GetUsernamePasswordEndpoinFromServiceKey(fakeCf)
+			_, _, _, err := requests.GetUsernamePasswordEndpoinFromServiceKey(fakeCf, "", "")
 			Expect(err).To(Not(BeNil()))
 		})
 		It("Resolving incorrect JSON.", func() {
-			fakeCf := &cloudcachemanagementcfpluginfakes.FakeCfService{}
+			fakeCf := &requestsfakes.FakeCfService{}
 			fakeCf.CmdReturns("{", nil)
-			_, _, _, err := pcc.GetUsernamePasswordEndpoinFromServiceKey(fakeCf)
+			_, _, _, err := requests.GetUsernamePasswordEndpoinFromServiceKey(fakeCf, "", "")
 			Expect(err).To(Not(BeNil()))
 		})
 		It("Resolving incomplete JSON.", func() {
-			fakeCf := &cloudcachemanagementcfpluginfakes.FakeCfService{}
+			fakeCf := &requestsfakes.FakeCfService{}
 			keyInfo := `Getting key mykey for service instance jjack as admin...
 
 {
  
 `
 			fakeCf.CmdReturns(keyInfo, nil)
-			_, _, _, err := pcc.GetUsernamePasswordEndpoinFromServiceKey(fakeCf)
+			_, _, _, err := requests.GetUsernamePasswordEndpoinFromServiceKey(fakeCf, "", "")
 			Expect(err).To(Not(BeNil()))
 		})
 	})
 	Context("Retrieving Service Key from PCC Instance", func() {
 		It("Returns correct information", func() {
-			fakeCf := &cloudcachemanagementcfpluginfakes.FakeCfService{}
+			fakeCf := &requestsfakes.FakeCfService{}
 			resultFromCFServiceKeys := `Getting keys for service instance jjack as admin...
 
 name
@@ -94,27 +95,27 @@ mykey
 
 `
 			fakeCf.CmdReturns(resultFromCFServiceKeys, nil)
-			response, err := pcc.GetServiceKeyFromPCCInstance(fakeCf)
+			response, err := requests.GetServiceKeyFromPCCInstance(fakeCf, "")
 			Expect(err).To(BeNil())
 			expectedResponse := "mykey"
 			Expect(response).To(Equal(expectedResponse))
 		})
 		It("Handling a no service instance found", func() {
-			fakeCf := &cloudcachemanagementcfpluginfakes.FakeCfService{}
+			fakeCf := &requestsfakes.FakeCfService{}
 			resultFromCFServiceKeys := `FAILED
 Service instance jjackk not found
 `
 			fakeCf.CmdReturns(resultFromCFServiceKeys, nil)
-			_, err := pcc.GetServiceKeyFromPCCInstance(fakeCf)
+			_, err := requests.GetServiceKeyFromPCCInstance(fakeCf, "")
 			Expect(err).To(Not(BeNil()))
 		})
 		It("Handling no service key available", func() {
-			fakeCf := &cloudcachemanagementcfpluginfakes.FakeCfService{}
+			fakeCf := &requestsfakes.FakeCfService{}
 			resultFromCFServiceKeys := `Getting keys for service instance oowen as admin...
 No service key for service instance oowen
 `
 			fakeCf.CmdReturns(resultFromCFServiceKeys, nil)
-			_, err := pcc.GetServiceKeyFromPCCInstance(fakeCf)
+			_, err := requests.GetServiceKeyFromPCCInstance(fakeCf, "")
 			Expect(err).To(Not(BeNil()))
 		})
 	})
@@ -124,7 +125,7 @@ No service key for service instance oowen
 			columnSize := 20
 			value := "some string"
 			filler := "-"
-			response := pcc.Fill(columnSize, value, filler)
+			response := format.Fill(columnSize, value, filler)
 			expectedResponse := " some string--------"
 			Expect(response).To(Equal(expectedResponse))
 		})

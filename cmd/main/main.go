@@ -9,127 +9,126 @@ import (
 	"code.cloudfoundry.org/cli/plugin"
 	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
+	"github.com/gemfire/cloudcache-management-cf-plugin/util"
+	"github.com/gemfire/cloudcache-management-cf-plugin/util/format"
+	"github.com/gemfire/cloudcache-management-cf-plugin/util/requests"
 )
 
-var locatorAddress, target, serviceKey, region, jsonFile, group, id string
-var hasGroup, isJSONOutput, explicitTarget = false, false, false
-
-var userCommand domain.UserCommand
-var firstResponse domaon.SwaggerInfo
-var availableEndpoints []domain.IndividualEndpoint
-var endPoint domain.IndividualEndpoint
-
-type BasicPlugin struct{}
+// BasicPlugin declares the dataset that commands work on
+type BasicPlugin struct {
+	commandData domain.CommandData
+}
 
 func main() {
 	plugin.Start(new(BasicPlugin))
 }
 
+// Run is the main entry point for plugin commands
 func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	cfClient := &cfservice.Cf{}
 	if args[0] == "CLI-MESSAGE-UNINSTALL" {
 		return
 	}
 	var err error
-	err = getTargetAndClusterCommand(args)
+	c.commandData.Target, c.commandData.UserCommand, err = requests.GetTargetAndClusterCommand(args)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
 	// first get credentials from environment
-	username := os.Getenv("CFLOGIN")
-	password := os.Getenv("CFPASSWORD")
-	explicitTarget = strings.Contains(target, "http://") || strings.Contains(target, "https://")
-	if explicitTarget {
-		locatorAddress = target
+	c.commandData.Username = os.Getenv("CFLOGIN")
+	c.commandData.Password = os.Getenv("CFPASSWORD")
+	c.commandData.ExplicitTarget = strings.Contains(c.commandData.Target, "http://") || strings.Contains(c.commandData.Target, "https://")
+	if c.commandData.ExplicitTarget {
+		c.commandData.LocatorAddress = c.commandData.Target
 	} else {
 		// at this point, we have a valid clusterCommand
-		serviceKey, err = GetServiceKeyFromPCCInstance(cfClient)
+		c.commandData.ServiceKey, err = requests.GetServiceKeyFromPCCInstance(cfClient, c.commandData.Target)
 		if err != nil {
-			fmt.Printf(err.Error(), target, target)
+			fmt.Printf(err.Error(), c.commandData.Target)
 			os.Exit(1)
 		}
 
-		serviceKeyUser, serviceKeyPswd, url, err := GetUsernamePasswordEndpoinFromServiceKey(cfClient)
+		serviceKeyUser, serviceKeyPswd, url, err := requests.GetUsernamePasswordEndpoinFromServiceKey(cfClient, c.commandData.Target, c.commandData.ServiceKey)
 		if err != nil {
-			fmt.Println(GenericErrorMessage, err.Error())
+			fmt.Println(util.GenericErrorMessage, err.Error())
 			os.Exit(1)
 		}
 
-		locatorAddress = url
+		c.commandData.LocatorAddress = url
 
 		// then get the credentials from the serviceKey
 		if serviceKeyUser != "" && serviceKeyPswd != "" {
-			username = serviceKeyUser
-			password = serviceKeyPswd
+			c.commandData.Username = serviceKeyUser
+			c.commandData.Password = serviceKeyPswd
 		}
 	}
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	userCommand.parameters = make(map[string]string)
+	c.commandData.UserCommand.Parameters = make(map[string]string)
 
 	// lastly get the credentials from the command line
-	err = parseArguments(args)
+	err = util.ParseArguments(args, &c.commandData)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
 	// if pcc instance is specified, username/password are required
-	if !explicitTarget {
-		if username == "" && password == "" {
-			fmt.Printf(NeedToProvideUsernamePassWordMessage, target, userCommand.command)
+	if !c.commandData.ExplicitTarget {
+		if c.commandData.Username == "" && c.commandData.Password == "" {
+			fmt.Printf(util.NeedToProvideUsernamePassWordMessage, c.commandData.Target, c.commandData.UserCommand.Command)
 			os.Exit(1)
-		} else if username != "" && password == "" {
-			err = errors.New(ProvidedUsernameAndNotPassword)
-			fmt.Printf(err.Error(), target, userCommand.command, username)
+		} else if c.commandData.Username != "" && c.commandData.Password == "" {
+			err = errors.New(util.ProvidedUsernameAndNotPassword)
+			fmt.Printf(err.Error(), c.commandData.Target, c.commandData.UserCommand.Command, c.commandData.Username)
 			os.Exit(1)
-		} else if username == "" && password != "" {
-			err = errors.New(ProvidedPasswordAndNotUsername)
-			fmt.Printf(err.Error(), target, userCommand.command, password)
+		} else if c.commandData.Username == "" && c.commandData.Password != "" {
+			err = errors.New(util.ProvidedPasswordAndNotUsername)
+			fmt.Printf(err.Error(), c.commandData.Target, c.commandData.UserCommand.Command, c.commandData.Password)
 			os.Exit(1)
 		}
 	}
 
-	err = getEndPoints()
+	err = requests.GetEndPoints(&c.commandData)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	if userCommand.command == "commands" {
-		for _, command := range availableEndpoints {
+	if c.commandData.UserCommand.Command == "commands" {
+		for _, command := range c.commandData.AvailableEndpoints {
 			fmt.Println(command.CommandCall)
 		}
 		os.Exit(0)
 	}
 
-	endPoint, err = mapUserInputToAvailableEndpoint()
+	err = requests.MapUserInputToAvailableEndpoint(&c.commandData)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	err = hasIDifNeeded()
+	err = requests.HasIDifNeeded(&c.commandData)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	err = hasRegionIfNeeded()
+	err = requests.HasRegionIfNeeded(&c.commandData)
 	if err != nil {
-		fmt.Printf(err.Error(), target)
+		fmt.Printf(err.Error(), c.commandData.Target)
 		os.Exit(1)
 	}
 
-	urlResponse, err := requestToEndPoint()
+	urlResponse, err := requests.RequestToEndPoint(&c.commandData)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	jsonToBePrinted, err := GetJsonFromUrlResponse(urlResponse)
+	jsonToBePrinted, err := format.GetJSONFromURLResponse(urlResponse)
 	if err != nil {
 		fmt.Print(err.Error())
 		os.Exit(1)
@@ -139,6 +138,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	return
 }
 
+// GetMetadata provides metadata about the CF plugin including a helptext for the user
 func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
 		Name: "pcc",

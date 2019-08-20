@@ -18,16 +18,11 @@ const invalidServiceKeyResponse string = `The cf service-key response is invalid
 For help see: cf create-service-key --help
 `
 
+// Cf reciever for CfService implementation
+type Cf struct{}
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . CfService
-
-type CfService interface {
-	Cmd(name string, options ...string) (string, error)
-}
-
-type Cf struct {}
-
-func (c *Cf) Cmd(name string, options ...string) (string, error){
+// Cmd implementation for CfService interface
+func (c *Cf) Cmd(name string, options ...string) (string, error) {
 	options = append([]string{name}, options...)
 	cmd := exec.Command("cf", options...)
 	var out bytes.Buffer

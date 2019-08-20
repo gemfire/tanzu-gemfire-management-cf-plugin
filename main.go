@@ -1,21 +1,25 @@
-package pcc
+package main
 
 import (
-	"code.cloudfoundry.org/cli/cf/errors"
-	"code.cloudfoundry.org/cli/plugin"
 	"fmt"
-	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
 	"os"
 	"strings"
+
+	"code.cloudfoundry.org/cli/cf/errors"
+	"code.cloudfoundry.org/cli/plugin"
+	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
+	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 )
 
-var username, password, locatorAddress, target, serviceKey, region, jsonFile, group, id string
+var locatorAddress, target, serviceKey, region, jsonFile, group, id string
 var hasGroup, isJSONOutput, explicitTarget = false, false, false
 
-var userCommand UserCommand
-var firstResponse SwaggerInfo
-var availableEndpoints []IndividualEndpoint
-var endPoint IndividualEndpoint
+var userCommand domain.UserCommand
+var firstResponse domaon.SwaggerInfo
+var availableEndpoints []domain.IndividualEndpoint
+var endPoint domain.IndividualEndpoint
+
+type BasicPlugin struct{}
 
 func main() {
 	plugin.Start(new(BasicPlugin))
@@ -34,8 +38,8 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	}
 
 	// first get credentials from environment
-	username = os.Getenv("CFLOGIN")
-	password = os.Getenv("CFPASSWORD")
+	username := os.Getenv("CFLOGIN")
+	password := os.Getenv("CFPASSWORD")
 	explicitTarget = strings.Contains(target, "http://") || strings.Contains(target, "https://")
 	if explicitTarget {
 		locatorAddress = target

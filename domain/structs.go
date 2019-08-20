@@ -1,6 +1,4 @@
-package pcc
-
-type BasicPlugin struct{}
+package domain
 
 type ServiceKeyUsers struct {
 	Password string `json:"password"`
@@ -18,8 +16,8 @@ type ServiceKey struct {
 }
 
 type UserCommand struct {
-	command    string
-	parameters map[string]string
+	Command    string
+	Parameters map[string]string
 }
 
 type IndividualEndpoint struct {

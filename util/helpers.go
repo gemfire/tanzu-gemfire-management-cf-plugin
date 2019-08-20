@@ -1,20 +1,21 @@
-package pcc
-
+package util
 
 import (
-	"code.cloudfoundry.org/cli/cf/errors"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+
+	"code.cloudfoundry.org/cli/cf/errors"
+	"github.com/gemfire/cloudcache-management-cf-plugin/cfservice"
+	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 )
 
-func GetServiceKeyFromPCCInstance(cf cfservice.CfService) (serviceKey string, err error) {
+func GetServiceKeyFromPCCInstance(cf cfservice.CfService, target string) (serviceKey string, err error) {
 	servKeyOutput, err := cf.Cmd("service-keys", target)
 	if err != nil {
 		return "", err
@@ -36,12 +37,12 @@ func GetServiceKeyFromPCCInstance(cf cfservice.CfService) (serviceKey string, er
 		}
 	}
 	if serviceKey == "" {
-		return serviceKey, errors.New(NoServiceKeyMessage)
+		err = errors.New(NoServiceKeyMessage)
 	}
 	return
 }
 
-func GetUsernamePasswordEndpoinFromServiceKey(cf cfservice.CfService) (username string, password string, endpoint string, err error) {
+func GetUsernamePasswordEndpoinFromServiceKey(cf cfservice.CfService, target string, serviceKey string) (username string, password string, endpoint string, err error) {
 	username = ""
 	password = ""
 	endpoint = ""
@@ -55,17 +56,17 @@ func GetUsernamePasswordEndpoinFromServiceKey(cf cfservice.CfService) (username 
 	}
 	splitKeyInfo = splitKeyInfo[2:] //take out first two lines of cf service-key ... output
 	joinKeyInfo := strings.Join(splitKeyInfo, "\n")
-	serviceKey := ServiceKey{}
+	serviceKeyStruct := domain.ServiceKey{}
 
-	err = json.Unmarshal([]byte(joinKeyInfo), &serviceKey)
+	err = json.Unmarshal([]byte(joinKeyInfo), &serviceKeyStruct)
 	if err != nil {
 		return "", "", "", err
 	}
-	endpoint = serviceKey.Urls.Management
+	endpoint = serviceKeyStruct.Urls.Management
 	if endpoint == "" {
-		endpoint = strings.TrimSuffix(serviceKey.Urls.Gfsh, "/gemfire/v1")
+		endpoint = strings.TrimSuffix(serviceKeyStruct.Urls.Gfsh, "/gemfire/v1")
 	}
-	for _, user := range serviceKey.Users {
+	for _, user := range serviceKeyStruct.Users {
 		if strings.HasPrefix(user.Username, "cluster_operator") {
 			username = user.Username
 			password = user.Password
@@ -74,7 +75,7 @@ func GetUsernamePasswordEndpoinFromServiceKey(cf cfservice.CfService) (username 
 	return
 }
 
-func executeCommand(endpointUrl string, httpAction string) (urlResponse string, err error) {
+func executeCommand(endpointUrl string, httpAction string, username string, password string) (urlResponse string, err error) {
 	if httpAction == "POST" {
 		return executePostCommand(endpointUrl)
 	}
@@ -96,7 +97,7 @@ func executeCommand(endpointUrl string, httpAction string) (urlResponse string, 
 	return getUrlOutput(resp)
 }
 
-func executePostCommand(endpointUrl string) (urlResponse string, err error) {
+func executePostCommand(endpointUrl string, jsonFile string) (urlResponse string, err error) {
 	if jsonFile == "" {
 		return "", errors.New(NoJsonFileProvidedMessage)
 	}
@@ -135,7 +136,7 @@ func getUrlOutput(resp *http.Response) (urlResponse string, err error) {
 	return urlResponse, nil
 }
 
-func getTargetAndClusterCommand(args []string) error {
+func getTargetAndClusterCommand(args []string, target string, userCommand domain.UserCommand) error {
 	if os.Getenv("CFPCC") != "" {
 		target = os.Getenv("CFPCC")
 	}
@@ -158,14 +159,14 @@ func getTargetAndClusterCommand(args []string) error {
 		if strings.HasPrefix(command, "-") {
 			break
 		}
-		userCommand.command += command + " "
+		userCommand.Command += command + " "
 	}
-	userCommand.command = strings.Trim(userCommand.command, " ")
+	userCommand.Command = strings.Trim(userCommand.Command, " ")
 	return nil
 }
 
-func getEndPoints() error {
-	urlResponse, err := executeCommand(locatorAddress+"/management/experimental/api-docs", "GET")
+func getEndPoints(locatorAddress string, username string, password string) error {
+	urlResponse, err := executeCommand(locatorAddress+"/management/experimental/api-docs", "GET", username, password)
 	err = json.Unmarshal([]byte(urlResponse), &firstResponse)
 	for url, v := range firstResponse.Paths {
 		for methodType := range v {

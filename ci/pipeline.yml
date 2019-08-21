@@ -34,4 +34,4 @@ jobs:
             - -ec
             - |
               cd cloudcache-management-cf-plugin
-              go build main.go helpers.go strings.go structs.go formatting.go argument_parser.go commandMapping.go
+              go build -o ./pcc ./cmd/main

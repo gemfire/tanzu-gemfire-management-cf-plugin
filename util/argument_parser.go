@@ -30,12 +30,12 @@ func ParseArguments(args []string, commandData *domain.CommandData) (err error) 
 		} else if strings.HasPrefix(arg, "-p=") {
 			commandData.Password = arg[3:]
 		} else if strings.HasPrefix(arg, "-d=") {
-			commandData.JsonFile = arg[3:]
+			commandData.JSONFile = arg[3:]
 		} else if strings.HasPrefix(arg, "--data=") {
-			commandData.JsonFile = arg[7:]
+			commandData.JSONFile = arg[7:]
 		} else if strings.HasPrefix(arg, "-id=") {
-			commandData.Id = arg[4:]
-			commandData.UserCommand.Parameters["id"] = commandData.Id
+			commandData.ID = arg[4:]
+			commandData.UserCommand.Parameters["id"] = commandData.ID
 		}
 	}
 	return

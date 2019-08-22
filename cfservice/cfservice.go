@@ -18,7 +18,7 @@ const invalidServiceKeyResponse string = `The cf service-key response is invalid
 For help see: cf create-service-key --help
 `
 
-// Cf reciever for CfService implementation
+// Cf receiver for CfService implementation
 type Cf struct{}
 
 // Cmd implementation for CfService interface

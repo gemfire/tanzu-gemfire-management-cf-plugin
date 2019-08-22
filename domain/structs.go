@@ -9,9 +9,9 @@ type CommandData struct {
 	Target             string
 	ServiceKey         string
 	Region             string
-	JsonFile           string
+	JSONFile           string
 	Group              string
-	Id                 string
+	ID                 string
 	HasGroup           bool
 	IsJSONOutput       bool
 	ExplicitTarget     bool
@@ -47,8 +47,8 @@ type UserCommand struct {
 
 // IndividualEndpoint holds endpoint information
 type IndividualEndpoint struct {
-	HttpMethod  string `json:"httpMethod"`
-	Url         string `json:"url"`
+	HTTPMethod  string `json:"httpMethod"`
+	URL         string `json:"url"`
 	CommandCall string `json:"summary"`
 }
 

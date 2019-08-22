@@ -86,7 +86,7 @@ func GetUsernamePasswordEndpoinFromServiceKey(cf CfService, target string, servi
 
 func executeCommand(endpointURL string, httpAction string, commandData *domain.CommandData) (urlResponse string, err error) {
 	if httpAction == "POST" {
-		return executePostCommand(endpointURL, commandData.JsonFile)
+		return executePostCommand(endpointURL, commandData.JSONFile)
 	}
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -179,44 +179,46 @@ func GetTargetAndClusterCommand(args []string) (target string, userCommand domai
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the PCC manageability service
 func GetEndPoints(commandData *domain.CommandData) error {
 	urlResponse, err := executeCommand(commandData.LocatorAddress+"/management/experimental/api-docs", "GET", commandData)
-	err = json.Unmarshal([]byte(urlResponse), &commandData.FirstResponse)
-	for url, v := range commandData.FirstResponse.Paths {
-		for methodType := range v {
-			var endpoint domain.IndividualEndpoint
-			endpoint.Url = url
-			endpoint.HttpMethod = methodType
-			endpoint.CommandCall = commandData.FirstResponse.Paths[url][methodType].Summary
-			commandData.AvailableEndpoints = append(commandData.AvailableEndpoints, endpoint)
+	if err == nil {
+		err = json.Unmarshal([]byte(urlResponse), &commandData.FirstResponse)
+		for url, v := range commandData.FirstResponse.Paths {
+			for methodType := range v {
+				var endpoint domain.IndividualEndpoint
+				endpoint.URL = url
+				endpoint.HTTPMethod = methodType
+				endpoint.CommandCall = commandData.FirstResponse.Paths[url][methodType].Summary
+				commandData.AvailableEndpoints = append(commandData.AvailableEndpoints, endpoint)
+			}
 		}
 	}
 	return err
 }
 
-// RequestToEndPoint makes the request to an manageability service endpoint and returns a response
+// RequestToEndPoint makes the request to a manageability service endpoint and returns a response
 func RequestToEndPoint(commandData *domain.CommandData) (string, error) {
-	secondEndpoint := commandData.LocatorAddress + "/management" + commandData.Endpoint.Url
-	urlResponse, err := executeCommand(secondEndpoint, strings.ToUpper(commandData.Endpoint.HttpMethod), commandData)
+	secondEndpoint := commandData.LocatorAddress + "/management" + commandData.Endpoint.URL
+	urlResponse, err := executeCommand(secondEndpoint, strings.ToUpper(commandData.Endpoint.HTTPMethod), commandData)
 	return urlResponse, err
 }
 
 // HasIDifNeeded checks if an ID needs to be passed and if absent produces an error
 func HasIDifNeeded(commandData *domain.CommandData) error {
-	if strings.Contains(commandData.Endpoint.Url, "{id}") {
-		if commandData.Id == "" {
+	if strings.Contains(commandData.Endpoint.URL, "{id}") {
+		if commandData.ID == "" {
 			return errors.New(util.NoIDGivenMessage)
 		}
-		commandData.Endpoint.Url = strings.Replace(commandData.Endpoint.Url, "{id}", commandData.Id, 1)
+		commandData.Endpoint.URL = strings.Replace(commandData.Endpoint.URL, "{id}", commandData.ID, 1)
 	}
 	return nil
 }
 
 // HasRegionIfNeeded checks if a Region needs to passed and if absent produces an error
 func HasRegionIfNeeded(commandData *domain.CommandData) error {
-	if strings.Contains(commandData.Endpoint.Url, "{regionName}") {
+	if strings.Contains(commandData.Endpoint.URL, "{regionName}") {
 		if commandData.Region == "" {
 			return errors.New(util.NoRegionGivenMessage)
 		}
-		commandData.Endpoint.Url = strings.Replace(commandData.Endpoint.Url, "{regionName}", commandData.Region, 1)
+		commandData.Endpoint.URL = strings.Replace(commandData.Endpoint.URL, "{regionName}", commandData.Region, 1)
 	}
 	return nil
 }

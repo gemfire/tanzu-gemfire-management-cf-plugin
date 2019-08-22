@@ -11,7 +11,7 @@ import (
 // Fill ensures that a column is filled with desired filler characters to desired size
 func Fill(columnSize int, value string, filler string) (response string) {
 	if len(value) > columnSize-1 {
-		response = " " + value[:columnSize-len([]rune(util.Ellipsis))-1] + util.Ellipsis
+		response = " " + value[:columnSize-len(util.Ellipsis)-1] + util.Ellipsis
 		return
 	}
 	numFillerChars := columnSize - len(value) - 1

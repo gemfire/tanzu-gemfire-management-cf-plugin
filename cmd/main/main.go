@@ -16,15 +16,25 @@ import (
 
 // BasicPlugin declares the dataset that commands work on
 type BasicPlugin struct {
-	commandData domain.CommandData
+	commandData            domain.CommandData
+	connectionDataProvider ConnectionDataProvider
+}
+
+// ConnectionDataProvider provides an interface whose implementation will return
+// information on how to connect to a Geode cluster
+type ConnectionDataProvider interface {
+	GetConnectionData(args []string) (domain.ConnectionData, error)
 }
 
 func main() {
+	// figure out who is calling
+	fmt.Println("main: ", os.Args)
 	plugin.Start(new(BasicPlugin))
 }
 
 // Run is the main entry point for plugin commands
 func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
+	fmt.Println("Run: ", args)
 	cfClient := &cfservice.Cf{}
 	if args[0] == "CLI-MESSAGE-UNINSTALL" {
 		return
@@ -35,6 +45,8 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+
+	fmt.Println("Initial target: ", c.commandData.Target)
 
 	// first get credentials from environment
 	c.commandData.Username = os.Getenv("CFLOGIN")
@@ -56,6 +68,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 			os.Exit(1)
 		}
 
+		fmt.Println("Resolved target: ", url)
 		c.commandData.LocatorAddress = url
 
 		// then get the credentials from the serviceKey
@@ -100,7 +113,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	}
 	if c.commandData.UserCommand.Command == "commands" {
 		for _, command := range c.commandData.AvailableEndpoints {
-			fmt.Println(command.CommandCall)
+			fmt.Println(command.CommandCall, command.URL, command.HTTPMethod)
 		}
 		os.Exit(0)
 	}

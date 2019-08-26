@@ -21,6 +21,14 @@ type CommandData struct {
 	Endpoint           IndividualEndpoint
 }
 
+// ConnectionData describes items required to connect to a Geode cluster
+type ConnectionData struct {
+	Username       string
+	Password       string
+	Token          string
+	LocatorAddress string
+}
+
 // ServiceKeyUsers holds the username and password for users identified in a CF service key
 type ServiceKeyUsers struct {
 	Password string `json:"password"`

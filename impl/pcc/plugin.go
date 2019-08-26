@@ -34,9 +34,9 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	}
 
 	// first get credentials from environment
-	c.commandData.Username = os.Getenv("CFLOGIN")
-	c.commandData.Password = os.Getenv("CFPASSWORD")
-	c.commandData.ExplicitTarget = strings.Contains(c.commandData.Target, "http://") || strings.Contains(c.commandData.Target, "https://")
+	c.commandData.Username = os.Getenv("CFLOGIN")                                                                                          // not needed for cf cli
+	c.commandData.Password = os.Getenv("CFPASSWORD")                                                                                       // not needed for cf cli
+	c.commandData.ExplicitTarget = strings.Contains(c.commandData.Target, "http://") || strings.Contains(c.commandData.Target, "https://") // not needed cf cli
 	if c.commandData.ExplicitTarget {
 		c.commandData.LocatorAddress = c.commandData.Target
 	} else {
@@ -59,6 +59,14 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		if serviceKeyUser != "" && serviceKeyPswd != "" {
 			c.commandData.Username = serviceKeyUser
 			c.commandData.Password = serviceKeyPswd
+		}
+
+		// Code below should be all we need once we rejig things downstream
+		pluginConnection := pluginConnection{cliConnection: cliConnection}
+		c.commandData.ConnnectionData, err = pluginConnection.GetConnectionData(c.commandData.Target)
+		if err != nil {
+			fmt.Println(util.GenericErrorMessage, err.Error())
+			os.Exit(1)
 		}
 	}
 	if err != nil {

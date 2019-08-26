@@ -15,6 +15,7 @@ type CommandData struct {
 	HasGroup           bool
 	IsJSONOutput       bool
 	ExplicitTarget     bool
+	ConnnectionData    ConnectionData
 	UserCommand        UserCommand
 	FirstResponse      SwaggerInfo
 	AvailableEndpoints []IndividualEndpoint

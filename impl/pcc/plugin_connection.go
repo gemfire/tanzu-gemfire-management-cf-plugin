@@ -19,7 +19,7 @@ type pluginConnection struct {
 func (pc *pluginConnection) GetConnectionData(args ...string) (domain.ConnectionData, error) {
 	serviceKey, err := pc.getServiceKey(args[0])
 	if err != nil {
-		fmt.Println("In new code: ", err.Error(), args[0])
+		fmt.Println(err.Error(), args[0])
 		return domain.ConnectionData{}, err
 	}
 

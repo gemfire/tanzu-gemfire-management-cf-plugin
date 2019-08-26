@@ -19,8 +19,9 @@ type BasicPlugin struct {
 	commandData domain.CommandData
 }
 
+// Run is the main entry point for the CF plugin interface
+// It is run once for each CF plugin command executed
 func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
-	fmt.Println("Run: ", args)
 	cfClient := &cfservice.Cf{}
 	if args[0] == "CLI-MESSAGE-UNINSTALL" {
 		return
@@ -31,8 +32,6 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-
-	fmt.Println("Initial target: ", c.commandData.Target)
 
 	// first get credentials from environment
 	c.commandData.Username = os.Getenv("CFLOGIN")
@@ -54,7 +53,6 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 			os.Exit(1)
 		}
 
-		fmt.Println("Resolved target: ", url)
 		c.commandData.LocatorAddress = url
 
 		// then get the credentials from the serviceKey
@@ -99,7 +97,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	}
 	if c.commandData.UserCommand.Command == "commands" {
 		for _, command := range c.commandData.AvailableEndpoints {
-			fmt.Println(command.CommandCall, command.URL, command.HTTPMethod)
+			fmt.Println(command.CommandCall)
 		}
 		os.Exit(0)
 	}

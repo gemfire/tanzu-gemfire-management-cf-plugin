@@ -178,7 +178,7 @@ func GetTargetAndClusterCommand(args []string) (target string, userCommand domai
 
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the PCC manageability service
 func GetEndPoints(commandData *domain.CommandData) error {
-	urlResponse, err := executeCommand(commandData.LocatorAddress+"/management/experimental/api-docs", "GET", commandData)
+	urlResponse, err := executeCommand(commandData.ConnnectionData.LocatorAddress+"/management/experimental/api-docs", "GET", commandData)
 	if err == nil {
 		err = json.Unmarshal([]byte(urlResponse), &commandData.FirstResponse)
 		for url, v := range commandData.FirstResponse.Paths {
@@ -196,7 +196,7 @@ func GetEndPoints(commandData *domain.CommandData) error {
 
 // RequestToEndPoint makes the request to a manageability service endpoint and returns a response
 func RequestToEndPoint(commandData *domain.CommandData) (string, error) {
-	secondEndpoint := commandData.LocatorAddress + "/management" + commandData.Endpoint.URL
+	secondEndpoint := commandData.ConnnectionData.LocatorAddress + "/management" + commandData.Endpoint.URL
 	urlResponse, err := executeCommand(secondEndpoint, strings.ToUpper(commandData.Endpoint.HTTPMethod), commandData)
 	return urlResponse, err
 }

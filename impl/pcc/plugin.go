@@ -67,7 +67,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 			fmt.Println(util.GenericErrorMessage, err.Error())
 			os.Exit(1)
 		}
-		c.commandData.ConnnectionData, err = pluginConnection.GetConnectionData(c.commandData.Target)
+		c.commandData.ConnnectionData, err = pluginConnection.GetConnectionData([]string{c.commandData.Target})
 		if err != nil {
 			fmt.Println(util.GenericErrorMessage, err.Error())
 			os.Exit(1)
@@ -139,7 +139,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 
 	jsonToBePrinted, err := format.GetJSONFromURLResponse(urlResponse)
 	if err != nil {
-		fmt.Print(err.Error())
+		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 	fmt.Println(jsonToBePrinted)

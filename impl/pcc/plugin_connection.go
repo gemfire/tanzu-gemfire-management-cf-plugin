@@ -22,7 +22,7 @@ func NewPluginConnectionProvider(connection plugin.CliConnection) (impl.Connecti
 }
 
 // GetConnectionData provides the connection data from a PCC cluster using the CF CLI
-func (pc *pluginConnection) GetConnectionData(args ...string) (domain.ConnectionData, error) {
+func (pc *pluginConnection) GetConnectionData(args []string) (domain.ConnectionData, error) {
 	serviceKey, err := pc.getServiceKey(args[0])
 	if err != nil {
 		fmt.Println(err.Error(), args[0])

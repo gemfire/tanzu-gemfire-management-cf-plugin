@@ -74,7 +74,7 @@ var _ = Describe("PluginConnection", func() {
 		It("Returns a populated ConnectionData object", func() {
 			cliConnection.CliCommandWithoutTerminalOutputReturnsOnCall(0, []string{"name", "pcc1ServiceKey"}, nil)
 			cliConnection.CliCommandWithoutTerminalOutputReturnsOnCall(1, goodServiceKeyResponse, nil)
-			connectionData, err := pluginConnection.GetConnectionData("pcc1")
+			connectionData, err := pluginConnection.GetConnectionData([]string{"pcc1"})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cliConnection.CliCommandWithoutTerminalOutputCallCount()).To(Equal(2))
 			Expect(connectionData.Username).To(Equal("cluster_operator_M5Scgeb0b6yp5f99E6SA8w"))
@@ -88,7 +88,7 @@ var _ = Describe("PluginConnection", func() {
 		It("Returns an error indicating that there is no service-key", func() {
 			cliConnection.CliCommandWithoutTerminalOutputReturnsOnCall(0, []string{"", ""}, nil)
 			cliConnection.CliCommandWithoutTerminalOutputReturnsOnCall(1, []string{"", ""}, nil)
-			connectionData, err := pluginConnection.GetConnectionData("pcc1")
+			connectionData, err := pluginConnection.GetConnectionData([]string{"pcc1"})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(util.NoServiceKeyMessage))
 			Expect(cliConnection.CliCommandWithoutTerminalOutputCallCount()).To(Equal(1))

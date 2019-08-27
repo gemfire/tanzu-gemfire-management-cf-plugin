@@ -17,7 +17,7 @@ func NewGeodeConnectionProvider() (impl.ConnectionProvider, error) {
 	return &geodeConnection{}, nil
 }
 
-func (gc *geodeConnection) GetConnectionData(args ...string) (domain.ConnectionData, error) {
+func (gc *geodeConnection) GetConnectionData(args []string) (domain.ConnectionData, error) {
 	connectionData := domain.ConnectionData{}
 	for _, value := range args {
 		if strings.HasPrefix(value, "-u=") {

@@ -35,7 +35,7 @@ var _ = Describe("GeodeConnection", func() {
 		})
 
 		It("Returns a populated ConnectionData object", func() {
-			connectionData, err := geodeConnection.GetConnectionData(args...)
+			connectionData, err := geodeConnection.GetConnectionData(args)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(connectionData.Username).To(Equal("locatorUser"))
 			Expect(connectionData.Password).To(Equal("locatorPassword"))
@@ -51,7 +51,7 @@ var _ = Describe("GeodeConnection", func() {
 		})
 
 		It("Returns an error indicating that URL is missing", func() {
-			connectData, err := geodeConnection.GetConnectionData(args...)
+			connectData, err := geodeConnection.GetConnectionData(args)
 			Expect(err).To(HaveOccurred())
 			Expect(len(connectData.LocatorAddress)).To(BeZero())
 			Expect(err.Error()).To(Equal(util.NoEndpointFoundMessage))

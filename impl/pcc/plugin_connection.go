@@ -16,6 +16,7 @@ type pluginConnection struct {
 	cliConnection plugin.CliConnection
 }
 
+// NewPluginConnectionProvider provides a constructor for the PCC implementation of ConnectionProvider
 func NewPluginConnectionProvider(connection plugin.CliConnection) (impl.ConnectionProvider, error) {
 	return &pluginConnection{cliConnection: connection}, nil
 }

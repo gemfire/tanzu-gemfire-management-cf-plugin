@@ -62,7 +62,11 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		}
 
 		// Code below should be all we need once we rejig things downstream
-		pluginConnection := pluginConnection{cliConnection: cliConnection}
+		pluginConnection, err := NewPluginConnectionProvider(cliConnection)
+		if err != nil {
+			fmt.Println(util.GenericErrorMessage, err.Error())
+			os.Exit(1)
+		}
 		c.commandData.ConnnectionData, err = pluginConnection.GetConnectionData(c.commandData.Target)
 		if err != nil {
 			fmt.Println(util.GenericErrorMessage, err.Error())

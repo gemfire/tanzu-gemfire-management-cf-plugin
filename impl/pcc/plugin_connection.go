@@ -8,11 +8,16 @@ import (
 	"code.cloudfoundry.org/cli/cf/errors"
 	"code.cloudfoundry.org/cli/plugin"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util"
 )
 
 type pluginConnection struct {
 	cliConnection plugin.CliConnection
+}
+
+func NewPluginConnectionProvider(connection plugin.CliConnection) (impl.ConnectionProvider, error) {
+	return &pluginConnection{cliConnection: connection}, nil
 }
 
 // GetConnectionData provides the connection data from a PCC cluster using the CF CLI

@@ -6,6 +6,7 @@ import (
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
 	. "github.com/gemfire/cloudcache-management-cf-plugin/impl/geode"
+	"github.com/gemfire/cloudcache-management-cf-plugin/util"
 )
 
 var _ = Describe("GeodeConnection", func() {
@@ -39,6 +40,21 @@ var _ = Describe("GeodeConnection", func() {
 			Expect(connectionData.Username).To(Equal("locatorUser"))
 			Expect(connectionData.Password).To(Equal("locatorPassword"))
 			Expect(connectionData.LocatorAddress).To(Equal("https://some.geode-locator.com"))
+		})
+	})
+
+	Context("URI is missing from arguments", func() {
+
+		BeforeEach(func() {
+			locatorURL = "some.geode-locator.com"
+			args = []string{locatorURL}
+		})
+
+		It("Returns an error indicating that URL is missing", func() {
+			connectData, err := geodeConnection.GetConnectionData(args...)
+			Expect(err).To(HaveOccurred())
+			Expect(len(connectData.LocatorAddress)).To(BeZero())
+			Expect(err.Error()).To(Equal(util.NoEndpointFoundMessage))
 		})
 	})
 })

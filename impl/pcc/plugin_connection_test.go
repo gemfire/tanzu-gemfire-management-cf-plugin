@@ -1,6 +1,7 @@
 package pcc_test
 
 import (
+	"fmt"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
@@ -18,6 +19,7 @@ var _ = Describe("PluginConnection", func() {
 		cliConnection          *pluginfakes.FakeCliConnection
 		pluginConnection       impl.ConnectionProvider
 		goodServiceKeyResponse []string
+		target                 string
 	)
 
 	BeforeEach(func() {
@@ -25,6 +27,7 @@ var _ = Describe("PluginConnection", func() {
 		pluginConnectionImpl, err := NewPluginConnectionProvider(cliConnection)
 		pluginConnection = pluginConnectionImpl
 		Expect(err).NotTo(HaveOccurred())
+		target = "pcc1"
 	})
 
 	Context("We have a service and a service-key", func() {
@@ -88,9 +91,9 @@ var _ = Describe("PluginConnection", func() {
 		It("Returns an error indicating that there is no service-key", func() {
 			cliConnection.CliCommandWithoutTerminalOutputReturnsOnCall(0, []string{"", ""}, nil)
 			cliConnection.CliCommandWithoutTerminalOutputReturnsOnCall(1, []string{"", ""}, nil)
-			connectionData, err := pluginConnection.GetConnectionData([]string{"pcc1"})
+			connectionData, err := pluginConnection.GetConnectionData([]string{target})
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal(util.NoServiceKeyMessage))
+			Expect(err.Error()).To(Equal(fmt.Sprintf(util.NoServiceKeyMessage, target, target)))
 			Expect(cliConnection.CliCommandWithoutTerminalOutputCallCount()).To(Equal(1))
 			Expect(len(connectionData.Username)).To(BeZero())
 			Expect(len(connectionData.Password)).To(BeZero())

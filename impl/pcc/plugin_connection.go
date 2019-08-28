@@ -25,7 +25,6 @@ func NewPluginConnectionProvider(connection plugin.CliConnection) (impl.Connecti
 func (pc *pluginConnection) GetConnectionData(args []string) (domain.ConnectionData, error) {
 	serviceKey, err := pc.getServiceKey(args[0])
 	if err != nil {
-		fmt.Println(err.Error(), args[0])
 		return domain.ConnectionData{}, err
 	}
 
@@ -40,7 +39,7 @@ func (pc *pluginConnection) getServiceKey(target string) (serviceKey string, err
 	}
 	hasKey := false
 	if strings.Contains(results[1], "No service key for service instance") {
-		return "", errors.New(util.NoServiceKeyMessage)
+		return "", fmt.Errorf(util.NoServiceKeyMessage, target, target)
 	}
 	for _, value := range results {
 		line := strings.Fields(value)
@@ -54,7 +53,7 @@ func (pc *pluginConnection) getServiceKey(target string) (serviceKey string, err
 		}
 	}
 	if serviceKey == "" {
-		err = errors.New(util.NoServiceKeyMessage)
+		err = fmt.Errorf(util.NoServiceKeyMessage, target, target)
 	}
 	return
 }

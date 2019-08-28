@@ -5,8 +5,7 @@ import (
 	"os"
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util/format"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util/requests"
 )
 
@@ -19,6 +18,8 @@ func NewGeodeCommand() (geodeCommand, error) {
 	return geodeCommand{}, nil
 }
 
+// Run is the main entry point for the standalone Geode command line interface
+// It is run once for each command executed
 func (gc *geodeCommand) Run(args []string) {
 	var err error
 	gc.commandData.Target, gc.commandData.UserCommand, err = requests.GetTargetAndClusterCommand(args)
@@ -39,54 +40,8 @@ func (gc *geodeCommand) Run(args []string) {
 		os.Exit(1)
 	}
 
-	err = util.ParseArguments(args, &gc.commandData)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	err = requests.GetEndPoints(&gc.commandData)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	if gc.commandData.UserCommand.Command == "commands" {
-		for _, command := range gc.commandData.AvailableEndpoints {
-			fmt.Println(command.CommandCall)
-		}
-		os.Exit(0)
-	}
-
-	err = requests.MapUserInputToAvailableEndpoint(&gc.commandData)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	err = requests.HasIDifNeeded(&gc.commandData)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	err = requests.HasRegionIfNeeded(&gc.commandData)
-	if err != nil {
-		fmt.Printf(err.Error(), gc.commandData.Target)
-		os.Exit(1)
-	}
-
-	urlResponse, err := requests.RequestToEndPoint(&gc.commandData)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	jsonToBePrinted, err := format.GetJSONFromURLResponse(urlResponse)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	fmt.Println(jsonToBePrinted)
+	// From this point common code can handle the processing of the command
+	common.ProcessCommand(&gc.commandData, args)
 
 	return
 }

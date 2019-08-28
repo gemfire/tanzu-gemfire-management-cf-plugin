@@ -28,7 +28,7 @@ func (pc *pluginConnection) GetConnectionData(args []string) (domain.ConnectionD
 		return domain.ConnectionData{}, err
 	}
 
-	return pc.getConnectionData(args[0], serviceKey)
+	return pc.getServiceKeyDetails(args[0], serviceKey)
 
 }
 
@@ -58,7 +58,7 @@ func (pc *pluginConnection) getServiceKey(target string) (serviceKey string, err
 	return
 }
 
-func (pc *pluginConnection) getConnectionData(target string, serviceKey string) (connectionData domain.ConnectionData, err error) {
+func (pc *pluginConnection) getServiceKeyDetails(target string, serviceKey string) (connectionData domain.ConnectionData, err error) {
 	connectionData = domain.ConnectionData{}
 	keyInfo, err := pc.cliConnection.CliCommandWithoutTerminalOutput("service-key", target, serviceKey)
 	if err != nil {

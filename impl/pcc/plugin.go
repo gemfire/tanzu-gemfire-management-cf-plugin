@@ -65,19 +65,10 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 				Name:     "pcc",
 				HelpText: "Commands to interact with geode cluster.\n",
 				UsageDetails: plugin.Usage{
-					Usage: "	cf  pcc  <*target>  <command>  [*options]  (* = optional)\n" +
-						"\nSupported commands:	use 'cf pcc <*target> commands' to see a list of supported commands \n" +
-						"\nNote: target is either a pcc_instance or an explicit locator url in the form of: http(s)://host:port" +
-						"\nIt can be saved at [$CFPCC], then omit <*target> from command ",
-					Options: map[string]string{
-						"h":  "this help screen\n",
-						"u":  "followed by equals username (-u=<your_username>) [$CFLOGIN]\n",
-						"p":  "followed by equals password (-p=<your_password>) [$CFPASSWORD]\n",
-						"r":  "followed by equals region (-r=<your_region>)\n",
-						"id": "followed by an identifier required for any get command\n",
-						"d": "followed by @<json_file_path> OR single quoted JSON input \n" +
-							"	     JSON required for creating/post commands\n",
-					},
+					Usage: "	cf  pcc  <target>  <command>  [*options]  (* = optional)\n" +
+						"\n\ttarget: a pcc_instance.\n" +
+						"\tcommand: use 'cf pcc <target> commands' to see a list of supported commands \n" +
+						"\toptions: see help for individual commands for options.",
 				},
 			},
 		},

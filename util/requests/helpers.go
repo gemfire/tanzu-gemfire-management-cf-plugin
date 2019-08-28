@@ -16,20 +16,20 @@ import (
 )
 
 func executeCommand(endpointURL string, httpAction string, commandData *domain.CommandData) (urlResponse string, err error) {
+	var bodyReader io.Reader
+
 	if httpAction == "POST" {
-		return executePostCommand(endpointURL, commandData.JSONFile)
-	}
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr}
-
-	if err != nil {
-		return "", err
+		bodyReader, err = getBodyReader(commandData.JSONFile)
+		if err != nil {
+			return "", err
+		}
 	}
 
-	req, err := http.NewRequest(httpAction, endpointURL, nil)
-	req.SetBasicAuth(commandData.Username, commandData.Password)
+	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	client := &http.Client{Transport: transport}
+
+	req, err := http.NewRequest(httpAction, endpointURL, bodyReader)
+	req.SetBasicAuth(commandData.ConnnectionData.Username, commandData.ConnnectionData.Password)
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
@@ -37,32 +37,20 @@ func executeCommand(endpointURL string, httpAction string, commandData *domain.C
 	return getURLOutput(resp)
 }
 
-func executePostCommand(endpointURL string, jsonFile string) (urlResponse string, err error) {
+func getBodyReader(jsonFile string) (bodyReader io.Reader, err error) {
 	if jsonFile == "" {
-		return "", errors.New(util.NoJsonFileProvidedMessage)
+		err = errors.New(util.NoJsonFileProvidedMessage)
+		return
 	}
-	var f io.Reader
-	var req *http.Request
 	if jsonFile[0] == '@' && len(jsonFile) > 1 {
-		f, err = os.Open(jsonFile[1:])
+		bodyReader, err = os.Open(jsonFile[1:])
 		if err != nil {
-			return "", err
+			return
 		}
 	} else {
-		f = strings.NewReader(jsonFile)
+		bodyReader = strings.NewReader(jsonFile)
 	}
-	req, err = http.NewRequest("POST", endpointURL, f)
-	if err != nil {
-		return "", err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	return getURLOutput(resp)
+	return
 }
 
 func getURLOutput(resp *http.Response) (urlResponse string, err error) {

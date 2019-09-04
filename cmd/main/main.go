@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"code.cloudfoundry.org/cli/plugin"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/geode"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/pcc"
 )
 
@@ -14,6 +15,11 @@ func main() {
 	if strings.Contains(os.Args[0], ".cf/plugins") {
 		plugin.Start(new(pcc.BasicPlugin))
 	} else {
-		fmt.Println("Standalone mode is a future feature")
+		geodeCommand, err := geode.NewGeodeCommand()
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+		geodeCommand.Run(os.Args)
 	}
 }

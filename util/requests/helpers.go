@@ -15,90 +15,21 @@ import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/util"
 )
 
-//go:generate counterfeiter . CfService
-
-// CfService is the interface for executing CF commands
-type CfService interface {
-	Cmd(name string, options ...string) (string, error)
-}
-
-// GetServiceKeyFromPCCInstance retrieves the service key by name from the CF foundation
-func GetServiceKeyFromPCCInstance(cf CfService, target string) (serviceKey string, err error) {
-	servKeyOutput, err := cf.Cmd("service-keys", target)
-	if err != nil {
-		return "", err
-	}
-	splitKeys := strings.Split(servKeyOutput, "\n")
-	hasKey := false
-	if strings.Contains(splitKeys[1], "No service key for service instance") {
-		return "", errors.New(util.NoServiceKeyMessage)
-	}
-	for _, value := range splitKeys {
-		line := strings.Fields(value)
-		if len(line) > 0 {
-			if hasKey {
-				serviceKey = line[0]
-				return
-			} else if line[0] == "name" {
-				hasKey = true
-			}
-		}
-	}
-	if serviceKey == "" {
-		err = errors.New(util.NoServiceKeyMessage)
-	}
-	return
-}
-
-// GetUsernamePasswordEndpoinFromServiceKey extracts the username, password and endpoint from a CF service key
-func GetUsernamePasswordEndpoinFromServiceKey(cf CfService, target string, serviceKey string) (username string, password string, endpoint string, err error) {
-	username = ""
-	password = ""
-	endpoint = ""
-	keyInfo, err := cf.Cmd("service-key", target, serviceKey)
-	if err != nil {
-		return "", "", "", err
-	}
-	splitKeyInfo := strings.Split(keyInfo, "\n")
-	if len(splitKeyInfo) < 2 {
-		return "", "", "", errors.New(util.InvalidServiceKeyResponse)
-	}
-	splitKeyInfo = splitKeyInfo[2:] //take out first two lines of cf service-key ... output
-	joinKeyInfo := strings.Join(splitKeyInfo, "\n")
-	serviceKeyStruct := domain.ServiceKey{}
-
-	err = json.Unmarshal([]byte(joinKeyInfo), &serviceKeyStruct)
-	if err != nil {
-		return "", "", "", err
-	}
-	endpoint = serviceKeyStruct.Urls.Management
-	if endpoint == "" {
-		endpoint = strings.TrimSuffix(serviceKeyStruct.Urls.Gfsh, "/gemfire/v1")
-	}
-	for _, user := range serviceKeyStruct.Users {
-		if strings.HasPrefix(user.Username, "cluster_operator") {
-			username = user.Username
-			password = user.Password
-		}
-	}
-	return
-}
-
 func executeCommand(endpointURL string, httpAction string, commandData *domain.CommandData) (urlResponse string, err error) {
+	var bodyReader io.Reader
+
 	if httpAction == "POST" {
-		return executePostCommand(endpointURL, commandData.JSONFile)
-	}
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr}
-
-	if err != nil {
-		return "", err
+		bodyReader, err = getBodyReader(commandData.JSONFile)
+		if err != nil {
+			return "", err
+		}
 	}
 
-	req, err := http.NewRequest(httpAction, endpointURL, nil)
-	req.SetBasicAuth(commandData.Username, commandData.Password)
+	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	client := &http.Client{Transport: transport}
+
+	req, err := http.NewRequest(httpAction, endpointURL, bodyReader)
+	req.SetBasicAuth(commandData.ConnnectionData.Username, commandData.ConnnectionData.Password)
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
@@ -106,32 +37,20 @@ func executeCommand(endpointURL string, httpAction string, commandData *domain.C
 	return getURLOutput(resp)
 }
 
-func executePostCommand(endpointURL string, jsonFile string) (urlResponse string, err error) {
+func getBodyReader(jsonFile string) (bodyReader io.Reader, err error) {
 	if jsonFile == "" {
-		return "", errors.New(util.NoJsonFileProvidedMessage)
+		err = errors.New(util.NoJsonFileProvidedMessage)
+		return
 	}
-	var f io.Reader
-	var req *http.Request
 	if jsonFile[0] == '@' && len(jsonFile) > 1 {
-		f, err = os.Open(jsonFile[1:])
+		bodyReader, err = os.Open(jsonFile[1:])
 		if err != nil {
-			return "", err
+			return
 		}
 	} else {
-		f = strings.NewReader(jsonFile)
+		bodyReader = strings.NewReader(jsonFile)
 	}
-	req, err = http.NewRequest("POST", endpointURL, f)
-	if err != nil {
-		return "", err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	return getURLOutput(resp)
+	return
 }
 
 func getURLOutput(resp *http.Response) (urlResponse string, err error) {
@@ -178,7 +97,7 @@ func GetTargetAndClusterCommand(args []string) (target string, userCommand domai
 
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the PCC manageability service
 func GetEndPoints(commandData *domain.CommandData) error {
-	urlResponse, err := executeCommand(commandData.LocatorAddress+"/management/experimental/api-docs", "GET", commandData)
+	urlResponse, err := executeCommand(commandData.ConnnectionData.LocatorAddress+"/management/experimental/api-docs", "GET", commandData)
 	if err == nil {
 		err = json.Unmarshal([]byte(urlResponse), &commandData.FirstResponse)
 		for url, v := range commandData.FirstResponse.Paths {
@@ -196,7 +115,7 @@ func GetEndPoints(commandData *domain.CommandData) error {
 
 // RequestToEndPoint makes the request to a manageability service endpoint and returns a response
 func RequestToEndPoint(commandData *domain.CommandData) (string, error) {
-	secondEndpoint := commandData.LocatorAddress + "/management" + commandData.Endpoint.URL
+	secondEndpoint := commandData.ConnnectionData.LocatorAddress + "/management" + commandData.Endpoint.URL
 	urlResponse, err := executeCommand(secondEndpoint, strings.ToUpper(commandData.Endpoint.HTTPMethod), commandData)
 	return urlResponse, err
 }

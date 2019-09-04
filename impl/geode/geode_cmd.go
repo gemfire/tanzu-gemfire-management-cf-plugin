@@ -23,9 +23,16 @@ func NewGeodeCommand() (geodeCommand, error) {
 func (gc *geodeCommand) Run(args []string) {
 	var err error
 	gc.commandData.Target, gc.commandData.UserCommand, err = requests.GetTargetAndClusterCommand(args)
+
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
+	}
+
+	// if no user command and args contains -h or --help
+	if gc.commandData.UserCommand.Command == "" && (common.Contains(args, "-h") || common.Contains(args, "--help")) {
+		printHelp()
+		os.Exit(0)
 	}
 
 	geodeConnection, err := NewGeodeConnectionProvider()
@@ -44,4 +51,12 @@ func (gc *geodeCommand) Run(args []string) {
 	common.ProcessCommand(&gc.commandData, args)
 
 	return
+}
+
+func printHelp() {
+	fmt.Println("Commands to interact with geode cluster.\n")
+	fmt.Println("Usage: pcc <target> <command> [options]\n")
+	fmt.Println("\ttarget: url to a geode locator in the form of : http(s)://host:port")
+	fmt.Println("\tcommand: use 'pcc <target> commands' to see a list of supported commands")
+	fmt.Println("\toptions: see help for individual commands for options.")
 }

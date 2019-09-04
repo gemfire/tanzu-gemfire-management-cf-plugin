@@ -65,7 +65,7 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 				Name:     "pcc",
 				HelpText: "Commands to interact with geode cluster.\n",
 				UsageDetails: plugin.Usage{
-					Usage: "	cf  pcc  <target>  <command>  [*options]  (* = optional)\n" +
+					Usage: "	cf pcc <target> <command> [options]\n" +
 						"\n\ttarget: a pcc_instance.\n" +
 						"\tcommand: use 'cf pcc <target> commands' to see a list of supported commands \n" +
 						"\toptions: see help for individual commands for options.",

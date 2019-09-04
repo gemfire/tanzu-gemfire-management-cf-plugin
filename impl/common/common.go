@@ -14,7 +14,7 @@ import (
 func ProcessCommand(commandData *domain.CommandData, args []string) {
 	var err error
 
-	commandData.UserCommand.Parameters = make(map[string]string)
+	commandData.UserCommand.Parameters = make(map[string]interface{})
 
 	err = util.ParseArguments(args, commandData)
 	if err != nil {

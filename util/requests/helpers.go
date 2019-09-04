@@ -66,9 +66,7 @@ func getURLOutput(resp *http.Response) (urlResponse string, err error) {
 
 // GetTargetAndClusterCommand extracts the target and command from the args and environment variables
 func GetTargetAndClusterCommand(args []string) (target string, userCommand domain.UserCommand, err error) {
-	if os.Getenv("CFPCC") != "" {
-		target = os.Getenv("CFPCC")
-	}
+	target = os.Getenv("CFPCC")
 
 	if len(args) < 2 {
 		err = errors.New(util.IncorrectUserInputMessage)

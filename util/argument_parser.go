@@ -8,22 +8,25 @@ import (
 
 // ParseArguments parses command line arguments into the CommandData struct passed by pointer
 func ParseArguments(args []string, commandData *domain.CommandData) (err error) {
+	if commandData.UserCommand.Parameters == nil {
+		commandData.UserCommand.Parameters = make(map[string]interface{})
+	}
 	for _, arg := range args {
 		if strings.HasPrefix(arg, "-g=") {
-			commandData.UserCommand.Parameters["g"] = "true"
+			commandData.UserCommand.Parameters["g"] = true
 			commandData.HasGroup = true
 			commandData.Group = arg[3:]
 			if err != nil {
 				return
 			}
 		} else if arg == "-j" {
-			commandData.UserCommand.Parameters["j"] = "true"
+			commandData.UserCommand.Parameters["j"] = true
 			commandData.IsJSONOutput = true
 		} else if strings.HasPrefix(arg, "-r=") {
-			commandData.UserCommand.Parameters["r"] = "true"
+			commandData.UserCommand.Parameters["r"] = true
 			commandData.Region = arg[3:]
 		} else if strings.HasPrefix(arg, "--regionName=") {
-			commandData.UserCommand.Parameters["r"] = "true"
+			commandData.UserCommand.Parameters["r"] = true
 			commandData.Region = arg[13:]
 		} else if strings.HasPrefix(arg, "-u=") {
 			commandData.Username = arg[3:]

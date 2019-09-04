@@ -1,5 +1,7 @@
 package domain
 
+var ()
+
 // CommandData is all the data involved in executing plugin commands
 // This data gets manipulated throughout the program
 type CommandData struct {
@@ -51,7 +53,7 @@ type ServiceKey struct {
 // UserCommand holds command and parameter information entered by a user
 type UserCommand struct {
 	Command    string
-	Parameters map[string]string
+	Parameters map[string]interface{}
 }
 
 // IndividualEndpoint holds endpoint information

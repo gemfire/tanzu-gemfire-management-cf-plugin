@@ -51,9 +51,9 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
 		Name: "pcc",
 		Version: plugin.VersionType{
-			Major: 1,
-			Minor: 0,
-			Build: 0,
+			Major: 0,
+			Minor: 1,
+			Build: 1,
 		},
 		MinCliVersion: plugin.VersionType{
 			Major: 6,
@@ -63,12 +63,13 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 		Commands: []plugin.Command{
 			{
 				Name:     "pcc",
-				HelpText: "Commands to interact with geode cluster.\n",
+				HelpText: "Commands to interact with Geode cluster.\n",
 				UsageDetails: plugin.Usage{
-					Usage: "	cf  pcc  <target>  <command>  [*options]  (* = optional)\n" +
-						"\n\ttarget: a pcc_instance.\n" +
+					Usage: "cf  pcc  [target]  <command>  [options] \n" +
+						"\n\ttarget: a pcc_instance. Optional if 'CFPCC' environment variable is set \n" +
 						"\tcommand: use 'cf pcc <target> commands' to see a list of supported commands \n" +
-						"\toptions: see help for individual commands for options.",
+						"\toptions: see help for individual commands for options \n" +
+						"\thelp: type '-h' for general help, and provide <command> and '-help' for command specific help",
 				},
 			},
 		},

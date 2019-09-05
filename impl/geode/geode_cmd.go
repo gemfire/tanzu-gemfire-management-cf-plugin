@@ -54,8 +54,10 @@ func (gc *geodeCommand) Run(args []string) {
 }
 
 func printHelp() {
-	fmt.Println("Commands to interact with geode cluster.\n")
-	fmt.Println("Usage: pcc <target> <command> [options]\n")
+	fmt.Println("Commands to interact with geode cluster.")
+	fmt.Println("")
+	fmt.Println("Usage: pcc <target> <command> [options]")
+	fmt.Println("")
 	fmt.Println("\ttarget: url to a geode locator in the form of : http(s)://host:port")
 	fmt.Println("\tcommand: use 'pcc <target> commands' to see a list of supported commands")
 	fmt.Println("\toptions: see help for individual commands for options.")

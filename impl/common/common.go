@@ -14,11 +14,7 @@ import (
 func ProcessCommand(commandData *domain.CommandData, args []string) {
 	var err error
 
-	err = util.ParseArguments(args, commandData)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
+	util.ParseArguments(args, commandData)
 
 	err = requests.GetEndPoints(commandData)
 	if err != nil {

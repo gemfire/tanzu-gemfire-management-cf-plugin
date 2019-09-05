@@ -3,9 +3,9 @@ package format
 import (
 	"bytes"
 	"encoding/json"
-	"strings"
-
 	"github.com/gemfire/cloudcache-management-cf-plugin/util"
+	"github.com/threatgrid/jqpipe-go"
+	"strings"
 )
 
 // Fill ensures that a column is filled with desired filler characters to desired size
@@ -20,18 +20,23 @@ func Fill(columnSize int, value string, filler string) (response string) {
 }
 
 // GetJSONFromURLResponse extracts JSON from a response
-func GetJSONFromURLResponse(urlResponse string) (jsonOutput string, err error) {
-	var raw map[string]interface{}
-	err = json.Unmarshal([]byte(urlResponse), &raw)
-	if err != nil {
-		return urlResponse, nil
+func GetJSONFromURLResponse(urlResponse string, jqFilter string) (jsonOutput string, err error) {
+	if jqFilter == "" {
+		return indent([]byte(urlResponse))
 	}
-	out, err := json.Marshal(raw)
+	// otherwise use the filter string to generate the list for display.
+	//".result[] | .runtimeInfo[] | {id:.id,status:.status}"
+	jsonRawMessage, err := jq.Eval(urlResponse, jqFilter)
+	jsonByte, err := json.Marshal(&jsonRawMessage)
+
+	return indent(jsonByte)
+}
+
+func indent(rawJson []byte) (indented string, err error) {
+	dst := &bytes.Buffer{}
+	err = json.Indent(dst, rawJson, "", "  ")
 	if err != nil {
-		return urlResponse, nil
+		return string(rawJson), nil
 	}
-	var buf bytes.Buffer
-	json.Indent(&buf, out, "", "  ")
-	jsonOutput = string(buf.Bytes())
-	return
+	return dst.String(), nil
 }

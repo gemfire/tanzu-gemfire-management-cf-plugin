@@ -23,8 +23,11 @@ require (
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
+	github.com/savaki/jq v0.0.0-20161209013833-0e6baecebbf8
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/tedsuo/rata v1.0.0 // indirect
+	github.com/threatgrid/jq-go v0.0.0-20140326011412-3e60d678d7d9 // indirect
+	github.com/threatgrid/jqpipe-go v0.0.0-20160108233133-b5e15fb6d9f3
 	github.com/vito/go-interact v0.0.0-20171111012221-fa338ed9e9ec // indirect
 	golang.org/x/crypto v0.0.0-20190617133340-57b3e21c3d56 // indirect
 	golang.org/x/net v0.0.0-20190628185345-da137c7871d7 // indirect

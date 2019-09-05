@@ -48,7 +48,7 @@ func (gc *geodeCommand) Run(args []string) {
 	}
 
 	// From this point common code can handle the processing of the command
-	common.ProcessCommand(&gc.commandData, args)
+	common.ProcessCommand(&gc.commandData)
 
 	return
 }

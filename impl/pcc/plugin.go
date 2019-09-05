@@ -41,7 +41,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	}
 
 	// From this point common code can handle the processing of the command
-	common.ProcessCommand(&c.commandData, args)
+	common.ProcessCommand(&c.commandData)
 
 	return
 }

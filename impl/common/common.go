@@ -5,16 +5,13 @@ import (
 	"os"
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util/format"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util/requests"
 )
 
 // ProcessCommand handles the common steps for executing a command against the Geode cluster
-func ProcessCommand(commandData *domain.CommandData, args []string) {
+func ProcessCommand(commandData *domain.CommandData) {
 	var err error
-
-	util.ParseArguments(args, commandData)
 
 	err = requests.GetEndPoints(commandData)
 	if err != nil {
@@ -51,7 +48,8 @@ func ProcessCommand(commandData *domain.CommandData, args []string) {
 		os.Exit(1)
 	}
 
-	jsonToBePrinted, err := format.GetJSONFromURLResponse(urlResponse)
+	jqFilter := commandData.UserCommand.Parameters["-t"]
+	jsonToBePrinted, err := format.GetJSONFromURLResponse(urlResponse, jqFilter)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)

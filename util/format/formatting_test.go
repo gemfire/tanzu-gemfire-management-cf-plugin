@@ -44,7 +44,7 @@ var _ = Describe("Formatting", func() {
 				expectedString := `{
   "name": "value"
 }`
-				output, err := format.GetJSONFromURLResponse(inputString)
+				output, err := format.GetJSONFromURLResponse(inputString, "")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(output).To(Equal(expectedString))
 			})
@@ -53,7 +53,7 @@ var _ = Describe("Formatting", func() {
 		Context("Input string is not valid JSON", func() {
 			It("Returns the input 'as-is'", func() {
 				inputString := "foobar"
-				output, err := format.GetJSONFromURLResponse(inputString)
+				output, err := format.GetJSONFromURLResponse(inputString, "")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(output).To(Equal(inputString))
 			})

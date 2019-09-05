@@ -49,7 +49,7 @@ func ProcessCommand(commandData *domain.CommandData) {
 	}
 
 	jqFilter := commandData.UserCommand.Parameters["-t"]
-	jsonToBePrinted, err := format.GetJSONFromURLResponse(urlResponse, jqFilter)
+	jsonToBePrinted, err := format.GetJSONFromURLResponse(urlResponse, string(jqFilter))
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)

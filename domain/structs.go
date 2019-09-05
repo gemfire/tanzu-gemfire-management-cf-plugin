@@ -53,7 +53,7 @@ type ServiceKey struct {
 // UserCommand holds command and parameter information entered by a user
 type UserCommand struct {
 	Command    string
-	Parameters map[string]interface{}
+	Parameters map[string]string
 }
 
 // IndividualEndpoint holds endpoint information

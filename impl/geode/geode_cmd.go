@@ -22,17 +22,17 @@ func NewGeodeCommand() (geodeCommand, error) {
 // It is run once for each command executed
 func (gc *geodeCommand) Run(args []string) {
 	var err error
-	gc.commandData.Target, gc.commandData.UserCommand, err = requests.GetTargetAndClusterCommand(args)
-
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
+	gc.commandData.Target, gc.commandData.UserCommand = requests.GetTargetAndClusterCommand(args)
 
 	// if no user command and args contains -h or --help
-	if gc.commandData.UserCommand.Command == "" && (common.Contains(args, "-h") || common.Contains(args, "--help")) {
-		printHelp()
-		os.Exit(0)
+	if gc.commandData.UserCommand.Command == "" {
+		if gc.commandData.UserCommand.Parameters["-h"] != "" {
+			printHelp()
+			os.Exit(0)
+		} else {
+			fmt.Println("Invalid command")
+			os.Exit(1)
+		}
 	}
 
 	geodeConnection, err := NewGeodeConnectionProvider()

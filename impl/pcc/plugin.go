@@ -23,9 +23,9 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		return
 	}
 	var err error
-	c.commandData.Target, c.commandData.UserCommand, err = requests.GetTargetAndClusterCommand(args)
-	if err != nil {
-		fmt.Println(err.Error())
+	c.commandData.Target, c.commandData.UserCommand = requests.GetTargetAndClusterCommand(args)
+	if c.commandData.UserCommand.Command == "" {
+		fmt.Println(util.GenericErrorMessage, err.Error())
 		os.Exit(1)
 	}
 

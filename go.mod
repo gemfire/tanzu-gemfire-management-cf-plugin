@@ -21,8 +21,8 @@ require (
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
-	github.com/onsi/ginkgo v1.8.0
-	github.com/onsi/gomega v1.5.0
+	github.com/onsi/ginkgo v1.10.1
+	github.com/onsi/gomega v1.7.0
 	github.com/savaki/jq v0.0.0-20161209013833-0e6baecebbf8
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/tedsuo/rata v1.0.0 // indirect

@@ -65,19 +65,28 @@ func getURLOutput(resp *http.Response) (urlResponse string, err error) {
 }
 
 // GetTargetAndClusterCommand extracts the target and command from the args and environment variables
-func GetTargetAndClusterCommand(args []string) (target string, userCommand domain.UserCommand, err error) {
+func GetTargetAndClusterCommand(args []string) (target string, userCommand domain.UserCommand) {
+	target = os.Getenv("CFPCC")
 	if len(args) < 2 {
-		err = errors.New(util.IncorrectUserInputMessage)
 		return
 	}
-	target = args[1]
+
+	commandStart := 2
+	if target == "" {
+		target = args[1]
+	} else if target != args[1] {
+		commandStart = 1
+	}
 
 	userCommand.Parameters = make(map[string]string)
 	// find the command name before the options
 	var option = ""
-	for i := 2; i < len(args); i++ {
+	for i := commandStart; i < len(args); i++ {
 		token := args[i]
 		if strings.HasPrefix(token, "-") {
+			if option != "" {
+				userCommand.Parameters[option] = "true"
+			}
 			option = token
 		} else if option == "" {
 			userCommand.Command += token + " "
@@ -87,6 +96,9 @@ func GetTargetAndClusterCommand(args []string) (target string, userCommand domai
 		}
 	}
 	userCommand.Command = strings.Trim(userCommand.Command, " ")
+	if option != "" {
+		userCommand.Parameters[option] = "true"
+	}
 	return
 }
 

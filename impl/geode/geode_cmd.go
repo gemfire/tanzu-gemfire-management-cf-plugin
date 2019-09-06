@@ -26,7 +26,7 @@ func (gc *geodeCommand) Run(args []string) {
 
 	// if no user command and args contains -h or --help
 	if gc.commandData.UserCommand.Command == "" {
-		if gc.commandData.UserCommand.Parameters["-h"] != "" || gc.commandData.Target == "-h" {
+		if hasOption(gc, "-h") || hasOption(gc, "--help") {
 			printHelp()
 			os.Exit(0)
 		} else {
@@ -51,6 +51,10 @@ func (gc *geodeCommand) Run(args []string) {
 	common.ProcessCommand(&gc.commandData)
 
 	return
+}
+
+func hasOption(gc *geodeCommand, option string) bool {
+	return gc.commandData.UserCommand.Parameters[option] != "" || gc.commandData.Target == option
 }
 
 func printHelp() {

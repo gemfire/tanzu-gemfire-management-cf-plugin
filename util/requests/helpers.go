@@ -15,7 +15,9 @@ import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/util"
 )
 
-func ExecuteCommand(endpointURL string, httpAction string, commandData *domain.CommandData) (urlResponse string, err error) {
+type Helper struct{}
+
+func (helper *Helper) ExecuteCommand(endpointURL string, httpAction string, commandData *domain.CommandData) (urlResponse string, err error) {
 	var bodyReader io.Reader
 
 	if httpAction == "POST" {
@@ -103,9 +105,9 @@ func GetTargetAndClusterCommand(args []string) (target string, userCommand domai
 }
 
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the PCC manageability service
-func GetEndPoints(commandData *domain.CommandData) error {
+func (helper *Helper) GetEndPoints(commandData *domain.CommandData) error {
 	apiDocURL := commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
-	urlResponse, err := ExecuteCommand(apiDocURL, "GET", commandData)
+	urlResponse, err := helper.ExecuteCommand(apiDocURL, "GET", commandData)
 
 	if err != nil {
 		return errors.New("unable to reach " + apiDocURL + ": " + err.Error())

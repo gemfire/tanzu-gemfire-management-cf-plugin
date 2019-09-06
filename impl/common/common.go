@@ -8,15 +8,23 @@ import (
 
 	"code.cloudfoundry.org/cli/cf/errors"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util/format"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util/requests"
 )
 
+type Common struct {
+	helper impl.RequestHelper
+}
+
+func NewCommon(helper impl.RequestHelper) (Common, error) {
+	return Common{helper: helper}, nil
+}
+
 // ProcessCommand handles the common steps for executing a command against the Geode cluster
-func ProcessCommand(commandData *domain.CommandData) {
+func (c *Common) ProcessCommand(commandData *domain.CommandData) {
 	var err error
 
-	err = requests.GetEndPoints(commandData)
+	err = c.helper.GetEndPoints(commandData)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
@@ -42,7 +50,7 @@ func ProcessCommand(commandData *domain.CommandData) {
 	}
 
 	url := commandData.ConnnectionData.LocatorAddress + "/management" + restEndPoint.URL
-	urlResponse, err := requests.ExecuteCommand(url, strings.ToUpper(restEndPoint.HTTPMethod), commandData)
+	urlResponse, err := c.helper.ExecuteCommand(url, strings.ToUpper(restEndPoint.HTTPMethod), commandData)
 
 	if err != nil {
 		fmt.Println(err.Error())

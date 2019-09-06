@@ -1,10 +1,11 @@
 package requests_test
 
 import (
+	"os"
+
 	"github.com/gemfire/cloudcache-management-cf-plugin/util/requests"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"os"
 )
 
 var _ = Describe("Helpers", func() {

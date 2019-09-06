@@ -14,6 +14,11 @@ import (
 // BasicPlugin declares the dataset that commands work on
 type BasicPlugin struct {
 	commandData domain.CommandData
+	comm        common.Common
+}
+
+func NewBasicPlugin(comm common.Common) (BasicPlugin, error) {
+	return BasicPlugin{comm: comm}, nil
 }
 
 // Run is the main entry point for the CF plugin interface
@@ -41,7 +46,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	}
 
 	// From this point common code can handle the processing of the command
-	common.ProcessCommand(&c.commandData)
+	c.comm.ProcessCommand(&c.commandData)
 
 	return
 }

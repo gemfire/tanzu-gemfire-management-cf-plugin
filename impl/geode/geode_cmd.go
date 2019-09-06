@@ -11,11 +11,12 @@ import (
 
 type geodeCommand struct {
 	commandData domain.CommandData
+	comm        common.Common
 }
 
 // NewGeodeCommand provides a constructor for the Geode standalone implementation for the client
-func NewGeodeCommand() (geodeCommand, error) {
-	return geodeCommand{}, nil
+func NewGeodeCommand(comm common.Common) (geodeCommand, error) {
+	return geodeCommand{comm: comm}, nil
 }
 
 // Run is the main entry point for the standalone Geode command line interface
@@ -48,7 +49,7 @@ func (gc *geodeCommand) Run(args []string) {
 	}
 
 	// From this point common code can handle the processing of the command
-	common.ProcessCommand(&gc.commandData)
+	gc.comm.ProcessCommand(&gc.commandData)
 
 	return
 }

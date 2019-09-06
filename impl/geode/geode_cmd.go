@@ -26,7 +26,7 @@ func (gc *geodeCommand) Run(args []string) {
 
 	// if no user command and args contains -h or --help
 	if gc.commandData.UserCommand.Command == "" {
-		if gc.commandData.UserCommand.Parameters["-h"] != "" {
+		if gc.commandData.UserCommand.Parameters["-h"] != "" || gc.commandData.Target == "-h" {
 			printHelp()
 			os.Exit(0)
 		} else {

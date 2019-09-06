@@ -2,12 +2,11 @@ package geode
 
 import (
 	"errors"
-	"os"
-	"strings"
-
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util"
+	"os"
+	"strings"
 )
 
 type geodeConnection struct {
@@ -18,27 +17,23 @@ func NewGeodeConnectionProvider() (impl.ConnectionProvider, error) {
 	return &geodeConnection{}, nil
 }
 
-func (gc *geodeConnection) GetConnectionData(args []string) (domain.ConnectionData, error) {
-	connectionData := domain.ConnectionData{}
+func (gc *geodeConnection) GetConnectionData(commandData *domain.CommandData) error {
+	commandData.ConnnectionData = domain.ConnectionData{}
 
 	// LocatorAddress, Username and Password may be provided as environment variables
 	// but can be overridden on the command line
-	connectionData.LocatorAddress = os.Getenv("CFPCC")
-	connectionData.Username = os.Getenv("GEODE_USERNAME")
-	connectionData.Password = os.Getenv("GEODE_PASSWORD")
-
-	for _, value := range args {
-		if strings.HasPrefix(value, "-u=") {
-			connectionData.Username = value[3:]
-		} else if strings.HasPrefix(value, "-p=") {
-			connectionData.Password = value[3:]
-		} else if strings.HasPrefix(value, "http") {
-			connectionData.LocatorAddress = value
-		}
+	commandData.ConnnectionData.LocatorAddress = strings.TrimSuffix(commandData.Target, "/")
+	commandData.ConnnectionData.Username = commandData.UserCommand.Parameters["-u"]
+	commandData.ConnnectionData.Password = commandData.UserCommand.Parameters["-p"]
+	if commandData.ConnnectionData.Username == "" {
+		commandData.ConnnectionData.Username = os.Getenv("GEODE_USERNAME")
+	}
+	if commandData.ConnnectionData.Password == "" {
+		commandData.ConnnectionData.Password = os.Getenv("GEODE_PASSWORD")
 	}
 
-	if len(connectionData.LocatorAddress) < 7 {
-		return connectionData, errors.New(util.NoEndpointFoundMessage)
+	if len(commandData.ConnnectionData.LocatorAddress) < 7 {
+		return errors.New(util.NoEndpointFoundMessage)
 	}
-	return connectionData, nil
+	return nil
 }

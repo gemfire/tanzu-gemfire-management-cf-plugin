@@ -19,7 +19,7 @@ func executeCommand(endpointURL string, httpAction string, commandData *domain.C
 	var bodyReader io.Reader
 
 	if httpAction == "POST" {
-		bodyReader, err = getBodyReader(commandData.JSONFile)
+		bodyReader, err = getBodyReader(commandData.UserCommand.Parameters["-j"])
 		if err != nil {
 			return "", err
 		}
@@ -104,20 +104,30 @@ func GetTargetAndClusterCommand(args []string) (target string, userCommand domai
 
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the PCC manageability service
 func GetEndPoints(commandData *domain.CommandData) error {
-	urlResponse, err := executeCommand(commandData.ConnnectionData.LocatorAddress+"/management/experimental/api-docs", "GET", commandData)
-	if err == nil {
-		err = json.Unmarshal([]byte(urlResponse), &commandData.FirstResponse)
-		for url, v := range commandData.FirstResponse.Paths {
-			for methodType := range v {
-				var endpoint domain.IndividualEndpoint
-				endpoint.URL = url
-				endpoint.HTTPMethod = methodType
-				endpoint.CommandCall = commandData.FirstResponse.Paths[url][methodType].Summary
-				commandData.AvailableEndpoints = append(commandData.AvailableEndpoints, endpoint)
-			}
+	apiDocUrl := commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
+	urlResponse, err := executeCommand(apiDocUrl, "GET", commandData)
+
+	if err != nil {
+		return errors.New("unable to reach " + apiDocUrl + ": " + err.Error())
+	}
+
+	err = json.Unmarshal([]byte(urlResponse), &commandData.FirstResponse)
+
+	if err != nil {
+		return errors.New("invalid response " + urlResponse)
+	}
+
+	for url, v := range commandData.FirstResponse.Paths {
+		for methodType := range v {
+			var endpoint domain.IndividualEndpoint
+			endpoint.URL = url
+			endpoint.HTTPMethod = methodType
+			endpoint.CommandCall = commandData.FirstResponse.Paths[url][methodType].Summary
+			commandData.AvailableEndpoints = append(commandData.AvailableEndpoints, endpoint)
 		}
 	}
-	return err
+
+	return nil
 }
 
 // RequestToEndPoint makes the request to a manageability service endpoint and returns a response
@@ -125,26 +135,4 @@ func RequestToEndPoint(commandData *domain.CommandData) (string, error) {
 	secondEndpoint := commandData.ConnnectionData.LocatorAddress + "/management" + commandData.Endpoint.URL
 	urlResponse, err := executeCommand(secondEndpoint, strings.ToUpper(commandData.Endpoint.HTTPMethod), commandData)
 	return urlResponse, err
-}
-
-// HasIDifNeeded checks if an ID needs to be passed and if absent produces an error
-func HasIDifNeeded(commandData *domain.CommandData) error {
-	if strings.Contains(commandData.Endpoint.URL, "{id}") {
-		if commandData.ID == "" {
-			return errors.New(util.NoIDGivenMessage)
-		}
-		commandData.Endpoint.URL = strings.Replace(commandData.Endpoint.URL, "{id}", commandData.ID, 1)
-	}
-	return nil
-}
-
-// HasRegionIfNeeded checks if a Region needs to passed and if absent produces an error
-func HasRegionIfNeeded(commandData *domain.CommandData) error {
-	if strings.Contains(commandData.Endpoint.URL, "{regionName}") {
-		if commandData.Region == "" {
-			return errors.New(util.NoRegionGivenMessage)
-		}
-		commandData.Endpoint.URL = strings.Replace(commandData.Endpoint.URL, "{regionName}", commandData.Region, 1)
-	}
-	return nil
 }

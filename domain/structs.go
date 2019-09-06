@@ -5,18 +5,7 @@ var ()
 // CommandData is all the data involved in executing plugin commands
 // This data gets manipulated throughout the program
 type CommandData struct {
-	Username           string
-	Password           string
-	LocatorAddress     string
 	Target             string
-	ServiceKey         string
-	Region             string
-	JSONFile           string
-	Group              string
-	ID                 string
-	HasGroup           bool
-	IsJSONOutput       bool
-	ExplicitTarget     bool
 	ConnnectionData    ConnectionData
 	UserCommand        UserCommand
 	FirstResponse      SwaggerInfo

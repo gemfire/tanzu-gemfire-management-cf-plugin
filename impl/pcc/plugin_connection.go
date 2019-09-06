@@ -22,13 +22,14 @@ func NewPluginConnectionProvider(connection plugin.CliConnection) (impl.Connecti
 }
 
 // GetConnectionData provides the connection data from a PCC cluster using the CF CLI
-func (pc *pluginConnection) GetConnectionData(args []string) (domain.ConnectionData, error) {
-	serviceKey, err := pc.getServiceKey(args[0])
+func (pc *pluginConnection) GetConnectionData(commandData *domain.CommandData) error {
+	commandData.ConnnectionData = domain.ConnectionData{}
+	serviceKey, err := pc.getServiceKey(commandData.Target)
 	if err != nil {
-		return domain.ConnectionData{}, err
+		return err
 	}
 
-	return pc.getServiceKeyDetails(args[0], serviceKey)
+	return pc.getServiceKeyDetails(commandData, serviceKey)
 
 }
 
@@ -58,15 +59,14 @@ func (pc *pluginConnection) getServiceKey(target string) (serviceKey string, err
 	return
 }
 
-func (pc *pluginConnection) getServiceKeyDetails(target string, serviceKey string) (connectionData domain.ConnectionData, err error) {
-	connectionData = domain.ConnectionData{}
-	keyInfo, err := pc.cliConnection.CliCommandWithoutTerminalOutput("service-key", target, serviceKey)
+func (pc *pluginConnection) getServiceKeyDetails(commandData *domain.CommandData, serviceKey string) (err error) {
+	keyInfo, err := pc.cliConnection.CliCommandWithoutTerminalOutput("service-key", commandData.Target, serviceKey)
 	if err != nil {
-		return connectionData, err
+		return err
 	}
 
 	if len(keyInfo) < 2 {
-		return connectionData, errors.New(util.InvalidServiceKeyResponse)
+		return errors.New(util.InvalidServiceKeyResponse)
 	}
 	keyInfo = keyInfo[2:] //take out first two lines of cf service-key ... output
 	joinKeyInfo := strings.Join(keyInfo, "\n")
@@ -74,16 +74,14 @@ func (pc *pluginConnection) getServiceKeyDetails(target string, serviceKey strin
 
 	err = json.Unmarshal([]byte(joinKeyInfo), &serviceKeyStruct)
 	if err != nil {
-		return connectionData, err
+		return err
 	}
-	connectionData.LocatorAddress = serviceKeyStruct.Urls.Management
-	if connectionData.LocatorAddress == "" {
-		connectionData.LocatorAddress = strings.TrimSuffix(serviceKeyStruct.Urls.Gfsh, "/gemfire/v1")
-	}
+
+	commandData.ConnnectionData.LocatorAddress = strings.TrimSuffix(serviceKeyStruct.Urls.Gfsh, "/gemfire/v1")
 	for _, user := range serviceKeyStruct.Users {
 		if strings.HasPrefix(user.Username, "cluster_operator") {
-			connectionData.Username = user.Username
-			connectionData.Password = user.Password
+			commandData.ConnnectionData.Username = user.Username
+			commandData.ConnnectionData.Password = user.Password
 		}
 	}
 	return

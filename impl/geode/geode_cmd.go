@@ -41,7 +41,7 @@ func (gc *geodeCommand) Run(args []string) {
 		os.Exit(1)
 	}
 
-	gc.commandData.ConnnectionData, err = geodeConnection.GetConnectionData(args)
+	err = geodeConnection.GetConnectionData(&gc.commandData)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)

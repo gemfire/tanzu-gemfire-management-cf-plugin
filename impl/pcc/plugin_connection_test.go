@@ -2,6 +2,7 @@ package pcc_test
 
 import (
 	"fmt"
+	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
@@ -19,7 +20,7 @@ var _ = Describe("PluginConnection", func() {
 		cliConnection          *pluginfakes.FakeCliConnection
 		pluginConnection       impl.ConnectionProvider
 		goodServiceKeyResponse []string
-		target                 string
+		commandData            domain.CommandData
 	)
 
 	BeforeEach(func() {
@@ -27,7 +28,11 @@ var _ = Describe("PluginConnection", func() {
 		pluginConnectionImpl, err := NewPluginConnectionProvider(cliConnection)
 		pluginConnection = pluginConnectionImpl
 		Expect(err).NotTo(HaveOccurred())
-		target = "pcc1"
+
+		commandData = domain.CommandData{}
+		commandData.UserCommand = domain.UserCommand{}
+		commandData.UserCommand.Parameters = make(map[string]string)
+		commandData.Target = "pcc1"
 	})
 
 	Context("We have a service and a service-key", func() {
@@ -77,12 +82,12 @@ var _ = Describe("PluginConnection", func() {
 		It("Returns a populated ConnectionData object", func() {
 			cliConnection.CliCommandWithoutTerminalOutputReturnsOnCall(0, []string{"name", "pcc1ServiceKey"}, nil)
 			cliConnection.CliCommandWithoutTerminalOutputReturnsOnCall(1, goodServiceKeyResponse, nil)
-			connectionData, err := pluginConnection.GetConnectionData([]string{"pcc1"})
+			err := pluginConnection.GetConnectionData(&commandData)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cliConnection.CliCommandWithoutTerminalOutputCallCount()).To(Equal(2))
-			Expect(connectionData.Username).To(Equal("cluster_operator_M5Scgeb0b6yp5f99E6SA8w"))
-			Expect(connectionData.Password).To(Equal("AMmxU9H6J5KSCYDLccipIw"))
-			Expect(connectionData.LocatorAddress).To(Equal("https://cloudcache-45371efd-f4ca-4549-a5f2-e06330aa53dc.sys.riverbank.cf-app.com"))
+			Expect(commandData.ConnnectionData.Username).To(Equal("cluster_operator_M5Scgeb0b6yp5f99E6SA8w"))
+			Expect(commandData.ConnnectionData.Password).To(Equal("AMmxU9H6J5KSCYDLccipIw"))
+			Expect(commandData.ConnnectionData.LocatorAddress).To(Equal("https://cloudcache-45371efd-f4ca-4549-a5f2-e06330aa53dc.sys.riverbank.cf-app.com"))
 		})
 	})
 
@@ -91,13 +96,13 @@ var _ = Describe("PluginConnection", func() {
 		It("Returns an error indicating that there is no service-key", func() {
 			cliConnection.CliCommandWithoutTerminalOutputReturnsOnCall(0, []string{"", ""}, nil)
 			cliConnection.CliCommandWithoutTerminalOutputReturnsOnCall(1, []string{"", ""}, nil)
-			connectionData, err := pluginConnection.GetConnectionData([]string{target})
+			err := pluginConnection.GetConnectionData(&commandData)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal(fmt.Sprintf(util.NoServiceKeyMessage, target, target)))
+			Expect(err.Error()).To(Equal(fmt.Sprintf(util.NoServiceKeyMessage, commandData.Target, commandData.Target)))
 			Expect(cliConnection.CliCommandWithoutTerminalOutputCallCount()).To(Equal(1))
-			Expect(len(connectionData.Username)).To(BeZero())
-			Expect(len(connectionData.Password)).To(BeZero())
-			Expect(len(connectionData.LocatorAddress)).To(BeZero())
+			Expect(len(commandData.ConnnectionData.Username)).To(BeZero())
+			Expect(len(commandData.ConnnectionData.Password)).To(BeZero())
+			Expect(len(commandData.ConnnectionData.LocatorAddress)).To(BeZero())
 		})
 	})
 })

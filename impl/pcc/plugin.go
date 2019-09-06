@@ -34,7 +34,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		fmt.Printf(util.GenericErrorMessage, err.Error())
 		os.Exit(1)
 	}
-	c.commandData.ConnnectionData, err = pluginConnection.GetConnectionData([]string{c.commandData.Target})
+	err = pluginConnection.GetConnectionData(&c.commandData)
 	if err != nil {
 		fmt.Printf(util.GenericErrorMessage, err.Error())
 		os.Exit(1)

@@ -31,17 +31,6 @@ func ProcessCommand(commandData *domain.CommandData) {
 		os.Exit(1)
 	}
 
-	err = requests.HasIDifNeeded(commandData)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	err = requests.HasRegionIfNeeded(commandData)
-	if err != nil {
-		fmt.Printf(err.Error(), commandData.Target)
-		os.Exit(1)
-	}
-
 	urlResponse, err := requests.RequestToEndPoint(commandData)
 	if err != nil {
 		fmt.Println(err.Error())

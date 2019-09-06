@@ -84,5 +84,9 @@ func (pc *pluginConnection) getServiceKeyDetails(commandData *domain.CommandData
 			commandData.ConnnectionData.Password = user.Password
 		}
 	}
+
+	if commandData.ConnnectionData.Username == "" || commandData.ConnnectionData.Password == "" {
+		return errors.New("Unable to retrieve username/password from the servicekey.")
+	}
 	return
 }

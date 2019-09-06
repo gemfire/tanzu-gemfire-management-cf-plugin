@@ -1,10 +1,8 @@
 package geode
 
 import (
-	"errors"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util"
 	"os"
 	"strings"
 )
@@ -32,8 +30,5 @@ func (gc *geodeConnection) GetConnectionData(commandData *domain.CommandData) er
 		commandData.ConnnectionData.Password = os.Getenv("GEODE_PASSWORD")
 	}
 
-	if len(commandData.ConnnectionData.LocatorAddress) < 7 {
-		return errors.New(util.NoEndpointFoundMessage)
-	}
 	return nil
 }

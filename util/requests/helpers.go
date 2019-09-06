@@ -104,11 +104,11 @@ func GetTargetAndClusterCommand(args []string) (target string, userCommand domai
 
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the PCC manageability service
 func GetEndPoints(commandData *domain.CommandData) error {
-	apiDocUrl := commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
-	urlResponse, err := ExecuteCommand(apiDocUrl, "GET", commandData)
+	apiDocURL := commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
+	urlResponse, err := ExecuteCommand(apiDocURL, "GET", commandData)
 
 	if err != nil {
-		return errors.New("unable to reach " + apiDocUrl + ": " + err.Error())
+		return errors.New("unable to reach " + apiDocURL + ": " + err.Error())
 	}
 
 	var apiPaths domain.RestAPI

@@ -2,13 +2,14 @@ package common
 
 import (
 	"bytes"
-	"code.cloudfoundry.org/cli/cf/errors"
 	"fmt"
+	"os"
+	"strings"
+
+	"code.cloudfoundry.org/cli/cf/errors"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util/format"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util/requests"
-	"os"
-	"strings"
 )
 
 // ProcessCommand handles the common steps for executing a command against the Geode cluster
@@ -79,7 +80,7 @@ func Contains(slice []string, item string) bool {
 	return ok
 }
 
-// describe an end point with command name and required/optional parameters
+// Describe an end point with command name and required/optional parameters
 func Describe(endPoint domain.RestEndPoint) string {
 	var buffer bytes.Buffer
 	buffer.WriteString(endPoint.CommandName + " ")
@@ -101,7 +102,6 @@ func Describe(endPoint domain.RestEndPoint) string {
 func getOption(param domain.RestAPIParam) string {
 	if param.In == "body" {
 		return "-body  "
-	} else {
-		return "-" + param.Name + " "
 	}
+	return "-" + param.Name + " "
 }

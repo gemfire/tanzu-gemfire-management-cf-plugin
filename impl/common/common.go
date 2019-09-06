@@ -1,12 +1,14 @@
 package common
 
 import (
+	"bytes"
+	"code.cloudfoundry.org/cli/cf/errors"
 	"fmt"
-	"os"
-
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util/format"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util/requests"
+	"os"
+	"strings"
 )
 
 // ProcessCommand handles the common steps for executing a command against the Geode cluster
@@ -18,20 +20,29 @@ func ProcessCommand(commandData *domain.CommandData) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	if commandData.UserCommand.Command == "commands" {
+	userCommand := commandData.UserCommand.Command
+	if userCommand == "commands" {
 		for _, command := range commandData.AvailableEndpoints {
-			fmt.Println(command.CommandCall)
+			fmt.Println(Describe(command))
 		}
 		os.Exit(0)
 	}
 
-	err = requests.MapUserInputToAvailableEndpoint(commandData)
+	restEndPoint, avalable := commandData.AvailableEndpoints[userCommand]
+	if !avalable {
+		fmt.Println("Invalid command: " + userCommand)
+		os.Exit(1)
+	}
+
+	err = checkRequiredParam(restEndPoint, commandData.UserCommand)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	urlResponse, err := requests.RequestToEndPoint(commandData)
+	url := commandData.ConnnectionData.LocatorAddress + "/management" + restEndPoint.URL
+	urlResponse, err := requests.ExecuteCommand(url, strings.ToUpper(restEndPoint.HTTPMethod), commandData)
+
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
@@ -46,6 +57,18 @@ func ProcessCommand(commandData *domain.CommandData) {
 	fmt.Println(jsonToBePrinted)
 }
 
+func checkRequiredParam(restEndPoint domain.RestEndPoint, command domain.UserCommand) error {
+	for _, s := range restEndPoint.Parameters {
+		if s.Required {
+			value := command.Parameters["-"+s.Name]
+			if value == "" {
+				return errors.New("Required Parameter is missing: " + s.Name)
+			}
+		}
+	}
+	return nil
+}
+
 func Contains(slice []string, item string) bool {
 	set := make(map[string]struct{}, len(slice))
 	for _, s := range slice {
@@ -54,4 +77,31 @@ func Contains(slice []string, item string) bool {
 
 	_, ok := set[item]
 	return ok
+}
+
+// describe an end point with command name and required/optional parameters
+func Describe(endPoint domain.RestEndPoint) string {
+	var buffer bytes.Buffer
+	buffer.WriteString(endPoint.CommandName + " ")
+	// show the required options first
+	for _, param := range endPoint.Parameters {
+		if param.Required {
+			buffer.WriteString(getOption(param))
+		}
+	}
+
+	for _, param := range endPoint.Parameters {
+		if !param.Required {
+			buffer.WriteString("[" + strings.Trim(getOption(param), " ") + "] ")
+		}
+	}
+	return buffer.String()
+}
+
+func getOption(param domain.RestAPIParam) string {
+	if param.In == "body" {
+		return "-body  "
+	} else {
+		return "-" + param.Name + " "
+	}
 }

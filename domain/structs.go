@@ -8,9 +8,7 @@ type CommandData struct {
 	Target             string
 	ConnnectionData    ConnectionData
 	UserCommand        UserCommand
-	FirstResponse      SwaggerInfo
-	AvailableEndpoints []IndividualEndpoint
-	Endpoint           IndividualEndpoint
+	AvailableEndpoints map[string]RestEndPoint //key is command name
 }
 
 // ConnectionData describes items required to connect to a Geode cluster
@@ -45,19 +43,30 @@ type UserCommand struct {
 	Parameters map[string]string
 }
 
-// IndividualEndpoint holds endpoint information
-type IndividualEndpoint struct {
-	HTTPMethod  string `json:"httpMethod"`
-	URL         string `json:"url"`
-	CommandCall string `json:"summary"`
+// RestEndPoint holds endpoint information
+type RestEndPoint struct {
+	HTTPMethod  string
+	URL         string
+	CommandName string
+	Parameters  []RestAPIParam
 }
 
-// SwaggerInfo holds information returned by calls to the Swagger endpoint for the PCC manageability service
-type SwaggerInfo struct {
-	Paths map[string]map[string]FurtherEndpointDetails `json:"paths"`
+// this is used to parse the swagger json response
+// first key: url | second key: method (get/post) | value: RestAPIDetail
+type RestAPI struct {
+	Paths map[string]map[string]RestAPIDetail `json:"paths"`
 }
 
-// FurtherEndpointDetails provides details about an endpoint
-type FurtherEndpointDetails struct {
-	Summary string `json:"summary"`
+// RestAPIDetail provides details about an endpoint
+type RestAPIDetail struct {
+	CommandName string         `json:"summary"`
+	Parameters  []RestAPIParam `json:"parameters"`
+}
+
+type RestAPIParam struct {
+	Name        string `json:"name"`
+	Required    bool   `json:"required"`
+	Description string `json:"description"`
+	// in "query" or in "body"
+	In string `json:"in"`
 }

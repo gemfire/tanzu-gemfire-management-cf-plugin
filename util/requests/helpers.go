@@ -15,11 +15,11 @@ import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/util"
 )
 
-func executeCommand(endpointURL string, httpAction string, commandData *domain.CommandData) (urlResponse string, err error) {
+func ExecuteCommand(endpointURL string, httpAction string, commandData *domain.CommandData) (urlResponse string, err error) {
 	var bodyReader io.Reader
 
 	if httpAction == "POST" {
-		bodyReader, err = getBodyReader(commandData.UserCommand.Parameters["-j"])
+		bodyReader, err = getBodyReader(commandData.UserCommand.Parameters["-body"])
 		if err != nil {
 			return "", err
 		}
@@ -105,34 +105,31 @@ func GetTargetAndClusterCommand(args []string) (target string, userCommand domai
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the PCC manageability service
 func GetEndPoints(commandData *domain.CommandData) error {
 	apiDocUrl := commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
-	urlResponse, err := executeCommand(apiDocUrl, "GET", commandData)
+	urlResponse, err := ExecuteCommand(apiDocUrl, "GET", commandData)
 
 	if err != nil {
 		return errors.New("unable to reach " + apiDocUrl + ": " + err.Error())
 	}
 
-	err = json.Unmarshal([]byte(urlResponse), &commandData.FirstResponse)
+	var apiPaths domain.RestAPI
+	err = json.Unmarshal([]byte(urlResponse), &apiPaths)
 
 	if err != nil {
 		return errors.New("invalid response " + urlResponse)
 	}
 
-	for url, v := range commandData.FirstResponse.Paths {
+	commandData.AvailableEndpoints = make(map[string]domain.RestEndPoint)
+	for url, v := range apiPaths.Paths {
 		for methodType := range v {
-			var endpoint domain.IndividualEndpoint
+			var endpoint domain.RestEndPoint
 			endpoint.URL = url
 			endpoint.HTTPMethod = methodType
-			endpoint.CommandCall = commandData.FirstResponse.Paths[url][methodType].Summary
-			commandData.AvailableEndpoints = append(commandData.AvailableEndpoints, endpoint)
+			endpoint.CommandName = apiPaths.Paths[url][methodType].CommandName
+			endpoint.Parameters = []domain.RestAPIParam{}
+			endpoint.Parameters = apiPaths.Paths[url][methodType].Parameters
+			commandData.AvailableEndpoints[endpoint.CommandName] = endpoint
 		}
 	}
 
 	return nil
-}
-
-// RequestToEndPoint makes the request to a manageability service endpoint and returns a response
-func RequestToEndPoint(commandData *domain.CommandData) (string, error) {
-	secondEndpoint := commandData.ConnnectionData.LocatorAddress + "/management" + commandData.Endpoint.URL
-	urlResponse, err := executeCommand(secondEndpoint, strings.ToUpper(commandData.Endpoint.HTTPMethod), commandData)
-	return urlResponse, err
 }

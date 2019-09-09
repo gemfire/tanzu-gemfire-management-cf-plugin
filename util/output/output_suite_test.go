@@ -1,4 +1,4 @@
-package format_test
+package output_test
 
 import (
 	"testing"

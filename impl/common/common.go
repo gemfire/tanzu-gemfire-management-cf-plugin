@@ -9,7 +9,7 @@ import (
 	"code.cloudfoundry.org/cli/cf/errors"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util/format"
+	"github.com/gemfire/cloudcache-management-cf-plugin/util/output"
 )
 
 type Common struct {
@@ -58,7 +58,7 @@ func (c *Common) ProcessCommand(commandData *domain.CommandData) {
 	}
 
 	jqFilter := commandData.UserCommand.Parameters["-t"]
-	jsonToBePrinted, err := format.GetJSONFromURLResponse(urlResponse, string(jqFilter))
+	jsonToBePrinted, err := output.GetJSONFromURLResponse(urlResponse, string(jqFilter))
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)

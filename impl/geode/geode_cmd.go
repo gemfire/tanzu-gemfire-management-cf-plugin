@@ -6,7 +6,7 @@ import (
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util/requests"
+	"github.com/gemfire/cloudcache-management-cf-plugin/util/input"
 )
 
 type geodeCommand struct {
@@ -23,7 +23,7 @@ func NewGeodeCommand(comm common.Common) (geodeCommand, error) {
 // It is run once for each command executed
 func (gc *geodeCommand) Run(args []string) {
 	var err error
-	gc.commandData.Target, gc.commandData.UserCommand = requests.GetTargetAndClusterCommand(args)
+	gc.commandData.Target, gc.commandData.UserCommand = input.GetTargetAndClusterCommand(args)
 
 	// if no user command and args contains -h or --help
 	if gc.commandData.UserCommand.Command == "" {

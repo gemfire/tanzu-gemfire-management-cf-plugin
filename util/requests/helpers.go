@@ -15,7 +15,45 @@ import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/util"
 )
 
-func ExecuteCommand(endpointURL string, httpAction string, commandData *domain.CommandData) (urlResponse string, err error) {
+type Helper struct{}
+
+func (helper *Helper) ExecuteCommand(endpointURL string, httpAction string, commandData *domain.CommandData) (urlResponse string, err error) {
+	return executeCommand(endpointURL, httpAction, commandData)
+}
+
+// GetEndPoints retrieves available endpoint from the Swagger endpoint on the PCC manageability service
+func (helper *Helper) GetEndPoints(commandData *domain.CommandData) error {
+	apiDocURL := commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
+	urlResponse, err := helper.ExecuteCommand(apiDocURL, "GET", commandData)
+
+	if err != nil {
+		return errors.New("unable to reach " + apiDocURL + ": " + err.Error())
+	}
+
+	var apiPaths domain.RestAPI
+	err = json.Unmarshal([]byte(urlResponse), &apiPaths)
+
+	if err != nil {
+		return errors.New("invalid response " + urlResponse)
+	}
+
+	commandData.AvailableEndpoints = make(map[string]domain.RestEndPoint)
+	for url, v := range apiPaths.Paths {
+		for methodType := range v {
+			var endpoint domain.RestEndPoint
+			endpoint.URL = url
+			endpoint.HTTPMethod = methodType
+			endpoint.CommandName = apiPaths.Paths[url][methodType].CommandName
+			endpoint.Parameters = []domain.RestAPIParam{}
+			endpoint.Parameters = apiPaths.Paths[url][methodType].Parameters
+			commandData.AvailableEndpoints[endpoint.CommandName] = endpoint
+		}
+	}
+
+	return nil
+}
+
+func executeCommand(endpointURL string, httpAction string, commandData *domain.CommandData) (urlResponse string, err error) {
 	var bodyReader io.Reader
 
 	if httpAction == "POST" {
@@ -62,74 +100,4 @@ func getURLOutput(resp *http.Response) (urlResponse string, err error) {
 
 	urlResponse = fmt.Sprintf("%s", respInASCII)
 	return urlResponse, nil
-}
-
-// GetTargetAndClusterCommand extracts the target and command from the args and environment variables
-func GetTargetAndClusterCommand(args []string) (target string, userCommand domain.UserCommand) {
-	target = os.Getenv("CFPCC")
-	if len(args) < 2 {
-		return
-	}
-
-	commandStart := 2
-	if target == "" {
-		target = args[1]
-	} else if target != args[1] {
-		commandStart = 1
-	}
-
-	userCommand.Parameters = make(map[string]string)
-	// find the command name before the options
-	var option = ""
-	for i := commandStart; i < len(args); i++ {
-		token := args[i]
-		if strings.HasPrefix(token, "-") {
-			if option != "" {
-				userCommand.Parameters[option] = "true"
-			}
-			option = token
-		} else if option == "" {
-			userCommand.Command += token + " "
-		} else {
-			userCommand.Parameters[option] = token
-			option = ""
-		}
-	}
-	userCommand.Command = strings.Trim(userCommand.Command, " ")
-	if option != "" {
-		userCommand.Parameters[option] = "true"
-	}
-	return
-}
-
-// GetEndPoints retrieves available endpoint from the Swagger endpoint on the PCC manageability service
-func GetEndPoints(commandData *domain.CommandData) error {
-	apiDocURL := commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
-	urlResponse, err := ExecuteCommand(apiDocURL, "GET", commandData)
-
-	if err != nil {
-		return errors.New("unable to reach " + apiDocURL + ": " + err.Error())
-	}
-
-	var apiPaths domain.RestAPI
-	err = json.Unmarshal([]byte(urlResponse), &apiPaths)
-
-	if err != nil {
-		return errors.New("invalid response " + urlResponse)
-	}
-
-	commandData.AvailableEndpoints = make(map[string]domain.RestEndPoint)
-	for url, v := range apiPaths.Paths {
-		for methodType := range v {
-			var endpoint domain.RestEndPoint
-			endpoint.URL = url
-			endpoint.HTTPMethod = methodType
-			endpoint.CommandName = apiPaths.Paths[url][methodType].CommandName
-			endpoint.Parameters = []domain.RestAPIParam{}
-			endpoint.Parameters = apiPaths.Paths[url][methodType].Parameters
-			commandData.AvailableEndpoints[endpoint.CommandName] = endpoint
-		}
-	}
-
-	return nil
 }

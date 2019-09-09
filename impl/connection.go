@@ -4,7 +4,7 @@ import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 )
 
-//go:generate counterfeiter . ConnectionProvider
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . ConnectionProvider
 
 // ConnectionProvider interface defines a way to get connection information for a Geode cluster
 type ConnectionProvider interface {

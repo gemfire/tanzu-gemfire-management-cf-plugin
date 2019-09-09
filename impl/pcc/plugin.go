@@ -8,12 +8,17 @@ import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util/requests"
+	"github.com/gemfire/cloudcache-management-cf-plugin/util/input"
 )
 
 // BasicPlugin declares the dataset that commands work on
 type BasicPlugin struct {
 	commandData domain.CommandData
+	comm        common.Common
+}
+
+func NewBasicPlugin(comm common.Common) (BasicPlugin, error) {
+	return BasicPlugin{comm: comm}, nil
 }
 
 // Run is the main entry point for the CF plugin interface
@@ -23,7 +28,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		return
 	}
 	var err error
-	c.commandData.Target, c.commandData.UserCommand = requests.GetTargetAndClusterCommand(args)
+	c.commandData.Target, c.commandData.UserCommand = input.GetTargetAndClusterCommand(args)
 	if c.commandData.UserCommand.Command == "" {
 		fmt.Println(util.GenericErrorMessage, err.Error())
 		os.Exit(1)
@@ -41,7 +46,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	}
 
 	// From this point common code can handle the processing of the command
-	common.ProcessCommand(&c.commandData)
+	c.comm.ProcessCommand(&c.commandData)
 
 	return
 }

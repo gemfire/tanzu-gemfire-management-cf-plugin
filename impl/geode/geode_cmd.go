@@ -6,23 +6,24 @@ import (
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util/requests"
+	"github.com/gemfire/cloudcache-management-cf-plugin/util/input"
 )
 
 type geodeCommand struct {
 	commandData domain.CommandData
+	comm        common.Common
 }
 
 // NewGeodeCommand provides a constructor for the Geode standalone implementation for the client
-func NewGeodeCommand() (geodeCommand, error) {
-	return geodeCommand{}, nil
+func NewGeodeCommand(comm common.Common) (geodeCommand, error) {
+	return geodeCommand{comm: comm}, nil
 }
 
 // Run is the main entry point for the standalone Geode command line interface
 // It is run once for each command executed
 func (gc *geodeCommand) Run(args []string) {
 	var err error
-	gc.commandData.Target, gc.commandData.UserCommand = requests.GetTargetAndClusterCommand(args)
+	gc.commandData.Target, gc.commandData.UserCommand = input.GetTargetAndClusterCommand(args)
 
 	// if no user command and args contains -h or --help
 	if gc.commandData.UserCommand.Command == "" {
@@ -48,7 +49,7 @@ func (gc *geodeCommand) Run(args []string) {
 	}
 
 	// From this point common code can handle the processing of the command
-	common.ProcessCommand(&gc.commandData)
+	gc.comm.ProcessCommand(&gc.commandData)
 
 	return
 }

@@ -1,11 +1,12 @@
-package format
+package output
 
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util"
-	"github.com/threatgrid/jqpipe-go"
 	"strings"
+
+	"github.com/gemfire/cloudcache-management-cf-plugin/util"
+	jq "github.com/threatgrid/jqpipe-go"
 )
 
 // Fill ensures that a column is filled with desired filler characters to desired size

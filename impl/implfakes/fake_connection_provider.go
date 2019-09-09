@@ -9,39 +9,37 @@ import (
 )
 
 type FakeConnectionProvider struct {
-	GetConnectionDataStub        func(...string) (domain.ConnectionData, error)
+	GetConnectionDataStub        func(*domain.CommandData) error
 	getConnectionDataMutex       sync.RWMutex
 	getConnectionDataArgsForCall []struct {
-		arg1 []string
+		arg1 *domain.CommandData
 	}
 	getConnectionDataReturns struct {
-		result1 domain.ConnectionData
-		result2 error
+		result1 error
 	}
 	getConnectionDataReturnsOnCall map[int]struct {
-		result1 domain.ConnectionData
-		result2 error
+		result1 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeConnectionProvider) GetConnectionData(arg1 ...string) (domain.ConnectionData, error) {
+func (fake *FakeConnectionProvider) GetConnectionData(arg1 *domain.CommandData) error {
 	fake.getConnectionDataMutex.Lock()
 	ret, specificReturn := fake.getConnectionDataReturnsOnCall[len(fake.getConnectionDataArgsForCall)]
 	fake.getConnectionDataArgsForCall = append(fake.getConnectionDataArgsForCall, struct {
-		arg1 []string
+		arg1 *domain.CommandData
 	}{arg1})
 	fake.recordInvocation("GetConnectionData", []interface{}{arg1})
 	fake.getConnectionDataMutex.Unlock()
 	if fake.GetConnectionDataStub != nil {
-		return fake.GetConnectionDataStub(arg1...)
+		return fake.GetConnectionDataStub(arg1)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
 	fakeReturns := fake.getConnectionDataReturns
-	return fakeReturns.result1, fakeReturns.result2
+	return fakeReturns.result1
 }
 
 func (fake *FakeConnectionProvider) GetConnectionDataCallCount() int {
@@ -50,43 +48,40 @@ func (fake *FakeConnectionProvider) GetConnectionDataCallCount() int {
 	return len(fake.getConnectionDataArgsForCall)
 }
 
-func (fake *FakeConnectionProvider) GetConnectionDataCalls(stub func(...string) (domain.ConnectionData, error)) {
+func (fake *FakeConnectionProvider) GetConnectionDataCalls(stub func(*domain.CommandData) error) {
 	fake.getConnectionDataMutex.Lock()
 	defer fake.getConnectionDataMutex.Unlock()
 	fake.GetConnectionDataStub = stub
 }
 
-func (fake *FakeConnectionProvider) GetConnectionDataArgsForCall(i int) []string {
+func (fake *FakeConnectionProvider) GetConnectionDataArgsForCall(i int) *domain.CommandData {
 	fake.getConnectionDataMutex.RLock()
 	defer fake.getConnectionDataMutex.RUnlock()
 	argsForCall := fake.getConnectionDataArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeConnectionProvider) GetConnectionDataReturns(result1 domain.ConnectionData, result2 error) {
+func (fake *FakeConnectionProvider) GetConnectionDataReturns(result1 error) {
 	fake.getConnectionDataMutex.Lock()
 	defer fake.getConnectionDataMutex.Unlock()
 	fake.GetConnectionDataStub = nil
 	fake.getConnectionDataReturns = struct {
-		result1 domain.ConnectionData
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeConnectionProvider) GetConnectionDataReturnsOnCall(i int, result1 domain.ConnectionData, result2 error) {
+func (fake *FakeConnectionProvider) GetConnectionDataReturnsOnCall(i int, result1 error) {
 	fake.getConnectionDataMutex.Lock()
 	defer fake.getConnectionDataMutex.Unlock()
 	fake.GetConnectionDataStub = nil
 	if fake.getConnectionDataReturnsOnCall == nil {
 		fake.getConnectionDataReturnsOnCall = make(map[int]struct {
-			result1 domain.ConnectionData
-			result2 error
+			result1 error
 		})
 	}
 	fake.getConnectionDataReturnsOnCall[i] = struct {
-		result1 domain.ConnectionData
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeConnectionProvider) Invocations() map[string][][]interface{} {

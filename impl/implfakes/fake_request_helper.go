@@ -35,19 +35,6 @@ type FakeRequestHelper struct {
 	getEndPointsReturnsOnCall map[int]struct {
 		result1 error
 	}
-	GetTargetAndClusterCommandStub        func([]string) (string, domain.UserCommand)
-	getTargetAndClusterCommandMutex       sync.RWMutex
-	getTargetAndClusterCommandArgsForCall []struct {
-		arg1 []string
-	}
-	getTargetAndClusterCommandReturns struct {
-		result1 string
-		result2 domain.UserCommand
-	}
-	getTargetAndClusterCommandReturnsOnCall map[int]struct {
-		result1 string
-		result2 domain.UserCommand
-	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -177,74 +164,6 @@ func (fake *FakeRequestHelper) GetEndPointsReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeRequestHelper) GetTargetAndClusterCommand(arg1 []string) (string, domain.UserCommand) {
-	var arg1Copy []string
-	if arg1 != nil {
-		arg1Copy = make([]string, len(arg1))
-		copy(arg1Copy, arg1)
-	}
-	fake.getTargetAndClusterCommandMutex.Lock()
-	ret, specificReturn := fake.getTargetAndClusterCommandReturnsOnCall[len(fake.getTargetAndClusterCommandArgsForCall)]
-	fake.getTargetAndClusterCommandArgsForCall = append(fake.getTargetAndClusterCommandArgsForCall, struct {
-		arg1 []string
-	}{arg1Copy})
-	fake.recordInvocation("GetTargetAndClusterCommand", []interface{}{arg1Copy})
-	fake.getTargetAndClusterCommandMutex.Unlock()
-	if fake.GetTargetAndClusterCommandStub != nil {
-		return fake.GetTargetAndClusterCommandStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	fakeReturns := fake.getTargetAndClusterCommandReturns
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeRequestHelper) GetTargetAndClusterCommandCallCount() int {
-	fake.getTargetAndClusterCommandMutex.RLock()
-	defer fake.getTargetAndClusterCommandMutex.RUnlock()
-	return len(fake.getTargetAndClusterCommandArgsForCall)
-}
-
-func (fake *FakeRequestHelper) GetTargetAndClusterCommandCalls(stub func([]string) (string, domain.UserCommand)) {
-	fake.getTargetAndClusterCommandMutex.Lock()
-	defer fake.getTargetAndClusterCommandMutex.Unlock()
-	fake.GetTargetAndClusterCommandStub = stub
-}
-
-func (fake *FakeRequestHelper) GetTargetAndClusterCommandArgsForCall(i int) []string {
-	fake.getTargetAndClusterCommandMutex.RLock()
-	defer fake.getTargetAndClusterCommandMutex.RUnlock()
-	argsForCall := fake.getTargetAndClusterCommandArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeRequestHelper) GetTargetAndClusterCommandReturns(result1 string, result2 domain.UserCommand) {
-	fake.getTargetAndClusterCommandMutex.Lock()
-	defer fake.getTargetAndClusterCommandMutex.Unlock()
-	fake.GetTargetAndClusterCommandStub = nil
-	fake.getTargetAndClusterCommandReturns = struct {
-		result1 string
-		result2 domain.UserCommand
-	}{result1, result2}
-}
-
-func (fake *FakeRequestHelper) GetTargetAndClusterCommandReturnsOnCall(i int, result1 string, result2 domain.UserCommand) {
-	fake.getTargetAndClusterCommandMutex.Lock()
-	defer fake.getTargetAndClusterCommandMutex.Unlock()
-	fake.GetTargetAndClusterCommandStub = nil
-	if fake.getTargetAndClusterCommandReturnsOnCall == nil {
-		fake.getTargetAndClusterCommandReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 domain.UserCommand
-		})
-	}
-	fake.getTargetAndClusterCommandReturnsOnCall[i] = struct {
-		result1 string
-		result2 domain.UserCommand
-	}{result1, result2}
-}
-
 func (fake *FakeRequestHelper) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -252,8 +171,6 @@ func (fake *FakeRequestHelper) Invocations() map[string][][]interface{} {
 	defer fake.executeCommandMutex.RUnlock()
 	fake.getEndPointsMutex.RLock()
 	defer fake.getEndPointsMutex.RUnlock()
-	fake.getTargetAndClusterCommandMutex.RLock()
-	defer fake.getTargetAndClusterCommandMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

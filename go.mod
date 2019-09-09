@@ -18,7 +18,7 @@ require (
 	github.com/lunixbochs/vtclean v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.2.2 // indirect
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.2.2
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/ginkgo v1.10.1
 	github.com/onsi/gomega v1.7.0

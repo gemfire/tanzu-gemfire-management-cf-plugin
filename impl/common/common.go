@@ -1,7 +1,6 @@
 package common
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -9,6 +8,7 @@ import (
 	"code.cloudfoundry.org/cli/cf/errors"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
+	"github.com/gemfire/cloudcache-management-cf-plugin/util/input"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util/output"
 )
 
@@ -29,10 +29,11 @@ func (c *Common) ProcessCommand(commandData *domain.CommandData) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+
 	userCommand := commandData.UserCommand.Command
 	if userCommand == "commands" {
 		for _, command := range commandData.AvailableEndpoints {
-			fmt.Println(Describe(command))
+			fmt.Println(output.Describe(command))
 		}
 		os.Exit(0)
 	}
@@ -41,6 +42,15 @@ func (c *Common) ProcessCommand(commandData *domain.CommandData) {
 	if !avalable {
 		fmt.Println("Invalid command: " + userCommand)
 		os.Exit(1)
+	}
+
+	if input.HasOption(commandData, "-h") || input.HasOption(commandData, "--help") {
+		for _, command := range commandData.AvailableEndpoints {
+			if command.CommandName == userCommand {
+				fmt.Println(output.Describe(command))
+			}
+		}
+		os.Exit(0)
 	}
 
 	err = checkRequiredParam(restEndPoint, commandData.UserCommand)
@@ -58,7 +68,7 @@ func (c *Common) ProcessCommand(commandData *domain.CommandData) {
 	}
 
 	jqFilter := commandData.UserCommand.Parameters["-t"]
-	jsonToBePrinted, err := output.GetJSONFromURLResponse(urlResponse, string(jqFilter))
+	jsonToBePrinted, err := output.GetJSONFromURLResponse(urlResponse, jqFilter)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
@@ -76,40 +86,4 @@ func checkRequiredParam(restEndPoint domain.RestEndPoint, command domain.UserCom
 		}
 	}
 	return nil
-}
-
-func Contains(slice []string, item string) bool {
-	set := make(map[string]struct{}, len(slice))
-	for _, s := range slice {
-		set[s] = struct{}{}
-	}
-
-	_, ok := set[item]
-	return ok
-}
-
-// Describe an end point with command name and required/optional parameters
-func Describe(endPoint domain.RestEndPoint) string {
-	var buffer bytes.Buffer
-	buffer.WriteString(endPoint.CommandName + " ")
-	// show the required options first
-	for _, param := range endPoint.Parameters {
-		if param.Required {
-			buffer.WriteString(getOption(param))
-		}
-	}
-
-	for _, param := range endPoint.Parameters {
-		if !param.Required {
-			buffer.WriteString("[" + strings.Trim(getOption(param), " ") + "] ")
-		}
-	}
-	return buffer.String()
-}
-
-func getOption(param domain.RestAPIParam) string {
-	if param.In == "body" {
-		return "-body  "
-	}
-	return "-" + param.Name + " "
 }

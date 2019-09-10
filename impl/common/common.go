@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 
@@ -59,8 +60,8 @@ func (c *Common) ProcessCommand(commandData *domain.CommandData) {
 		os.Exit(1)
 	}
 
-	url := commandData.ConnnectionData.LocatorAddress + "/management" + restEndPoint.URL
-	urlResponse, err := c.helper.ExecuteCommand(url, strings.ToUpper(restEndPoint.HTTPMethod), commandData)
+	requestURL := makeURL(restEndPoint, commandData)
+	urlResponse, err := c.helper.ExecuteCommand(requestURL, strings.ToUpper(restEndPoint.HTTPMethod), commandData)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -86,4 +87,27 @@ func checkRequiredParam(restEndPoint domain.RestEndPoint, command domain.UserCom
 		}
 	}
 	return nil
+}
+
+func makeURL(restEndPoint domain.RestEndPoint, commandData *domain.CommandData) (requestURL string) {
+	requestURL = commandData.ConnnectionData.LocatorAddress + "/management" + restEndPoint.URL
+	var query string
+	for _, param := range restEndPoint.Parameters {
+		value, ok := commandData.UserCommand.Parameters["-"+param.Name]
+		if ok {
+			switch param.In {
+			case "path":
+				requestURL = strings.ReplaceAll(requestURL, "{"+param.Name+"}", url.PathEscape(value))
+			case "query":
+				if len(query) == 0 {
+					query = "?" + param.Name + "=" + url.PathEscape(value)
+				} else {
+					query = query + "&" + param.Name + "=" + url.PathEscape(value)
+				}
+			}
+		}
+	}
+
+	requestURL = requestURL + query
+	return
 }

@@ -1,14 +1,15 @@
 package common
 
 import (
-	"bytes"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 
 	"code.cloudfoundry.org/cli/cf/errors"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
+	"github.com/gemfire/cloudcache-management-cf-plugin/util/input"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util/output"
 )
 
@@ -29,10 +30,11 @@ func (c *Common) ProcessCommand(commandData *domain.CommandData) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+
 	userCommand := commandData.UserCommand.Command
 	if userCommand == "commands" {
 		for _, command := range commandData.AvailableEndpoints {
-			fmt.Println(Describe(command))
+			fmt.Println(output.Describe(command))
 		}
 		os.Exit(0)
 	}
@@ -43,14 +45,23 @@ func (c *Common) ProcessCommand(commandData *domain.CommandData) {
 		os.Exit(1)
 	}
 
+	if input.HasOption(commandData, "-h") || input.HasOption(commandData, "--help") || input.HasOption(commandData, "-help") {
+		for _, command := range commandData.AvailableEndpoints {
+			if command.CommandName == userCommand {
+				fmt.Println(output.Describe(command))
+			}
+		}
+		os.Exit(0)
+	}
+
 	err = checkRequiredParam(restEndPoint, commandData.UserCommand)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	url := commandData.ConnnectionData.LocatorAddress + "/management" + restEndPoint.URL
-	urlResponse, err := c.helper.ExecuteCommand(url, strings.ToUpper(restEndPoint.HTTPMethod), commandData)
+	requestURL := makeURL(restEndPoint, commandData)
+	urlResponse, err := c.helper.ExecuteCommand(requestURL, strings.ToUpper(restEndPoint.HTTPMethod), commandData)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -58,7 +69,10 @@ func (c *Common) ProcessCommand(commandData *domain.CommandData) {
 	}
 
 	jqFilter := commandData.UserCommand.Parameters["-t"]
-	jsonToBePrinted, err := output.GetJSONFromURLResponse(urlResponse, string(jqFilter))
+	if jqFilter == "" {
+		jqFilter = commandData.UserCommand.Parameters["--table"]
+	}
+	jsonToBePrinted, err := output.GetJSONFromURLResponse(urlResponse, jqFilter)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
@@ -69,7 +83,7 @@ func (c *Common) ProcessCommand(commandData *domain.CommandData) {
 func checkRequiredParam(restEndPoint domain.RestEndPoint, command domain.UserCommand) error {
 	for _, s := range restEndPoint.Parameters {
 		if s.Required {
-			value := command.Parameters["-"+s.Name]
+			value := command.Parameters["--"+s.Name]
 			if value == "" {
 				return errors.New("Required Parameter is missing: " + s.Name)
 			}
@@ -78,38 +92,25 @@ func checkRequiredParam(restEndPoint domain.RestEndPoint, command domain.UserCom
 	return nil
 }
 
-func Contains(slice []string, item string) bool {
-	set := make(map[string]struct{}, len(slice))
-	for _, s := range slice {
-		set[s] = struct{}{}
-	}
-
-	_, ok := set[item]
-	return ok
-}
-
-// Describe an end point with command name and required/optional parameters
-func Describe(endPoint domain.RestEndPoint) string {
-	var buffer bytes.Buffer
-	buffer.WriteString(endPoint.CommandName + " ")
-	// show the required options first
-	for _, param := range endPoint.Parameters {
-		if param.Required {
-			buffer.WriteString(getOption(param))
+func makeURL(restEndPoint domain.RestEndPoint, commandData *domain.CommandData) (requestURL string) {
+	requestURL = commandData.ConnnectionData.LocatorAddress + "/management" + restEndPoint.URL
+	var query string
+	for _, param := range restEndPoint.Parameters {
+		value, ok := commandData.UserCommand.Parameters["--"+param.Name]
+		if ok {
+			switch param.In {
+			case "path":
+				requestURL = strings.ReplaceAll(requestURL, "{"+param.Name+"}", url.PathEscape(value))
+			case "query":
+				if len(query) == 0 {
+					query = "?" + param.Name + "=" + url.PathEscape(value)
+				} else {
+					query = query + "&" + param.Name + "=" + url.PathEscape(value)
+				}
+			}
 		}
 	}
 
-	for _, param := range endPoint.Parameters {
-		if !param.Required {
-			buffer.WriteString("[" + strings.Trim(getOption(param), " ") + "] ")
-		}
-	}
-	return buffer.String()
-}
-
-func getOption(param domain.RestAPIParam) string {
-	if param.In == "body" {
-		return "-body  "
-	}
-	return "-" + param.Name + " "
+	requestURL = requestURL + query
+	return
 }

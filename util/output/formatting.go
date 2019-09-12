@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/util"
 	jq "github.com/threatgrid/jqpipe-go"
 )
@@ -33,11 +34,37 @@ func GetJSONFromURLResponse(urlResponse string, jqFilter string) (jsonOutput str
 	return indent(jsonByte)
 }
 
-func indent(rawJson []byte) (indented string, err error) {
+// Describe an end point with command name and required/optional parameters
+func Describe(endPoint domain.RestEndPoint) string {
+	var buffer bytes.Buffer
+	buffer.WriteString(endPoint.CommandName + " ")
+	// show the required options first
+	for _, param := range endPoint.Parameters {
+		if param.Required {
+			buffer.WriteString(getOption(param))
+		}
+	}
+
+	for _, param := range endPoint.Parameters {
+		if !param.Required {
+			buffer.WriteString("[" + strings.Trim(getOption(param), " ") + "] ")
+		}
+	}
+	return buffer.String()
+}
+
+func getOption(param domain.RestAPIParam) string {
+	if param.In == "body" {
+		return "--body  "
+	}
+	return "--" + param.Name + " "
+}
+
+func indent(rawJSON []byte) (indented string, err error) {
 	dst := &bytes.Buffer{}
-	err = json.Indent(dst, rawJson, "", "  ")
+	err = json.Indent(dst, rawJSON, "", "  ")
 	if err != nil {
-		return string(rawJson), nil
+		return string(rawJSON), nil
 	}
 	return dst.String(), nil
 }

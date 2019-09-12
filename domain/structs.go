@@ -1,7 +1,5 @@
 package domain
 
-var ()
-
 // CommandData is all the data involved in executing plugin commands
 // This data gets manipulated throughout the program
 type CommandData struct {
@@ -51,7 +49,7 @@ type RestEndPoint struct {
 	Parameters  []RestAPIParam
 }
 
-// this is used to parse the swagger json response
+// RestAPI is used to parse the swagger json response
 // first key: url | second key: method (get/post) | value: RestAPIDetail
 type RestAPI struct {
 	Paths map[string]map[string]RestAPIDetail `json:"paths"`
@@ -63,10 +61,11 @@ type RestAPIDetail struct {
 	Parameters  []RestAPIParam `json:"parameters"`
 }
 
+// RestAPIParam contains the information about possible parameters for a call
 type RestAPIParam struct {
 	Name        string `json:"name"`
 	Required    bool   `json:"required"`
 	Description string `json:"description"`
-	// in "query" or in "body"
+	// In describes how params are submitted: "query", "body" or "path"
 	In string `json:"in"`
 }

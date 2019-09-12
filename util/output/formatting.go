@@ -55,9 +55,9 @@ func Describe(endPoint domain.RestEndPoint) string {
 
 func getOption(param domain.RestAPIParam) string {
 	if param.In == "body" {
-		return "-body  "
+		return "--body  "
 	}
-	return "-" + param.Name + " "
+	return "--" + param.Name + " "
 }
 
 func indent(rawJSON []byte) (indented string, err error) {

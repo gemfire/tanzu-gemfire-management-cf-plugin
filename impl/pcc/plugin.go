@@ -74,7 +74,7 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 						"\n\ttarget: a pcc_instance. Optional if 'CFPCC' environment variable is set \n" +
 						"\tcommand: use 'cf pcc <target> commands' to see a list of supported commands \n" +
 						"\toptions: see help for individual commands for options \n" +
-						"\thelp: use -h or --help for general help, and provide <command> for command specific help",
+						"\thelp: use -h or --help for general help, and provide <command> -help for command specific help",
 				},
 			},
 		},

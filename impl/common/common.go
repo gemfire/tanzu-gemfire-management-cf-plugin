@@ -69,6 +69,9 @@ func (c *Common) ProcessCommand(commandData *domain.CommandData) {
 	}
 
 	jqFilter := commandData.UserCommand.Parameters["-t"]
+	if jqFilter == "" {
+		jqFilter = commandData.UserCommand.Parameters["--table"]
+	}
 	jsonToBePrinted, err := output.GetJSONFromURLResponse(urlResponse, jqFilter)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -80,7 +83,7 @@ func (c *Common) ProcessCommand(commandData *domain.CommandData) {
 func checkRequiredParam(restEndPoint domain.RestEndPoint, command domain.UserCommand) error {
 	for _, s := range restEndPoint.Parameters {
 		if s.Required {
-			value := command.Parameters["-"+s.Name]
+			value := command.Parameters["--"+s.Name]
 			if value == "" {
 				return errors.New("Required Parameter is missing: " + s.Name)
 			}
@@ -93,7 +96,7 @@ func makeURL(restEndPoint domain.RestEndPoint, commandData *domain.CommandData) 
 	requestURL = commandData.ConnnectionData.LocatorAddress + "/management" + restEndPoint.URL
 	var query string
 	for _, param := range restEndPoint.Parameters {
-		value, ok := commandData.UserCommand.Parameters["-"+param.Name]
+		value, ok := commandData.UserCommand.Parameters["--"+param.Name]
 		if ok {
 			switch param.In {
 			case "path":

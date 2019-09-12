@@ -1,14 +1,14 @@
-package requests_test
+package common_test
 
 import (
-	"os"
-
-	"github.com/gemfire/cloudcache-management-cf-plugin/util/input"
+	"fmt"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"os"
 )
 
-var _ = Describe("Helpers", func() {
+var _ = Describe("Parser", func() {
 
 	Context("GetTargetAndClusterCommand", func() {
 		var (
@@ -16,27 +16,35 @@ var _ = Describe("Helpers", func() {
 		)
 
 		BeforeEach(func() {
-
 		})
 
 		Context("with no target in environment", func() {
 			It("returns no target, no command", func() {
 				args = []string{"program"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
+				fmt.Println("target is: " + target)
 				Expect(target).To(Equal(""))
 				Expect(userCommand.Command).To(Equal(""))
 			})
 
 			It("returns target but no command", func() {
 				args = []string{"program", "target"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal(""))
 			})
 
+			It("returns no target but no command", func() {
+				args = []string{"program", "-h"}
+				target, userCommand := common.GetTargetAndClusterCommand(args)
+				Expect(target).To(Equal(""))
+				Expect(userCommand.Command).To(Equal(""))
+				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
+			})
+
 			It("returns target and multiple word command", func() {
 				args = []string{"program", "target", "list", "members"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(0))
@@ -44,44 +52,46 @@ var _ = Describe("Helpers", func() {
 
 			It("returns target, multiple word command and options ", func() {
 				args = []string{"program", "target", "list", "members", "-h"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(1))
-				Expect(userCommand.Parameters["-h"]).To(Equal("true"))
-				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
+				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
+				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
 			})
 
 			It("returns target, multiple word command and option with values ", func() {
 				args = []string{"program", "target", "list", "members", "-t", "abc"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(1))
 				Expect(userCommand.Parameters["-t"]).To(Equal("abc"))
-				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
+				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
 			})
 
 			It("returns target, multiple word command, option without value and option with values ", func() {
 				args = []string{"program", "target", "list", "members", "-h", "-t", "abc"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(2))
 				Expect(userCommand.Parameters["-t"]).To(Equal("abc"))
-				Expect(userCommand.Parameters["-h"]).To(Equal("true"))
+				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
+				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
 			})
 
 			It("returns target, multiple word command, option with value and option without values ", func() {
 				args = []string{"program", "target", "list", "members", "-t", "abc", "-h"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(2))
 				Expect(userCommand.Parameters["-t"]).To(Equal("abc"))
-				Expect(userCommand.Parameters["-h"]).To(Equal("true"))
+				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
+				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
 			})
 		})
 
@@ -95,21 +105,21 @@ var _ = Describe("Helpers", func() {
 
 			It("returns target but no command", func() {
 				args = []string{"program", "target"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal(""))
 			})
 
 			It("returns target and command", func() {
 				args = []string{"program", "command"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("command"))
 			})
 
 			It("returns target and multiple word command", func() {
 				args = []string{"program", "target", "list", "members"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(0))
@@ -117,7 +127,7 @@ var _ = Describe("Helpers", func() {
 
 			It("returns target and multiple word command", func() {
 				args = []string{"program", "list", "members"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(0))
@@ -125,69 +135,62 @@ var _ = Describe("Helpers", func() {
 
 			It("returns target, multiple word command and options ", func() {
 				args = []string{"program", "target", "list", "members", "-h"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(1))
-				Expect(userCommand.Parameters["-h"]).To(Equal("true"))
+				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
+				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
 			})
 
 			It("returns target, multiple word command and options ", func() {
 				args = []string{"program", "list", "members", "-h"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(1))
-				Expect(userCommand.Parameters["-h"]).To(Equal("true"))
+				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
+				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
 			})
 
 			It("returns target, multiple word command and option with values ", func() {
 				args = []string{"program", "list", "members", "-t", "abc"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(1))
 				Expect(userCommand.Parameters["-t"]).To(Equal("abc"))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
+				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
 			})
 
 			It("returns target, multiple word command, option without value and option with values ", func() {
 				args = []string{"program", "list", "members", "-h", "-t", "abc"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(2))
 				Expect(userCommand.Parameters["-t"]).To(Equal("abc"))
-				Expect(userCommand.Parameters["-h"]).To(Equal("true"))
+				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
+				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
 			})
 
 			It("returns target, multiple word command, option with value and option without values ", func() {
 				args = []string{"program", "list", "members", "-t", "abc", "-h"}
-				target, userCommand := input.GetTargetAndClusterCommand(args)
+				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(2))
 				Expect(userCommand.Parameters["-t"]).To(Equal("abc"))
-				Expect(userCommand.Parameters["-h"]).To(Equal("true"))
+				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
+				Expect(userCommand.Parameters["-h"]).To(Equal(""))
+				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
 			})
 		})
 	})
 
-	Context("GetEndPoints", func() {
-
-		It("Does nothing", func() {
-			Expect(nil).To(BeNil())
-		})
-	})
-
-	Context("RequestToEndPoint", func() {
-
-		It("Does nothing", func() {
-			Expect(nil).To(BeNil())
-		})
-	})
 })

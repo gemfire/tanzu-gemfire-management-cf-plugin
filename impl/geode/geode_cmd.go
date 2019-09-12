@@ -1,55 +1,51 @@
 package geode
 
 import (
+	"errors"
 	"fmt"
-	"os"
-
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util/input"
 )
 
 type geodeCommand struct {
 	commandData domain.CommandData
-	comm        common.Common
+	comm        common.CommandProcessor
 }
 
 // NewGeodeCommand provides a constructor for the Geode standalone implementation for the client
-func NewGeodeCommand(comm common.Common) (geodeCommand, error) {
+func NewGeodeCommand(comm common.CommandProcessor) (geodeCommand, error) {
 	return geodeCommand{comm: comm}, nil
 }
 
 // Run is the main entry point for the standalone Geode command line interface
 // It is run once for each command executed
-func (gc *geodeCommand) Run(args []string) {
-	var err error
-	gc.commandData.Target, gc.commandData.UserCommand = input.GetTargetAndClusterCommand(args)
+func (gc *geodeCommand) Run(args []string) (err error) {
+
+	gc.commandData.Target, gc.commandData.UserCommand = common.GetTargetAndClusterCommand(args)
 
 	// if no user command and args contains -h or --help
 	if gc.commandData.UserCommand.Command == "" {
-		if input.HasOption(&gc.commandData, "-h") || input.HasOption(&gc.commandData, "--help") {
+		if common.HasOption(gc.commandData.UserCommand, "-h") || common.HasOption(gc.commandData.UserCommand, "--help") {
 			printHelp()
-			os.Exit(0)
+			return
 		} else {
-			fmt.Println("Invalid command")
-			os.Exit(1)
+			err = errors.New("Invalid command")
+			return
 		}
 	}
 
 	geodeConnection, err := NewGeodeConnectionProvider()
 	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
+		return
 	}
 
 	err = geodeConnection.GetConnectionData(&gc.commandData)
 	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
+		return
 	}
 
 	// From this point common code can handle the processing of the command
-	gc.comm.ProcessCommand(&gc.commandData)
+	err = gc.comm.ProcessCommand(&gc.commandData)
 
 	return
 }

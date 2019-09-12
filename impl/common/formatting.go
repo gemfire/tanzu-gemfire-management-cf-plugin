@@ -1,4 +1,4 @@
-package output
+package common
 
 import (
 	"bytes"
@@ -6,14 +6,13 @@ import (
 	"strings"
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util"
 	jq "github.com/threatgrid/jqpipe-go"
 )
 
 // Fill ensures that a column is filled with desired filler characters to desired size
 func Fill(columnSize int, value string, filler string) (response string) {
 	if len(value) > columnSize-1 {
-		response = " " + value[:columnSize-len(util.Ellipsis)-1] + util.Ellipsis
+		response = " " + value[:columnSize-len(Ellipsis)-1] + Ellipsis
 		return
 	}
 	numFillerChars := columnSize - len(value) - 1

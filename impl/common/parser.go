@@ -1,21 +1,19 @@
-package input
+package common
 
 import (
+	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"os"
 	"strings"
-
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 )
 
 // GetTargetAndClusterCommand extracts the target and command from the args and environment variables
 func GetTargetAndClusterCommand(args []string) (target string, userCommand domain.UserCommand) {
-	target = os.Getenv("CFPCC")
 	if len(args) < 2 {
 		return
 	}
-
+	target = os.Getenv("CFPCC")
 	commandStart := 2
-	if target == "" {
+	if target == "" && !strings.HasPrefix(args[1], "-") {
 		target = args[1]
 	} else if target != args[1] {
 		commandStart = 1
@@ -28,7 +26,7 @@ func GetTargetAndClusterCommand(args []string) (target string, userCommand domai
 		token := args[i]
 		if strings.HasPrefix(token, "-") {
 			if option != "" {
-				userCommand.Parameters[option] = "true"
+				userCommand.Parameters[option] = ""
 			}
 			option = token
 		} else if option == "" {
@@ -40,7 +38,13 @@ func GetTargetAndClusterCommand(args []string) (target string, userCommand domai
 	}
 	userCommand.Command = strings.Trim(userCommand.Command, " ")
 	if option != "" {
-		userCommand.Parameters[option] = "true"
+		userCommand.Parameters[option] = ""
 	}
 	return
+}
+
+// HasOption checks if a option has been passed in on the command line
+func HasOption(userCommand domain.UserCommand, option string) bool {
+	_, available := userCommand.Parameters[option]
+	return available
 }

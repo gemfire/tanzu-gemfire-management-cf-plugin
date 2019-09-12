@@ -1,4 +1,4 @@
-package requests_test
+package common_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestRequests(t *testing.T) {
+func TestFormat(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Requests Suite")
+	RunSpecs(t, "CommandProcessor Suite")
 }

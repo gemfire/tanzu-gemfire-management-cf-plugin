@@ -1,8 +1,7 @@
-package output_test
+package common_test
 
 import (
-	"github.com/gemfire/cloudcache-management-cf-plugin/util"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util/output"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -16,7 +15,7 @@ var _ = Describe("Formatting", func() {
 				columnSize := 20
 				value := "some string"
 				filler := "-"
-				response := output.Fill(columnSize, value, filler)
+				response := common.Fill(columnSize, value, filler)
 				expectedResponse := " some string--------"
 				Expect(response).To(Equal(expectedResponse))
 				Expect(len(response)).To(Equal(columnSize))
@@ -28,8 +27,8 @@ var _ = Describe("Formatting", func() {
 				columnSize := 20
 				value := "some string that is longer than 20 characters"
 				filler := "-"
-				response := output.Fill(columnSize, value, filler)
-				expectedResponse := " some string that" + util.Ellipsis
+				response := common.Fill(columnSize, value, filler)
+				expectedResponse := " some string that" + common.Ellipsis
 				Expect(response).To(Equal(expectedResponse))
 				Expect(len(response)).To(Equal(columnSize))
 			})
@@ -44,7 +43,7 @@ var _ = Describe("Formatting", func() {
 				expectedString := `{
   "name": "value"
 }`
-				output, err := output.GetJSONFromURLResponse(inputString, "")
+				output, err := common.GetJSONFromURLResponse(inputString, "")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(output).To(Equal(expectedString))
 			})
@@ -53,7 +52,7 @@ var _ = Describe("Formatting", func() {
 		Context("Input string is not valid JSON", func() {
 			It("Returns the input 'as-is'", func() {
 				inputString := "foobar"
-				output, err := output.GetJSONFromURLResponse(inputString, "")
+				output, err := common.GetJSONFromURLResponse(inputString, "")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(output).To(Equal(inputString))
 			})

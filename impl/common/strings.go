@@ -1,4 +1,4 @@
-package util
+package common
 
 // Collection of common strings used by the application
 const (

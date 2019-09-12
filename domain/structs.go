@@ -46,6 +46,7 @@ type RestEndPoint struct {
 	HTTPMethod  string
 	URL         string
 	CommandName string
+	JQFilter    string
 	Parameters  []RestAPIParam
 }
 
@@ -58,6 +59,7 @@ type RestAPI struct {
 // RestAPIDetail provides details about an endpoint
 type RestAPIDetail struct {
 	CommandName string         `json:"summary"`
+	JQFilter    string         `json:"jqFilter"`
 	Parameters  []RestAPIParam `json:"parameters"`
 }
 

@@ -3,13 +3,13 @@ package pcc
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	"strings"
 
 	"code.cloudfoundry.org/cli/cf/errors"
 	"code.cloudfoundry.org/cli/plugin"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util"
 )
 
 type pluginConnection struct {
@@ -40,7 +40,7 @@ func (pc *pluginConnection) getServiceKey(target string) (serviceKey string, err
 	}
 	hasKey := false
 	if strings.Contains(results[1], "No service key for service instance") {
-		return "", fmt.Errorf(util.NoServiceKeyMessage, target, target)
+		return "", fmt.Errorf(common.NoServiceKeyMessage, target, target)
 	}
 	for _, value := range results {
 		line := strings.Fields(value)
@@ -54,7 +54,7 @@ func (pc *pluginConnection) getServiceKey(target string) (serviceKey string, err
 		}
 	}
 	if serviceKey == "" {
-		err = fmt.Errorf(util.NoServiceKeyMessage, target, target)
+		err = fmt.Errorf(common.NoServiceKeyMessage, target, target)
 	}
 	return
 }
@@ -66,7 +66,7 @@ func (pc *pluginConnection) getServiceKeyDetails(commandData *domain.CommandData
 	}
 
 	if len(keyInfo) < 2 {
-		return errors.New(util.InvalidServiceKeyResponse)
+		return errors.New(common.InvalidServiceKeyResponse)
 	}
 	keyInfo = keyInfo[2:] //take out first two lines of cf service-key ... output
 	joinKeyInfo := strings.Join(keyInfo, "\n")

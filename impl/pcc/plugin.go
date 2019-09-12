@@ -7,17 +7,15 @@ import (
 	"code.cloudfoundry.org/cli/plugin"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util"
-	"github.com/gemfire/cloudcache-management-cf-plugin/util/input"
 )
 
 // BasicPlugin declares the dataset that commands work on
 type BasicPlugin struct {
 	commandData domain.CommandData
-	comm        common.Common
+	comm        common.CommandProcessor
 }
 
-func NewBasicPlugin(comm common.Common) (BasicPlugin, error) {
+func NewBasicPlugin(comm common.CommandProcessor) (BasicPlugin, error) {
 	return BasicPlugin{comm: comm}, nil
 }
 
@@ -28,25 +26,28 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		return
 	}
 	var err error
-	c.commandData.Target, c.commandData.UserCommand = input.GetTargetAndClusterCommand(args)
+	c.commandData.Target, c.commandData.UserCommand = common.GetTargetAndClusterCommand(args)
 	if c.commandData.UserCommand.Command == "" {
-		fmt.Println(util.GenericErrorMessage, err.Error())
+		fmt.Println(common.GenericErrorMessage, "missing command")
 		os.Exit(1)
 	}
 
 	pluginConnection, err := NewPluginConnectionProvider(cliConnection)
 	if err != nil {
-		fmt.Printf(util.GenericErrorMessage, err.Error())
+		fmt.Printf(common.GenericErrorMessage, err.Error())
 		os.Exit(1)
 	}
 	err = pluginConnection.GetConnectionData(&c.commandData)
 	if err != nil {
-		fmt.Printf(util.GenericErrorMessage, err.Error())
+		fmt.Printf(common.GenericErrorMessage, err.Error())
 		os.Exit(1)
 	}
 
 	// From this point common code can handle the processing of the command
-	c.comm.ProcessCommand(&c.commandData)
+	err = c.comm.ProcessCommand(&c.commandData)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	return
 }

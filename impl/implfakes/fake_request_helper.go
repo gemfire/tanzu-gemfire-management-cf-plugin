@@ -2,175 +2,106 @@
 package implfakes
 
 import (
+	"io"
 	"sync"
 
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
 )
 
 type FakeRequestHelper struct {
-	ExecuteCommandStub        func(string, string, *domain.CommandData) (string, error)
-	executeCommandMutex       sync.RWMutex
-	executeCommandArgsForCall []struct {
+	ExchangeStub        func(string, string, io.Reader, string, string) (string, error)
+	exchangeMutex       sync.RWMutex
+	exchangeArgsForCall []struct {
 		arg1 string
 		arg2 string
-		arg3 *domain.CommandData
+		arg3 io.Reader
+		arg4 string
+		arg5 string
 	}
-	executeCommandReturns struct {
+	exchangeReturns struct {
 		result1 string
 		result2 error
 	}
-	executeCommandReturnsOnCall map[int]struct {
+	exchangeReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
-	}
-	GetEndPointsStub        func(*domain.CommandData) error
-	getEndPointsMutex       sync.RWMutex
-	getEndPointsArgsForCall []struct {
-		arg1 *domain.CommandData
-	}
-	getEndPointsReturns struct {
-		result1 error
-	}
-	getEndPointsReturnsOnCall map[int]struct {
-		result1 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRequestHelper) ExecuteCommand(arg1 string, arg2 string, arg3 *domain.CommandData) (string, error) {
-	fake.executeCommandMutex.Lock()
-	ret, specificReturn := fake.executeCommandReturnsOnCall[len(fake.executeCommandArgsForCall)]
-	fake.executeCommandArgsForCall = append(fake.executeCommandArgsForCall, struct {
+func (fake *FakeRequestHelper) Exchange(arg1 string, arg2 string, arg3 io.Reader, arg4 string, arg5 string) (string, error) {
+	fake.exchangeMutex.Lock()
+	ret, specificReturn := fake.exchangeReturnsOnCall[len(fake.exchangeArgsForCall)]
+	fake.exchangeArgsForCall = append(fake.exchangeArgsForCall, struct {
 		arg1 string
 		arg2 string
-		arg3 *domain.CommandData
-	}{arg1, arg2, arg3})
-	fake.recordInvocation("ExecuteCommand", []interface{}{arg1, arg2, arg3})
-	fake.executeCommandMutex.Unlock()
-	if fake.ExecuteCommandStub != nil {
-		return fake.ExecuteCommandStub(arg1, arg2, arg3)
+		arg3 io.Reader
+		arg4 string
+		arg5 string
+	}{arg1, arg2, arg3, arg4, arg5})
+	fake.recordInvocation("Exchange", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.exchangeMutex.Unlock()
+	if fake.ExchangeStub != nil {
+		return fake.ExchangeStub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.executeCommandReturns
+	fakeReturns := fake.exchangeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeRequestHelper) ExecuteCommandCallCount() int {
-	fake.executeCommandMutex.RLock()
-	defer fake.executeCommandMutex.RUnlock()
-	return len(fake.executeCommandArgsForCall)
+func (fake *FakeRequestHelper) ExchangeCallCount() int {
+	fake.exchangeMutex.RLock()
+	defer fake.exchangeMutex.RUnlock()
+	return len(fake.exchangeArgsForCall)
 }
 
-func (fake *FakeRequestHelper) ExecuteCommandCalls(stub func(string, string, *domain.CommandData) (string, error)) {
-	fake.executeCommandMutex.Lock()
-	defer fake.executeCommandMutex.Unlock()
-	fake.ExecuteCommandStub = stub
+func (fake *FakeRequestHelper) ExchangeCalls(stub func(string, string, io.Reader, string, string) (string, error)) {
+	fake.exchangeMutex.Lock()
+	defer fake.exchangeMutex.Unlock()
+	fake.ExchangeStub = stub
 }
 
-func (fake *FakeRequestHelper) ExecuteCommandArgsForCall(i int) (string, string, *domain.CommandData) {
-	fake.executeCommandMutex.RLock()
-	defer fake.executeCommandMutex.RUnlock()
-	argsForCall := fake.executeCommandArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+func (fake *FakeRequestHelper) ExchangeArgsForCall(i int) (string, string, io.Reader, string, string) {
+	fake.exchangeMutex.RLock()
+	defer fake.exchangeMutex.RUnlock()
+	argsForCall := fake.exchangeArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeRequestHelper) ExecuteCommandReturns(result1 string, result2 error) {
-	fake.executeCommandMutex.Lock()
-	defer fake.executeCommandMutex.Unlock()
-	fake.ExecuteCommandStub = nil
-	fake.executeCommandReturns = struct {
+func (fake *FakeRequestHelper) ExchangeReturns(result1 string, result2 error) {
+	fake.exchangeMutex.Lock()
+	defer fake.exchangeMutex.Unlock()
+	fake.ExchangeStub = nil
+	fake.exchangeReturns = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeRequestHelper) ExecuteCommandReturnsOnCall(i int, result1 string, result2 error) {
-	fake.executeCommandMutex.Lock()
-	defer fake.executeCommandMutex.Unlock()
-	fake.ExecuteCommandStub = nil
-	if fake.executeCommandReturnsOnCall == nil {
-		fake.executeCommandReturnsOnCall = make(map[int]struct {
+func (fake *FakeRequestHelper) ExchangeReturnsOnCall(i int, result1 string, result2 error) {
+	fake.exchangeMutex.Lock()
+	defer fake.exchangeMutex.Unlock()
+	fake.ExchangeStub = nil
+	if fake.exchangeReturnsOnCall == nil {
+		fake.exchangeReturnsOnCall = make(map[int]struct {
 			result1 string
 			result2 error
 		})
 	}
-	fake.executeCommandReturnsOnCall[i] = struct {
+	fake.exchangeReturnsOnCall[i] = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
-}
-
-func (fake *FakeRequestHelper) GetEndPoints(arg1 *domain.CommandData) error {
-	fake.getEndPointsMutex.Lock()
-	ret, specificReturn := fake.getEndPointsReturnsOnCall[len(fake.getEndPointsArgsForCall)]
-	fake.getEndPointsArgsForCall = append(fake.getEndPointsArgsForCall, struct {
-		arg1 *domain.CommandData
-	}{arg1})
-	fake.recordInvocation("GetEndPoints", []interface{}{arg1})
-	fake.getEndPointsMutex.Unlock()
-	if fake.GetEndPointsStub != nil {
-		return fake.GetEndPointsStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	fakeReturns := fake.getEndPointsReturns
-	return fakeReturns.result1
-}
-
-func (fake *FakeRequestHelper) GetEndPointsCallCount() int {
-	fake.getEndPointsMutex.RLock()
-	defer fake.getEndPointsMutex.RUnlock()
-	return len(fake.getEndPointsArgsForCall)
-}
-
-func (fake *FakeRequestHelper) GetEndPointsCalls(stub func(*domain.CommandData) error) {
-	fake.getEndPointsMutex.Lock()
-	defer fake.getEndPointsMutex.Unlock()
-	fake.GetEndPointsStub = stub
-}
-
-func (fake *FakeRequestHelper) GetEndPointsArgsForCall(i int) *domain.CommandData {
-	fake.getEndPointsMutex.RLock()
-	defer fake.getEndPointsMutex.RUnlock()
-	argsForCall := fake.getEndPointsArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeRequestHelper) GetEndPointsReturns(result1 error) {
-	fake.getEndPointsMutex.Lock()
-	defer fake.getEndPointsMutex.Unlock()
-	fake.GetEndPointsStub = nil
-	fake.getEndPointsReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeRequestHelper) GetEndPointsReturnsOnCall(i int, result1 error) {
-	fake.getEndPointsMutex.Lock()
-	defer fake.getEndPointsMutex.Unlock()
-	fake.GetEndPointsStub = nil
-	if fake.getEndPointsReturnsOnCall == nil {
-		fake.getEndPointsReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.getEndPointsReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
 }
 
 func (fake *FakeRequestHelper) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.executeCommandMutex.RLock()
-	defer fake.executeCommandMutex.RUnlock()
-	fake.getEndPointsMutex.RLock()
-	defer fake.getEndPointsMutex.RUnlock()
+	fake.exchangeMutex.RLock()
+	defer fake.exchangeMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

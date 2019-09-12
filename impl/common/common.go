@@ -45,7 +45,7 @@ func (c *Common) ProcessCommand(commandData *domain.CommandData) {
 		os.Exit(1)
 	}
 
-	if input.HasOption(commandData, "-h") || input.HasOption(commandData, "--help") {
+	if input.HasOption(commandData, "-h") || input.HasOption(commandData, "--help") || input.HasOption(commandData, "-help") {
 		for _, command := range commandData.AvailableEndpoints {
 			if command.CommandName == userCommand {
 				fmt.Println(output.Describe(command))

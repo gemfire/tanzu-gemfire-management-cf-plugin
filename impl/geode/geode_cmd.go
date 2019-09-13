@@ -25,7 +25,7 @@ func (gc *geodeCommand) Run(args []string) (err error) {
 
 	// if no user command and args contains -h or --help
 	if gc.commandData.UserCommand.Command == "" {
-		if common.HasOption(gc.commandData.UserCommand, "-h") || common.HasOption(gc.commandData.UserCommand, "--help") {
+		if common.HasOption(gc.commandData.UserCommand.Parameters, []string{"--help", "-h"}) {
 			printHelp()
 			return
 		} else {
@@ -55,8 +55,10 @@ func printHelp() {
 	fmt.Println("")
 	fmt.Println("Usage: pcc <target> <command> [options]")
 	fmt.Println("")
-	fmt.Println("\ttarget: url to a geode locator in the form of : http(s)://host:port")
-	fmt.Println("\tcommand: use 'pcc <target> commands' to see a list of supported commands")
-	fmt.Println("\toptions: see help for individual commands for options.")
-	fmt.Println("\thelp: use -h or --help for general help, and provide <command> for command specific help.")
+	fmt.Println("\ttarget: \n\t\turl to a geode locator in the form of : http(s)://host:port")
+	fmt.Println("\t\tomit if 'GEODE_TARGET' environment variable is set")
+	fmt.Println("\tcommand:\n\t\tuse 'pcc <target> commands' to see a list of supported commands")
+	fmt.Println("\toptions:\n\t\tsee help for individual commands for options.")
+	fmt.Println(common.GeneralOptions)
+	fmt.Println("\thelp:\n\t\tuse -h or --help for general help, and provide <command> for command specific help.")
 }

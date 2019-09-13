@@ -11,7 +11,7 @@ func GetTargetAndClusterCommand(args []string) (target string, userCommand domai
 	if len(args) < 2 {
 		return
 	}
-	target = os.Getenv("CFPCC")
+	target = os.Getenv("GEODE_TARGET")
 	commandStart := 2
 	if target == "" && !strings.HasPrefix(args[1], "-") {
 		target = args[1]
@@ -44,7 +44,22 @@ func GetTargetAndClusterCommand(args []string) (target string, userCommand domai
 }
 
 // HasOption checks if a option has been passed in on the command line
-func HasOption(userCommand domain.UserCommand, option string) bool {
-	_, available := userCommand.Parameters[option]
-	return available
+func HasOption(parameters map[string]string, options []string) bool {
+	for _, option := range options {
+		_, available := parameters[option]
+		if available {
+			return true
+		}
+	}
+	return false
+}
+
+func GetOption(parameters map[string]string, options []string) string {
+	for _, option := range options {
+		value := parameters[option]
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }

@@ -39,7 +39,7 @@ var _ = Describe("Parser", func() {
 				target, userCommand := common.GetTargetAndClusterCommand(args)
 				Expect(target).To(Equal(""))
 				Expect(userCommand.Command).To(Equal(""))
-				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-h"})).To(Equal(true))
 			})
 
 			It("returns target and multiple word command", func() {
@@ -56,8 +56,8 @@ var _ = Describe("Parser", func() {
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(1))
-				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
-				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-h"})).To(Equal(true))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-foo"})).To(Equal(false))
 			})
 
 			It("returns target, multiple word command and option with values ", func() {
@@ -67,7 +67,7 @@ var _ = Describe("Parser", func() {
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(1))
 				Expect(userCommand.Parameters["-t"]).To(Equal("abc"))
-				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-foo"})).To(Equal(false))
 			})
 
 			It("returns target, multiple word command, option without value and option with values ", func() {
@@ -77,9 +77,9 @@ var _ = Describe("Parser", func() {
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(2))
 				Expect(userCommand.Parameters["-t"]).To(Equal("abc"))
-				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-h"})).To(Equal(true))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
-				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-foo"})).To(Equal(false))
 			})
 
 			It("returns target, multiple word command, option with value and option without values ", func() {
@@ -89,9 +89,9 @@ var _ = Describe("Parser", func() {
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(2))
 				Expect(userCommand.Parameters["-t"]).To(Equal("abc"))
-				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-h"})).To(Equal(true))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
-				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-foo"})).To(Equal(false))
 			})
 		})
 
@@ -99,7 +99,7 @@ var _ = Describe("Parser", func() {
 		// the individual command
 		Context("with target in environment", func() {
 			BeforeEach(func() {
-				err := os.Setenv("CFPCC", "target")
+				err := os.Setenv("GEODE_TARGET", "target")
 				Expect(err).To(BeNil())
 			})
 
@@ -139,9 +139,9 @@ var _ = Describe("Parser", func() {
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(1))
-				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-h"})).To(Equal(true))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
-				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-foo"})).To(Equal(false))
 			})
 
 			It("returns target, multiple word command and options ", func() {
@@ -150,9 +150,9 @@ var _ = Describe("Parser", func() {
 				Expect(target).To(Equal("target"))
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(1))
-				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-h"})).To(Equal(true))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
-				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-foo"})).To(Equal(false))
 			})
 
 			It("returns target, multiple word command and option with values ", func() {
@@ -163,7 +163,7 @@ var _ = Describe("Parser", func() {
 				Expect(len(userCommand.Parameters)).To(Equal(1))
 				Expect(userCommand.Parameters["-t"]).To(Equal("abc"))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
-				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-foo"})).To(Equal(false))
 			})
 
 			It("returns target, multiple word command, option without value and option with values ", func() {
@@ -173,9 +173,9 @@ var _ = Describe("Parser", func() {
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(2))
 				Expect(userCommand.Parameters["-t"]).To(Equal("abc"))
-				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-h"})).To(Equal(true))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
-				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-foo"})).To(Equal(false))
 			})
 
 			It("returns target, multiple word command, option with value and option without values ", func() {
@@ -185,12 +185,43 @@ var _ = Describe("Parser", func() {
 				Expect(userCommand.Command).To(Equal("list members"))
 				Expect(len(userCommand.Parameters)).To(Equal(2))
 				Expect(userCommand.Parameters["-t"]).To(Equal("abc"))
-				Expect(common.HasOption(userCommand, "-h")).To(Equal(true))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-h"})).To(Equal(true))
 				Expect(userCommand.Parameters["-foo"]).To(Equal(""))
 				Expect(userCommand.Parameters["-h"]).To(Equal(""))
-				Expect(common.HasOption(userCommand, "-foo")).To(Equal(false))
+				Expect(common.HasOption(userCommand.Parameters, []string{"-foo"})).To(Equal(false))
 			})
 		})
 	})
 
+	Context("GetOptionHasOption", func() {
+		var (
+			parameters map[string]string
+		)
+
+		BeforeEach(func() {
+			parameters = make(map[string]string)
+		})
+
+		Context("with no target in environment", func() {
+			It("empty parameters", func() {
+				Expect(common.HasOption(parameters, []string{"-h"})).To(Equal(false))
+				Expect(common.HasOption(parameters, []string{"-h", "--help"})).To(Equal(false))
+			})
+			It("one parameters", func() {
+				parameters["--help"] = "help"
+				Expect(common.HasOption(parameters, []string{"-h"})).To(Equal(false))
+				Expect(common.HasOption(parameters, []string{"-h", "--help"})).To(Equal(true))
+				Expect(common.GetOption(parameters, []string{"-h", "--help"})).To(Equal("help"))
+				Expect(common.GetOption(parameters, []string{"--test", "-t"})).To(Equal(""))
+			})
+			It("one parameters", func() {
+				parameters["-h"] = "help"
+				Expect(common.HasOption(parameters, []string{"-h"})).To(Equal(true))
+				Expect(common.HasOption(parameters, []string{"-h", "--help"})).To(Equal(true))
+				Expect(common.GetOption(parameters, []string{"-h", "--help"})).To(Equal("help"))
+				Expect(common.GetOption(parameters, []string{"--test", "-t"})).To(Equal(""))
+			})
+
+		})
+	})
 })

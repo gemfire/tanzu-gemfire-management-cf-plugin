@@ -42,10 +42,11 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 		return
 	}
 
-	if HasOption(commandData.UserCommand, "-h") || HasOption(commandData.UserCommand, "--help") || HasOption(commandData.UserCommand, "-help") {
+	if HasOption(commandData.UserCommand.Parameters, []string{"-h", "--help", "-help"}) {
 		for _, command := range commandData.AvailableEndpoints {
 			if command.CommandName == userCommand {
 				fmt.Println(Describe(command))
+				fmt.Println(GeneralOptions)
 			}
 		}
 		return
@@ -62,11 +63,8 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 	}
 
 	var jqFilter string
-	if HasOption(commandData.UserCommand, "-t") || HasOption(commandData.UserCommand, "--table") {
-		jqFilter = commandData.UserCommand.Parameters["--table"]
-		if jqFilter == "" {
-			jqFilter = commandData.UserCommand.Parameters["-t"]
-		}
+	if HasOption(commandData.UserCommand.Parameters, []string{"-t", "--table"}) {
+		jqFilter = GetOption(commandData.UserCommand.Parameters, []string{"--table", "-t"})
 		// if no jqFilter is specified by the user, use the default defined by the rest end point
 		if jqFilter == "" {
 			jqFilter = restEndPoint.JQFilter

@@ -133,7 +133,7 @@ func executeCommand(commandData *domain.CommandData, requester impl.RequestHelpe
 	endpointURL := makeURL(restEndPoint, commandData)
 
 	if httpAction == "POST" {
-		bodyReader, err = getBodyReader(commandData.UserCommand.Parameters["-body"])
+		bodyReader, err = getBodyReader(commandData.UserCommand.Parameters["--body"])
 		if err != nil {
 			return "", err
 		}

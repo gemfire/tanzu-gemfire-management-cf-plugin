@@ -42,7 +42,12 @@ func FormatResponse(urlResponse string, jqFilter string) (jsonOutput string, err
 	}
 
 	// convert the filtered json to tabular format
-	return Tabular(filteredJson)
+	table, err := Tabular(filteredJson)
+	if err != nil {
+		return "", err
+	}
+
+	return table + "\n" + "JQFilter: " + jqFilter + "\n", nil
 }
 
 func filterWithJQ(jsonString string, jqFilter string) (string, error) {

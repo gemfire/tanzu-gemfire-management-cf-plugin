@@ -27,7 +27,7 @@ require (
 	github.com/tedsuo/rata v1.0.0 // indirect
 	github.com/threatgrid/jq-go v0.0.0-20140326011412-3e60d678d7d9 // indirect
 	github.com/threatgrid/jqpipe-go v0.0.0-20160108233133-b5e15fb6d9f3
-	github.com/vito/go-interact v0.0.0-20171111012221-fa338ed9e9ec // indirect
+	github.com/vito/go-interact v0.0.0-20171111012221-fa338ed9e9ec
 	golang.org/x/crypto v0.0.0-20190617133340-57b3e21c3d56 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28 // indirect
 )

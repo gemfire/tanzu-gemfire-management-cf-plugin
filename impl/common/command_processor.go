@@ -22,7 +22,6 @@ func NewCommandProcessor(requester impl.RequestHelper) (CommandProcessor, error)
 
 // ProcessCommand handles the common steps for executing a command against the Geode cluster
 func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err error) {
-
 	err = getEndPoints(commandData, c.requester)
 	if err != nil {
 		return
@@ -71,7 +70,7 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 		}
 	}
 
-	jsonToBePrinted, err := GetJSONFromURLResponse(urlResponse, jqFilter)
+	jsonToBePrinted, err := FormatResponse(urlResponse, jqFilter)
 	if err != nil {
 		return
 	}

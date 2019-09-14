@@ -3,6 +3,7 @@ package common
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/vito/go-interact/interact/terminal"
 	"os"
 	"strings"
@@ -58,7 +59,7 @@ func filterWithJQ(jsonString string, jqFilter string) (string, error) {
 
 func Tabular(jsonString string) (string, error) {
 	// parse the jsonString into array of maps
-	var result []map[string]string
+	var result []map[string]interface{}
 	err := json.Unmarshal([]byte(jsonString), &result)
 	if err != nil {
 		return "unable to parse: " + jsonString, err
@@ -74,7 +75,7 @@ func Tabular(jsonString string) (string, error) {
 		}
 	}
 
-	maxLengths := getMaxLength(result)
+	maxLengths := getMaxLength(&result)
 	// this already includes the length needed by the spacers
 	totalLengthNeeded := getTotalMaxLength(maxLengths)
 
@@ -123,7 +124,7 @@ func Tabular(jsonString string) (string, error) {
 	// print out the values
 	for _, m := range result {
 		for index, column := range columnNames {
-			response.WriteString(Fill(maxLengths[column], m[column], " "))
+			response.WriteString(Fill(maxLengths[column], getString(m[column]), " "))
 			if index < len(columnNames)-1 {
 				response.WriteString("|")
 			} else {
@@ -132,6 +133,13 @@ func Tabular(jsonString string) (string, error) {
 		}
 	}
 	return response.String(), nil
+}
+
+func getString(value interface{}) string {
+	if value == nil {
+		return ""
+	}
+	return fmt.Sprintf("%v", value)
 }
 
 func getTotalMaxLength(maxLengths map[string]int) int {
@@ -144,14 +152,15 @@ func getTotalMaxLength(maxLengths map[string]int) int {
 }
 
 // get the max length of each column, and the total max length
-func getMaxLength(result []map[string]string) map[string]int {
+func getMaxLength(result *[]map[string]interface{}) map[string]int {
 	maxLengths := make(map[string]int)
-	for _, m := range result {
+	for _, m := range *result {
 		for k, v := range m {
 			maxLength := maxLengths[k]
 			// always leave space before and after
-			if (len(v) + 2) > maxLength {
-				maxLengths[k] = len(v) + 2
+			strSize := len(getString(v)) + 2
+			if strSize > maxLength {
+				maxLengths[k] = strSize
 			}
 		}
 	}

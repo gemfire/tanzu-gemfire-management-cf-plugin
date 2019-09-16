@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/vito/go-interact/interact/terminal"
 	"os"
 	"strings"
+
+	"github.com/vito/go-interact/interact/terminal"
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	jq "github.com/threatgrid/jqpipe-go"
@@ -36,13 +37,13 @@ func FormatResponse(urlResponse string, jqFilter string) (jsonOutput string, err
 		return indent([]byte(urlResponse))
 	}
 	// otherwise use the filter string to generate the list for display.
-	filteredJson, err := filterWithJQ(urlResponse, jqFilter)
+	filteredJSON, err := filterWithJQ(urlResponse, jqFilter)
 	if err != nil {
-		return filteredJson, err
+		return filteredJSON, err
 	}
 
 	// convert the filtered json to tabular format
-	table, err := Tabular(filteredJson)
+	table, err := Tabular(filteredJSON)
 	if err != nil {
 		return "", err
 	}
@@ -62,6 +63,7 @@ func filterWithJQ(jsonString string, jqFilter string) (string, error) {
 	return string(jsonByte), nil
 }
 
+// Tabular provides tabular string output for a given JSON string
 func Tabular(jsonString string) (string, error) {
 	// parse the jsonString into array of maps
 	var result []map[string]interface{}
@@ -73,7 +75,7 @@ func Tabular(jsonString string) (string, error) {
 	// get all the column names
 	var columnNames []string
 	for _, m := range result {
-		for k, _ := range m {
+		for k := range m {
 			if !contains(columnNames, k) {
 				columnNames = append(columnNames, k)
 			}
@@ -84,7 +86,7 @@ func Tabular(jsonString string) (string, error) {
 	// this already includes the length needed by the spacers
 	totalLengthNeeded := getTotalMaxLength(maxLengths)
 
-	terminalWidth, _, err := terminal.GetSize(int(os.Stdin.Fd()))
+	terminalWidth, _, _ := terminal.GetSize(int(os.Stdin.Fd()))
 	// if unable to get the width, assume the longest needed
 	if terminalWidth <= 0 {
 		terminalWidth = totalLengthNeeded
@@ -172,8 +174,8 @@ func getMaxLength(result *[]map[string]interface{}) map[string]int {
 	return maxLengths
 }
 
-// Describe an end point with command name and required/optional parameters
-func Describe(endPoint domain.RestEndPoint) string {
+// DescribeEndpoint an end point with command name and required/optional parameters
+func DescribeEndpoint(endPoint domain.RestEndPoint) string {
 	var buffer bytes.Buffer
 	buffer.WriteString(endPoint.CommandName + " ")
 	// show the required options first

@@ -15,6 +15,7 @@ type BasicPlugin struct {
 	comm        common.CommandProcessor
 }
 
+// NewBasicPlugin provides the constructor for a BasicPlugin struct
 func NewBasicPlugin(comm common.CommandProcessor) (BasicPlugin, error) {
 	return BasicPlugin{comm: comm}, nil
 }

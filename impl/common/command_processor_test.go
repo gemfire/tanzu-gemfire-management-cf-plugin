@@ -2,8 +2,9 @@ package common_test
 
 import (
 	"errors"
+
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
+	. "github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/implfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -14,14 +15,14 @@ var _ = Describe("CommandProcessor", func() {
 	Context("ProcessCommand", func() {
 		var (
 			helper           *implfakes.FakeRequestHelper
-			commandProcessor common.CommandProcessor
+			commandProcessor CommandProcessor
 			err              error
 			commandData      domain.CommandData
 		)
 
 		BeforeEach(func() {
 			helper = new(implfakes.FakeRequestHelper)
-			commandProcessor, err = common.NewCommandProcessor(helper)
+			commandProcessor, err = NewCommandProcessor(helper)
 			Expect(err).NotTo(HaveOccurred())
 			commandData = domain.CommandData{}
 		})

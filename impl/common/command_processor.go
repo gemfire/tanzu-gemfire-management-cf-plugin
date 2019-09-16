@@ -1,21 +1,25 @@
 package common
 
 import (
-	"code.cloudfoundry.org/cli/cf/errors"
 	"encoding/json"
 	"fmt"
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
 	"io"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
+
+	"code.cloudfoundry.org/cli/cf/errors"
+	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
 )
 
+// CommandProcessor struct holds the implementation for the RequestHelper interface
 type CommandProcessor struct {
 	requester impl.RequestHelper
 }
 
+// NewCommandProcessor provides the constructor for the CommandProcessor
 func NewCommandProcessor(requester impl.RequestHelper) (CommandProcessor, error) {
 	return CommandProcessor{requester: requester}, nil
 }
@@ -29,8 +33,9 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 
 	userCommand := commandData.UserCommand.Command
 	if userCommand == "commands" {
-		for _, command := range commandData.AvailableEndpoints {
-			fmt.Println(Describe(command))
+		commandNames := sortCommandNames(commandData)
+		for _, commandName := range commandNames {
+			fmt.Println(DescribeEndpoint(commandData.AvailableEndpoints[commandName]))
 		}
 		return
 	}
@@ -44,7 +49,7 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 	if HasOption(commandData.UserCommand.Parameters, []string{"-h", "--help", "-help"}) {
 		for _, command := range commandData.AvailableEndpoints {
 			if command.CommandName == userCommand {
-				fmt.Println(Describe(command))
+				fmt.Println(DescribeEndpoint(command))
 				fmt.Println(GeneralOptions)
 			}
 		}
@@ -177,5 +182,14 @@ func makeURL(restEndPoint domain.RestEndPoint, commandData *domain.CommandData) 
 	}
 
 	requestURL = requestURL + query
+	return
+}
+
+func sortCommandNames(commandData *domain.CommandData) (commandNames []string) {
+	commandNames = make([]string, 0, len(commandData.AvailableEndpoints))
+	for _, command := range commandData.AvailableEndpoints {
+		commandNames = append(commandNames, command.CommandName)
+	}
+	sort.Strings(commandNames)
 	return
 }

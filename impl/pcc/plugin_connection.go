@@ -3,8 +3,9 @@ package pcc
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	"strings"
+
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 
 	"code.cloudfoundry.org/cli/cf/errors"
 	"code.cloudfoundry.org/cli/plugin"
@@ -94,7 +95,7 @@ func (pc *pluginConnection) getServiceKeyDetails(commandData *domain.CommandData
 	}
 	// throw an error if no credentials found
 	if commandData.ConnnectionData.Username == "" || commandData.ConnnectionData.Password == "" {
-		return errors.New("Unable to retrieve username/password from the servicekey.")
+		return errors.New("Unable to retrieve username/password from the servicekey")
 	}
 	return
 }

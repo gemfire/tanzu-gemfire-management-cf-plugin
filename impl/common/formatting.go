@@ -163,6 +163,10 @@ func getMaxLength(result *[]map[string]interface{}) map[string]int {
 	maxLengths := make(map[string]int)
 	for _, m := range *result {
 		for k, v := range m {
+			// use the length of the column name + 2 as starting length
+			if maxLengths[k] == 0 {
+				maxLengths[k] = len(k) + 2
+			}
 			maxLength := maxLengths[k]
 			// always leave space before and after
 			strSize := len(getString(v)) + 2

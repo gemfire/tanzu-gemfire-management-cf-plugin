@@ -73,6 +73,10 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 		if jqFilter == "" {
 			jqFilter = restEndPoint.JQFilter
 		}
+		// if no default jqFilter is configured, then use the entire json
+		if jqFilter == "" {
+			jqFilter = "."
+		}
 	}
 
 	jsonToBePrinted, err := FormatResponse(urlResponse, jqFilter)

@@ -91,7 +91,11 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 func checkRequiredParam(restEndPoint domain.RestEndPoint, command domain.UserCommand) error {
 	for _, s := range restEndPoint.Parameters {
 		if s.Required {
-			value := command.Parameters["--"+s.Name]
+			name := s.Name
+			if s.In == "body" {
+				name = "body"
+			}
+			value := command.Parameters["--"+name]
 			if value == "" {
 				return errors.New("Required Parameter is missing: " + s.Name)
 			}

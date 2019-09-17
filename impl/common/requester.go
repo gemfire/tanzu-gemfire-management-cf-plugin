@@ -22,6 +22,7 @@ func (requester *Requester) Exchange(url string, method string, bodyReader io.Re
 	}
 
 	req.SetBasicAuth(username, password)
+	req.Header.Add("content-type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err

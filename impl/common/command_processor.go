@@ -152,7 +152,7 @@ func executeCommand(commandData *domain.CommandData, requester impl.RequestHelpe
 
 func getBodyReader(jsonFile string) (bodyReader io.Reader, err error) {
 	if jsonFile == "" {
-		err = errors.New(NoJsonFileProvidedMessage)
+		err = errors.New(NoJSONFileProvidedMessage)
 		return
 	}
 	if jsonFile[0] == '@' && len(jsonFile) > 1 {

@@ -1,9 +1,10 @@
 package common
 
 import (
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"os"
 	"strings"
+
+	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 )
 
 // GetTargetAndClusterCommand extracts the target and command from the args and environment variables
@@ -54,6 +55,7 @@ func HasOption(parameters map[string]string, options []string) bool {
 	return false
 }
 
+// GetOption retrieves entries from the map of parameters by name
 func GetOption(parameters map[string]string, options []string) string {
 	for _, option := range options {
 		value := parameters[option]

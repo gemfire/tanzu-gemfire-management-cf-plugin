@@ -53,7 +53,8 @@ type RestEndPoint struct {
 // RestAPI is used to parse the swagger json response
 // first key: url | second key: method (get/post) | value: RestAPIDetail
 type RestAPI struct {
-	Paths map[string]map[string]RestAPIDetail `json:"paths"`
+	Paths       map[string]map[string]RestAPIDetail `json:"paths"`
+	Definitions map[string]DefinitionDetail         `json:"definitions"`
 }
 
 // RestAPIDetail provides details about an endpoint
@@ -63,11 +64,27 @@ type RestAPIDetail struct {
 	Parameters  []RestAPIParam `json:"parameters"`
 }
 
+// DefinitionDetail describes the details of the type definitions
+type DefinitionDetail struct {
+	Properties map[string]PropertyDetail `json:"properties"`
+}
+
+// PropertyDetail describes the details of the properties of type definitions
+type PropertyDetail struct {
+	Type   string            `json:"type"`
+	Ref    string            `json:"$ref"`
+	Enum   []string          `json:"enum"`
+	Format string            `json:"format"`
+	Items  map[string]string `json:"items"`
+}
+
 // RestAPIParam contains the information about possible parameters for a call
 type RestAPIParam struct {
 	Name        string `json:"name"`
 	Required    bool   `json:"required"`
 	Description string `json:"description"`
 	// In describes how params are submitted: "query", "body" or "path"
-	In string `json:"in"`
+	In             string            `json:"in"`
+	Schema         map[string]string `json:"schema"`
+	BodyDefinition map[string]interface{}
 }

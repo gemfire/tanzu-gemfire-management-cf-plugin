@@ -1,11 +1,11 @@
 package common_test
 
 import (
-	"fmt"
+	"os"
+
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"os"
 )
 
 var _ = Describe("Parser", func() {
@@ -22,7 +22,6 @@ var _ = Describe("Parser", func() {
 			It("returns no target, no command", func() {
 				args = []string{"program"}
 				target, userCommand := common.GetTargetAndClusterCommand(args)
-				fmt.Println("target is: " + target)
 				Expect(target).To(Equal(""))
 				Expect(userCommand.Command).To(Equal(""))
 			})

@@ -179,7 +179,7 @@ func getMaxLength(result *[]map[string]interface{}) map[string]int {
 }
 
 // DescribeEndpoint an end point with command name and required/optional parameters
-func DescribeEndpoint(endPoint domain.RestEndPoint) string {
+func DescribeEndpoint(endPoint domain.RestEndPoint, showDetails bool) string {
 	var buffer bytes.Buffer
 	buffer.WriteString(endPoint.CommandName + " ")
 	// show the required options first
@@ -197,6 +197,15 @@ func DescribeEndpoint(endPoint domain.RestEndPoint) string {
 			buffer.WriteString("] ")
 		}
 
+	}
+
+	if showDetails {
+		for _, param := range endPoint.Parameters {
+			if len(param.BodyDefinition) > 0 {
+				generateSampleBody(param, &buffer)
+			}
+		}
+		buffer.WriteString("\n" + GeneralOptions)
 	}
 	return strings.Trim(buffer.String(), " ")
 }
@@ -226,4 +235,14 @@ func contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+func generateSampleBody(param domain.RestAPIParam, buffer *bytes.Buffer) {
+	buffer.WriteString("\n\t\t--" + param.Name + " format:\n\t\t")
+
+	jsonBytes, err := json.MarshalIndent(param.BodyDefinition, "\t\t", "  ")
+	if err != nil {
+		return
+	}
+	buffer.Write(jsonBytes)
 }

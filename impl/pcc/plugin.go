@@ -29,7 +29,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	var err error
 	c.commandData.Target, c.commandData.UserCommand = common.GetTargetAndClusterCommand(args)
 	if c.commandData.UserCommand.Command == "" {
-		fmt.Println(common.GenericErrorMessage, "missing command")
+		fmt.Println("missing command")
 		os.Exit(1)
 	}
 

@@ -1,7 +1,6 @@
 package geode
 
 import (
-	"errors"
 	"fmt"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
@@ -25,22 +24,19 @@ func (gc *geodeCommand) Run(args []string) (err error) {
 
 	// if no user command and args contains -h or --help
 	if gc.commandData.UserCommand.Command == "" {
-		if common.HasOption(gc.commandData.UserCommand.Parameters, []string{"--help", "-h", "-help"}) {
-			printHelp()
-			return
-		} else {
-			err = errors.New("Invalid command")
-			return
-		}
+		printHelp()
+		return
 	}
 
 	geodeConnection, err := NewGeodeConnectionProvider()
 	if err != nil {
+		printHelp()
 		return
 	}
 
 	err = geodeConnection.GetConnectionData(&gc.commandData)
 	if err != nil {
+		printHelp()
 		return
 	}
 

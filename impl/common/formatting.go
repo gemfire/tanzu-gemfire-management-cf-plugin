@@ -185,23 +185,29 @@ func DescribeEndpoint(endPoint domain.RestEndPoint) string {
 	// show the required options first
 	for _, param := range endPoint.Parameters {
 		if param.Required {
-			buffer.WriteString(getOption(param))
+			writeParam(&buffer, param)
+			buffer.WriteString(" ")
 		}
 	}
 
 	for _, param := range endPoint.Parameters {
 		if !param.Required {
-			buffer.WriteString("[" + strings.Trim(getOption(param), " ") + "] ")
+			buffer.WriteString("[")
+			writeParam(&buffer, param)
+			buffer.WriteString("] ")
 		}
+
 	}
-	return buffer.String()
+	return strings.Trim(buffer.String(), " ")
 }
 
-func getOption(param domain.RestAPIParam) string {
+func writeParam(buffer *bytes.Buffer, param domain.RestAPIParam) {
+	buffer.WriteString("--" + param.Name + " ")
 	if param.In == "body" {
-		return "--body  "
+		buffer.WriteString("<json or @json_file_path>")
+	} else {
+		buffer.WriteString("<" + param.Description + ">")
 	}
-	return "--" + param.Name + " "
 }
 
 func indent(rawJSON []byte) (indented string, err error) {

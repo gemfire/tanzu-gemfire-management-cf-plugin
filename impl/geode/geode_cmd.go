@@ -58,7 +58,7 @@ func printHelp() {
 	fmt.Println("\ttarget: \n\t\turl to a geode locator in the form of : http(s)://host:port")
 	fmt.Println("\t\tomit if 'GEODE_TARGET' environment variable is set")
 	fmt.Println("\tcommand:\n\t\tuse 'pcc <target> commands' to see a list of supported commands")
-	fmt.Println("\toptions:\n\t\tsee help for individual commands for options.")
+	fmt.Println("\toptions:\n\t\tuse 'pcc <target> command -h' to see options for individual command.")
 	fmt.Println(common.GeneralOptions)
 	fmt.Println("\thelp:\n\t\tuse -h or --help for general help, and provide <command> for command specific help.")
 }

@@ -76,8 +76,9 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 						"\ttarget:\n\t\ta pcc_instance. \n" +
 						"\t\tomit if 'GEODE_TARGET' environment variable is set \n" +
 						"\tcommand:\n\t\tuse 'cf pcc <target> commands' to see a list of supported commands \n" +
+						"\toptions:\n\t\tuse 'cf pcc <target> command -help' to see options for individual command." +
 						common.GeneralOptions + "\n" +
-						"\thelp: use -h or --help for general help, and provide <command> -help for command specific help",
+						"\thelp\nt\t\t: use -h or --help for general help, and provide <command> -help for command specific help",
 				},
 			},
 		},

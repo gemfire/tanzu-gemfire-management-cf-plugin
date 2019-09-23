@@ -1,6 +1,7 @@
 package common_test
 
 import (
+	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -83,7 +84,7 @@ var _ = Describe("Formatting", func() {
 	})
 
 	Context("tabular output", func() {
-		It("Returns the input as an indented string", func() {
+		It("Returns the input as table format", func() {
 			json := `[{
 				"id": "server",
 				"status": "online"},
@@ -106,4 +107,51 @@ var _ = Describe("Formatting", func() {
 			Expect(output).To(Equal(expected))
 		})
 	})
+
+	Context("Describe Endpoint", func() {
+		It("describe the rest end point without body param", func() {
+			var endPoint domain.RestEndPoint
+			endPoint.CommandName = "test"
+			endPoint.Parameters = make([]domain.RestAPIParam, 2)
+
+			var param1, param2 domain.RestAPIParam
+			param1.In = "query"
+			param1.Name = "id"
+			param1.Description = "id"
+			param1.Required = true
+
+			param2.In = "query"
+			param2.Name = "group"
+			param2.Description = "group"
+			param2.Required = false
+			endPoint.Parameters[0] = param2
+			endPoint.Parameters[1] = param1
+
+			result := common.DescribeEndpoint(endPoint)
+			Expect(result).To(Equal("test --id <id> [--group <group>]"))
+		})
+
+		It("describe the rest end point with body param", func() {
+			var endPoint domain.RestEndPoint
+			endPoint.CommandName = "test"
+			endPoint.Parameters = make([]domain.RestAPIParam, 2)
+
+			var param1, param2 domain.RestAPIParam
+			param1.In = "body"
+			param1.Name = "config"
+			param1.Description = "config"
+			param1.Required = true
+
+			param2.In = "query"
+			param2.Name = "group"
+			param2.Description = "group"
+			param2.Required = false
+			endPoint.Parameters[0] = param2
+			endPoint.Parameters[1] = param1
+
+			result := common.DescribeEndpoint(endPoint)
+			Expect(result).To(Equal("test --config <json or @json_file_path> [--group <group>]"))
+		})
+	})
+
 })

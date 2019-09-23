@@ -47,4 +47,35 @@ var _ = Describe("CommandProcessor", func() {
 			Expect(helper.ExchangeCallCount()).To(Equal(1))
 		})
 	})
+
+	Context("Check required params", func() {
+		It("Returns an error if required param is not found", func() {
+			var endPoint domain.RestEndPoint
+			endPoint.CommandName = "test"
+			endPoint.Parameters = make([]domain.RestAPIParam, 1)
+
+			var param domain.RestAPIParam
+			param.In = "query"
+			param.Name = "id"
+			param.Description = "id"
+			param.Required = true
+			endPoint.Parameters[0] = param
+
+			var command domain.UserCommand
+			command.Parameters = make(map[string]string)
+			err := CheckRequiredParam(endPoint, command)
+			Expect(err.Error()).To(Equal("Required Parameter is missing: id"))
+
+			param.In = "body"
+			param.Name = "config"
+			endPoint.Parameters[0] = param
+			err = CheckRequiredParam(endPoint, command)
+			Expect(err.Error()).To(Equal("Required Parameter is missing: config"))
+
+			param.Required = false
+			endPoint.Parameters[0] = param
+			err = CheckRequiredParam(endPoint, command)
+			Expect(err).To(BeNil())
+		})
+	})
 })

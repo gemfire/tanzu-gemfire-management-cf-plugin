@@ -8,10 +8,7 @@ const (
 		"use --help or -h for help"
 	GenericErrorMessage       = "Cannot retrieve credentials. Error: %s"
 	InvalidServiceKeyResponse = "The cf service-key response is invalid."
-	NoJSONFileProvidedMessage = "A JSON configuration file is required for all create/post commands.\n" +
-		"Please re-enter your command appended with --body <your_json_configuration>\n\n" +
-		"<your_json_configuration> is in form of @<json_file_path> OR single quoted JSON input."
-	GeneralOptions = "\t\t--user, -u or set 'GEODE_USERNAME' environment variable to set the username\n" +
-		"\t\t--password, -p or set 'GEODE_PASSWORD' environment variable to set the password\n" +
-		"\t\t--table, -t [jqFilter] to get tabular output"
+	GeneralOptions            = "\t\t--user, -u <username> or set 'GEODE_USERNAME' environment variable to set the username\n" +
+		"\t\t--password, -p <password> or set 'GEODE_PASSWORD' environment variable to set the password\n" +
+		"\t\t--table, -t [<jqFilter>] to get tabular output"
 )

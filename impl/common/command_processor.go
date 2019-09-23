@@ -56,7 +56,7 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 		return
 	}
 
-	err = checkRequiredParam(restEndPoint, commandData.UserCommand)
+	err = CheckRequiredParam(restEndPoint, commandData.UserCommand)
 	if err != nil {
 		return
 	}
@@ -88,14 +88,10 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 	return
 }
 
-func checkRequiredParam(restEndPoint domain.RestEndPoint, command domain.UserCommand) error {
+func CheckRequiredParam(restEndPoint domain.RestEndPoint, command domain.UserCommand) error {
 	for _, s := range restEndPoint.Parameters {
 		if s.Required {
-			name := s.Name
-			if s.In == "body" {
-				name = "body"
-			}
-			value := command.Parameters["--"+name]
+			value := command.Parameters["--"+s.Name]
 			if value == "" {
 				return errors.New("Required Parameter is missing: " + s.Name)
 			}
@@ -142,10 +138,10 @@ func executeCommand(commandData *domain.CommandData, requester impl.RequestHelpe
 
 	restEndPoint, _ := commandData.AvailableEndpoints[commandData.UserCommand.Command]
 	httpAction := strings.ToUpper(restEndPoint.HTTPMethod)
-	endpointURL := makeURL(restEndPoint, commandData)
+	endpointURL, body := prepareRequest(restEndPoint, commandData)
 
-	if httpAction == "POST" {
-		bodyReader, err = getBodyReader(commandData.UserCommand.Parameters["--body"])
+	if body != "" {
+		bodyReader, err = getBodyReader(body)
 		if err != nil {
 			return "", err
 		}
@@ -155,10 +151,6 @@ func executeCommand(commandData *domain.CommandData, requester impl.RequestHelpe
 }
 
 func getBodyReader(jsonFile string) (bodyReader io.Reader, err error) {
-	if jsonFile == "" {
-		err = errors.New(NoJSONFileProvidedMessage)
-		return
-	}
 	if jsonFile[0] == '@' && len(jsonFile) > 1 {
 		bodyReader, err = os.Open(jsonFile[1:])
 		if err != nil {
@@ -170,7 +162,7 @@ func getBodyReader(jsonFile string) (bodyReader io.Reader, err error) {
 	return
 }
 
-func makeURL(restEndPoint domain.RestEndPoint, commandData *domain.CommandData) (requestURL string) {
+func prepareRequest(restEndPoint domain.RestEndPoint, commandData *domain.CommandData) (requestURL string, body string) {
 	requestURL = commandData.ConnnectionData.LocatorAddress + "/management" + restEndPoint.URL
 	var query string
 	for _, param := range restEndPoint.Parameters {
@@ -185,6 +177,8 @@ func makeURL(restEndPoint domain.RestEndPoint, commandData *domain.CommandData) 
 				} else {
 					query = query + "&" + param.Name + "=" + url.PathEscape(value)
 				}
+			case "body":
+				body = value
 			}
 		}
 	}

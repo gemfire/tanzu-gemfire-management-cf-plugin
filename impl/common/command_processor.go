@@ -32,17 +32,16 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 	}
 
 	userCommand := commandData.UserCommand.Command
-	if userCommand == "commands" {
+	restEndPoint, available := commandData.AvailableEndpoints[userCommand]
+
+	if userCommand == "commands" || !available {
 		commandNames := sortCommandNames(commandData)
 		for _, commandName := range commandNames {
 			fmt.Println(DescribeEndpoint(commandData.AvailableEndpoints[commandName]))
 		}
-		return
-	}
-
-	restEndPoint, available := commandData.AvailableEndpoints[userCommand]
-	if !available {
-		err = errors.New("Invalid command: " + userCommand)
+		if userCommand != "commands" {
+			err = errors.New("Invalid command: " + userCommand)
+		}
 		return
 	}
 

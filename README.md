@@ -45,9 +45,14 @@ in this cluster. This can be a development version running on `localhost`
     replacing an existing version of the plugin
  1. For Help
     - `cf pcc --help` provides general help
+    - `cf pcc <target> commands` to get a list of commands available to you. `<target>` is the PCC service instance name you are using
+    - `cf pcc <target> <command> -help` to get `<command>` specific help including the format of `JSON` payload that some commands require
 
 #### As a standalone client
  1. Run the start script
     -  `./build.sh` from the `cloudcache-management-cf-plugin` directory
  1. For Help
     - `./pcc --help` provides general help
+    - `./pcc --help` provides general help
+    - `./pcc <target> commands` to get a list of commands available to you. `<target>` is the address of the `locator` you are using
+    - `./pcc <target> <command> -help` to get `<command>` specific help including the format of `JSON` payload that some command require

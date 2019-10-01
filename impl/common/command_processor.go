@@ -1,7 +1,6 @@
 package common
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/url"
@@ -26,7 +25,7 @@ func NewCommandProcessor(requester impl.RequestHelper) (CommandProcessor, error)
 
 // ProcessCommand handles the common steps for executing a command against the Geode cluster
 func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err error) {
-	err = getEndPoints(commandData, c.requester)
+	err = GetEndPoints(commandData, c.requester)
 	if err != nil {
 		return
 	}
@@ -37,7 +36,7 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 	if userCommand == "commands" || !available {
 		commandNames := sortCommandNames(commandData)
 		for _, commandName := range commandNames {
-			fmt.Println(DescribeEndpoint(commandData.AvailableEndpoints[commandName]))
+			fmt.Println(DescribeEndpoint(commandData.AvailableEndpoints[commandName], false))
 		}
 		if userCommand != "commands" {
 			err = errors.New("Invalid command: " + userCommand)
@@ -46,12 +45,7 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 	}
 
 	if HasOption(commandData.UserCommand.Parameters, []string{"-h", "--help", "-help"}) {
-		for _, command := range commandData.AvailableEndpoints {
-			if command.CommandName == userCommand {
-				fmt.Println(DescribeEndpoint(command))
-				fmt.Println(GeneralOptions)
-			}
-		}
+		fmt.Println(DescribeEndpoint(restEndPoint, true))
 		return
 	}
 
@@ -94,39 +88,6 @@ func CheckRequiredParam(restEndPoint domain.RestEndPoint, command domain.UserCom
 			if value == "" {
 				return errors.New("Required Parameter is missing: " + s.Name)
 			}
-		}
-	}
-	return nil
-}
-
-// GetEndPoints retrieves available endpoint from the Swagger endpoint on the PCC manageability service
-func getEndPoints(commandData *domain.CommandData, requester impl.RequestHelper) error {
-	apiDocURL := commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
-	urlResponse, err := requester.Exchange(apiDocURL, "GET", nil, commandData.ConnnectionData.Username,
-		commandData.ConnnectionData.Password)
-
-	if err != nil {
-		return errors.New("unable to reach " + apiDocURL + ": " + err.Error())
-	}
-
-	var apiPaths domain.RestAPI
-	err = json.Unmarshal([]byte(urlResponse), &apiPaths)
-
-	if err != nil {
-		return errors.New("invalid response " + urlResponse)
-	}
-
-	commandData.AvailableEndpoints = make(map[string]domain.RestEndPoint)
-	for url, v := range apiPaths.Paths {
-		for methodType := range v {
-			var endpoint domain.RestEndPoint
-			endpoint.URL = url
-			endpoint.HTTPMethod = methodType
-			endpoint.CommandName = apiPaths.Paths[url][methodType].CommandName
-			endpoint.JQFilter = apiPaths.Paths[url][methodType].JQFilter
-			endpoint.Parameters = []domain.RestAPIParam{}
-			endpoint.Parameters = apiPaths.Paths[url][methodType].Parameters
-			commandData.AvailableEndpoints[endpoint.CommandName] = endpoint
 		}
 	}
 	return nil

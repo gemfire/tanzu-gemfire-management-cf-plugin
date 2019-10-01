@@ -9,8 +9,8 @@ import (
 
 var _ = Describe("Formatting", func() {
 
-	Context("Fill tests", func() {
-		It("invalid filler", func() {
+	Describe("Fill tests", func() {
+		It("Replaces invalid filler with 'space' characters", func() {
 			columnSize := 5
 			value := "id"
 			filler := "test"
@@ -19,6 +19,7 @@ var _ = Describe("Formatting", func() {
 			Expect(response).To(Equal(expectedResponse))
 			Expect(len(response)).To(Equal(columnSize))
 		})
+
 		It("small column size", func() {
 			columnSize := 4
 			value := "id"
@@ -28,6 +29,7 @@ var _ = Describe("Formatting", func() {
 			Expect(response).To(Equal(expectedResponse))
 			Expect(len(response)).To(Equal(columnSize))
 		})
+
 		It("small column size", func() {
 			columnSize := 3
 			value := "i"
@@ -37,6 +39,7 @@ var _ = Describe("Formatting", func() {
 			Expect(response).To(Equal(expectedResponse))
 			Expect(len(response)).To(Equal(columnSize))
 		})
+
 		It("small column size", func() {
 			columnSize := 2
 			value := "idle"
@@ -46,6 +49,7 @@ var _ = Describe("Formatting", func() {
 			Expect(response).To(Equal(expectedResponse))
 			Expect(len(response)).To(Equal(5))
 		})
+
 		It("Fills the table with filler characters", func() {
 			columnSize := 20
 			value := "some string"
@@ -108,7 +112,113 @@ var _ = Describe("Formatting", func() {
 		})
 	})
 
-	Context("Describe Endpoint", func() {
+	Context("DescribeEndpoint", func() {
+		var (
+			endPoint domain.RestEndPoint
+		)
+
+		It("Shows the expected command name in the output", func() {
+			endPoint = domain.RestEndPoint{}
+			endPoint.CommandName = "testcommand"
+
+			result := common.DescribeEndpoint(endPoint, false)
+			Expect(result).NotTo(BeEmpty())
+			Expect(result).To(ContainSubstring("testcommand"))
+		})
+
+		It("Shows all expected parameters in the output", func() {
+			endPoint = domain.RestEndPoint{}
+			paramOne := domain.RestAPIParam{}
+			paramTwo := domain.RestAPIParam{}
+			paramOne.Name = "paramOne"
+			paramTwo.Name = "paramTwo"
+			endPoint.Parameters = []domain.RestAPIParam{paramOne, paramTwo}
+
+			result := common.DescribeEndpoint(endPoint, false)
+			Expect(result).NotTo(BeEmpty())
+			Expect(result).To(ContainSubstring("--paramOne"))
+			Expect(result).To(ContainSubstring("--paramTwo"))
+		})
+
+		It("Shows if parameters are optional in the output", func() {
+			endPoint = domain.RestEndPoint{}
+			paramOne := domain.RestAPIParam{}
+			paramOne.Name = "paramOne"
+			paramOne.Description = "first parameter"
+			paramOne.Required = false
+			endPoint.Parameters = []domain.RestAPIParam{paramOne}
+
+			result := common.DescribeEndpoint(endPoint, false)
+			Expect(result).NotTo(BeEmpty())
+			Expect(result).To(ContainSubstring("[--paramOne <first parameter>]"))
+		})
+
+		It("Shows if parameters are required in the output", func() {
+			endPoint = domain.RestEndPoint{}
+			paramOne := domain.RestAPIParam{}
+			paramOne.Name = "paramOne"
+			paramOne.Required = true
+			endPoint.Parameters = []domain.RestAPIParam{paramOne}
+
+			result := common.DescribeEndpoint(endPoint, false)
+			Expect(result).NotTo(BeEmpty())
+			Expect(result).NotTo(ContainSubstring("["))
+			Expect(result).NotTo(ContainSubstring("]"))
+			Expect(result).To(ContainSubstring("--paramOne"))
+		})
+
+		It("Shows GeneralOptions when showDetails flag set to true", func() {
+			endPoint = domain.RestEndPoint{}
+
+			result := common.DescribeEndpoint(endPoint, true)
+			Expect(result).NotTo(BeEmpty())
+			Expect(result).To(ContainSubstring(common.GeneralOptions))
+		})
+
+		It("Hides GeneralOptions when showDetails flag set to false", func() {
+			endPoint = domain.RestEndPoint{}
+
+			result := common.DescribeEndpoint(endPoint, false)
+			Expect(result).NotTo(ContainSubstring(common.GeneralOptions))
+		})
+
+		It("Correctly display expected body format if 'body' parameter present and showDetails flag set to true", func() {
+			endPoint = domain.RestEndPoint{}
+			paramOne := domain.RestAPIParam{}
+			paramOne.Name = "paramOne"
+			paramOne.Required = true
+			paramOne.In = "body"
+			bodyDefinition := make(map[string]interface{})
+
+			bodyDefinition["propDetail1"] = "string-value"
+			bodyDefinition["propDetail2"] = 42
+			bodyDefinition["propDetail3"] = []int{21, 22}
+			bodyDefinition["propDetail4"] = true
+			bodyDefinition["propDetail5"] = map[string]interface{}{"1someString": "stringValue", "2someNumber": 23, "3someBool": false}
+
+			paramOne.BodyDefinition = bodyDefinition
+			endPoint.Parameters = []domain.RestAPIParam{paramOne}
+			expectedOutput := `--paramOne format:
+		{
+		  "propDetail1": "string-value",
+		  "propDetail2": 42,
+		  "propDetail3": [
+		    21,
+		    22
+		  ],
+		  "propDetail4": true,
+		  "propDetail5": {
+		    "1someString": "stringValue",
+		    "2someNumber": 23,
+		    "3someBool": false
+		  }
+		}`
+
+			result := common.DescribeEndpoint(endPoint, true)
+			Expect(result).To(ContainSubstring(expectedOutput))
+			Expect(result).To(ContainSubstring(common.GeneralOptions))
+		})
+
 		It("describe the rest end point without body param", func() {
 			var endPoint domain.RestEndPoint
 			endPoint.CommandName = "test"
@@ -127,7 +237,7 @@ var _ = Describe("Formatting", func() {
 			endPoint.Parameters[0] = param2
 			endPoint.Parameters[1] = param1
 
-			result := common.DescribeEndpoint(endPoint)
+			result := common.DescribeEndpoint(endPoint, false)
 			Expect(result).To(Equal("test --id <id> [--group <group>]"))
 		})
 
@@ -149,9 +259,8 @@ var _ = Describe("Formatting", func() {
 			endPoint.Parameters[0] = param2
 			endPoint.Parameters[1] = param1
 
-			result := common.DescribeEndpoint(endPoint)
+			result := common.DescribeEndpoint(endPoint, false)
 			Expect(result).To(Equal("test --config <json or @json_file_path> [--group <group>]"))
 		})
 	})
-
 })

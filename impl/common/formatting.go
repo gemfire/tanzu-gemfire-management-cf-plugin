@@ -32,12 +32,19 @@ func Fill(columnSize int, value string, filler string) (response string) {
 }
 
 // FormatResponse extracts JSON from a response
-func FormatResponse(urlResponse string, jqFilter string) (jsonOutput string, err error) {
+func FormatResponse(urlResponse string, jqFilter string, userFilter bool) (jsonOutput string, err error) {
 	if jqFilter == "" {
 		return indent([]byte(urlResponse))
 	}
-	// otherwise use the filter string to generate the list for display.
+	// otherwise use the filter string to generate the list to display in table format
 	filteredJSON, err := filterWithJQ(urlResponse, jqFilter)
+
+	// if using the default jqFilter does not yield any data, then display the unfiltered result
+	if filteredJSON == "[]" && !userFilter && jqFilter != "." {
+		jqFilter = "."
+		filteredJSON, err = filterWithJQ(urlResponse, jqFilter)
+	}
+
 	if err != nil {
 		return filteredJSON, err
 	}
@@ -70,6 +77,10 @@ func Tabular(jsonString string) (string, error) {
 	err := json.Unmarshal([]byte(jsonString), &result)
 	if err != nil {
 		return "unable to parse: " + jsonString, err
+	}
+
+	if len(result) == 0 {
+		return "", nil
 	}
 
 	// get all the column names

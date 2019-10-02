@@ -60,19 +60,21 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 	}
 
 	var jqFilter string
+	var userFilter bool
 	if HasOption(commandData.UserCommand.Parameters, []string{"-t", "--table"}) {
 		jqFilter = GetOption(commandData.UserCommand.Parameters, []string{"--table", "-t"})
+		userFilter = true
 		// if no jqFilter is specified by the user, use the default defined by the rest end point
 		if jqFilter == "" {
 			jqFilter = restEndPoint.JQFilter
-		}
-		// if no default jqFilter is configured, then use the entire json
-		if jqFilter == "" {
-			jqFilter = "."
+			if jqFilter == "" {
+				jqFilter = "."
+			}
+			userFilter = false
 		}
 	}
 
-	jsonToBePrinted, err := FormatResponse(urlResponse, jqFilter)
+	jsonToBePrinted, err := FormatResponse(urlResponse, jqFilter, userFilter)
 	if err != nil {
 		return
 	}

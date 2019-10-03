@@ -75,15 +75,42 @@ var _ = Describe("Formatting", func() {
 		It("Returns the input as an indented string", func() {
 			inputString := `{"name": "value"}`
 			expectedString := "{\n  \"name\": \"value\"\n}"
-			output, err := common.FormatResponse(inputString, "")
+			output, err := common.FormatResponse(inputString, "", false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(expectedString))
 		})
 		It("Returns the input 'as-is'", func() {
 			inputString := "foobar"
-			output, err := common.FormatResponse(inputString, "")
+			output, err := common.FormatResponse(inputString, "", false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(inputString))
+		})
+
+		It("with correct userFilter", func() {
+			inputString := `[{"name": "value"}]`
+			output, err := common.FormatResponse(inputString, ".[] | {name:.name}", true)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output).To(Equal(" name  \n-------\n value \n\nJQFilter: .[] | {name:.name}\n"))
+		})
+		It("with userFilter that yields empty array", func() {
+			inputString := `{"result": []}`
+			filter := `.result[]`
+			output, err := common.FormatResponse(inputString, filter, true)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output).To(Equal("\nJQFilter: " + filter + "\n"))
+		})
+		It("with default filter that yields empty array", func() {
+			inputString := `{"result": []}`
+			filter := `.result[]`
+			output, err := common.FormatResponse(inputString, filter, false)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output).To(Equal(" result \n--------\n []     \n\nJQFilter: .\n"))
+		})
+		It("with default . filter", func() {
+			inputString := `{"name": "value"}`
+			output, err := common.FormatResponse(inputString, ".", false)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output).To(Equal(" name  \n-------\n value \n\nJQFilter: .\n"))
 		})
 	})
 
@@ -109,6 +136,16 @@ var _ = Describe("Formatting", func() {
 				" server |        \n" +
 				"        | online \n"
 			Expect(output).To(Equal(expected))
+		})
+
+		It("empty json array", func() {
+			output, _ := common.Tabular("[]")
+			Expect(output).To(Equal(""))
+		})
+		It("invalid json string", func() {
+			output, err := common.Tabular(`{"name":"test"}`)
+			Expect(err).To(HaveOccurred())
+			Expect(output).To(ContainSubstring("unable to parse:"))
 		})
 	})
 

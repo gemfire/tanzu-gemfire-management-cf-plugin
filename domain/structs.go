@@ -14,6 +14,7 @@ type ConnectionData struct {
 	Username       string
 	Password       string
 	Token          string
+	UseToken       bool
 	LocatorAddress string
 }
 
@@ -53,8 +54,13 @@ type RestEndPoint struct {
 // RestAPI is used to parse the swagger json response
 // first key: url | second key: method (get/post) | value: RestAPIDetail
 type RestAPI struct {
-	Paths       map[string]map[string]RestAPIDetail `json:"paths"`
 	Definitions map[string]DefinitionDetail         `json:"definitions"`
+	Paths       map[string]map[string]RestAPIDetail `json:"paths"`
+	Info        APIInfo                             `json:"info"`
+}
+
+type APIInfo struct {
+	TokenEnabled string `json:"authTokenEnabled"`
 }
 
 // RestAPIDetail provides details about an endpoint

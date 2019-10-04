@@ -3,6 +3,7 @@ package common
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 type Requester struct{}
 
 // Exchange implements the RequestHelper interface
-func (requester *Requester) Exchange(url string, method string, bodyReader io.Reader, username string, password string) (urlResponse string, err error) {
+func (requester *Requester) Exchange(url string, method string, bodyReader io.Reader, connectionData *domain.ConnectionData) (urlResponse string, err error) {
 	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	client := &http.Client{Transport: transport}
 
@@ -21,7 +22,14 @@ func (requester *Requester) Exchange(url string, method string, bodyReader io.Re
 		return "", err
 	}
 
-	req.SetBasicAuth(username, password)
+	if connectionData != nil {
+		if connectionData.UseToken {
+			var bearer = "Bearer " + connectionData.Token
+			req.Header.Add("Authorization", bearer)
+		} else {
+			req.SetBasicAuth(connectionData.Username, connectionData.Password)
+		}
+	}
 	req.Header.Add("content-type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {

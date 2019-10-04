@@ -124,11 +124,12 @@ var _ = Describe("Formatting", func() {
 			  {"id": "locator",
 				"status": "online"}]`
 			output, _ := common.Tabular(json)
-			expected := " id      | status \n" +
-				"------------------\n" +
-				" server  | online \n" +
-				" locator | online \n"
-			Expect(output).To(Equal(expected))
+			splitOutput := strings.Split(output, "\n")
+			Expect(splitOutput[0]).To(ContainSubstring("id"))
+			Expect(splitOutput[0]).To(ContainSubstring("status"))
+			Expect(splitOutput[1]).To(Equal("------------------"))
+			Expect(splitOutput[2] + splitOutput[3]).To(ContainSubstring("server"))
+			Expect(splitOutput[2] + splitOutput[3]).To(ContainSubstring("online"))
 		})
 		It("different attributes", func() {
 			json := `[{"id": "server"},{"status": "online"}]`

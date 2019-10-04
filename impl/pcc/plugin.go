@@ -56,12 +56,8 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 // GetMetadata provides metadata about the CF plugin including a helptext for the user
 func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
-		Name: "pcc",
-		Version: plugin.VersionType{
-			Major: 0,
-			Minor: 1,
-			Build: 1,
-		},
+		Name:    "pcc",
+		Version: domain.VersionType,
 		MinCliVersion: plugin.VersionType{
 			Major: 6,
 			Minor: 7,

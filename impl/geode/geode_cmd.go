@@ -23,6 +23,11 @@ func (gc *geodeCommand) Run(args []string) (err error) {
 
 	gc.commandData.Target, gc.commandData.UserCommand = common.GetTargetAndClusterCommand(args)
 
+	if common.HasOption(gc.commandData.UserCommand.Parameters, []string{"-v", "--version"}) {
+		fmt.Printf("Version: %d.%d.%d\n", domain.VersionType.Major, domain.VersionType.Minor, domain.VersionType.Build)
+		return
+	}
+
 	// if no user command and args contains -h or --help
 	if gc.commandData.UserCommand.Command == "" {
 		printHelp()

@@ -2,6 +2,7 @@
 package implfakes
 
 import (
+	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"io"
 	"sync"
 
@@ -9,14 +10,13 @@ import (
 )
 
 type FakeRequestHelper struct {
-	ExchangeStub        func(string, string, io.Reader, string, string) (string, error)
+	ExchangeStub        func(string, string, io.Reader, *domain.ConnectionData) (string, error)
 	exchangeMutex       sync.RWMutex
 	exchangeArgsForCall []struct {
 		arg1 string
 		arg2 string
 		arg3 io.Reader
-		arg4 string
-		arg5 string
+		arg4 *domain.ConnectionData
 	}
 	exchangeReturns struct {
 		result1 string
@@ -30,20 +30,19 @@ type FakeRequestHelper struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRequestHelper) Exchange(arg1 string, arg2 string, arg3 io.Reader, arg4 string, arg5 string) (string, error) {
+func (fake *FakeRequestHelper) Exchange(arg1 string, arg2 string, arg3 io.Reader, arg4 *domain.ConnectionData) (string, error) {
 	fake.exchangeMutex.Lock()
 	ret, specificReturn := fake.exchangeReturnsOnCall[len(fake.exchangeArgsForCall)]
 	fake.exchangeArgsForCall = append(fake.exchangeArgsForCall, struct {
 		arg1 string
 		arg2 string
 		arg3 io.Reader
-		arg4 string
-		arg5 string
-	}{arg1, arg2, arg3, arg4, arg5})
-	fake.recordInvocation("Exchange", []interface{}{arg1, arg2, arg3, arg4, arg5})
+		arg4 *domain.ConnectionData
+	}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("Exchange", []interface{}{arg1, arg2, arg3, arg4})
 	fake.exchangeMutex.Unlock()
 	if fake.ExchangeStub != nil {
-		return fake.ExchangeStub(arg1, arg2, arg3, arg4, arg5)
+		return fake.ExchangeStub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -58,17 +57,17 @@ func (fake *FakeRequestHelper) ExchangeCallCount() int {
 	return len(fake.exchangeArgsForCall)
 }
 
-func (fake *FakeRequestHelper) ExchangeCalls(stub func(string, string, io.Reader, string, string) (string, error)) {
+func (fake *FakeRequestHelper) ExchangeCalls(stub func(string, string, io.Reader, *domain.ConnectionData) (string, error)) {
 	fake.exchangeMutex.Lock()
 	defer fake.exchangeMutex.Unlock()
 	fake.ExchangeStub = stub
 }
 
-func (fake *FakeRequestHelper) ExchangeArgsForCall(i int) (string, string, io.Reader, string, string) {
+func (fake *FakeRequestHelper) ExchangeArgsForCall(i int) (string, string, io.Reader, *domain.ConnectionData) {
 	fake.exchangeMutex.RLock()
 	defer fake.exchangeMutex.RUnlock()
 	argsForCall := fake.exchangeArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FakeRequestHelper) ExchangeReturns(result1 string, result2 error) {

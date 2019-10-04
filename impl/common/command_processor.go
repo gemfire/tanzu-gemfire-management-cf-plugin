@@ -108,8 +108,7 @@ func executeCommand(commandData *domain.CommandData, requester impl.RequestHelpe
 			return "", err
 		}
 	}
-	return requester.Exchange(endpointURL, httpAction, bodyReader, commandData.ConnnectionData.Username,
-		commandData.ConnnectionData.Password)
+	return requester.Exchange(endpointURL, httpAction, bodyReader, &commandData.ConnnectionData)
 }
 
 func getBodyReader(jsonFile string) (bodyReader io.Reader, err error) {

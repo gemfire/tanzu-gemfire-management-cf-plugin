@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"io"
 )
 
@@ -8,5 +9,5 @@ import (
 
 // RequestHelper interface provides a way to get request related items
 type RequestHelper interface {
-	Exchange(url string, method string, bodyReader io.Reader, username string, password string) (urlResponse string, err error)
+	Exchange(url string, method string, bodyReader io.Reader, connectionData *domain.ConnectionData) (urlResponse string, err error)
 }

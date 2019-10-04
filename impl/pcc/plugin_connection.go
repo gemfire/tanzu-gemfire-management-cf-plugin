@@ -80,7 +80,7 @@ func (pc *pluginConnection) getServiceKeyDetails(commandData *domain.CommandData
 
 	commandData.ConnnectionData.LocatorAddress = strings.TrimSuffix(serviceKeyStruct.Urls.Gfsh, "/gemfire/v1")
 
-	// user the credentials in the command line
+	// use the credentials in the command line
 	if commandData.ConnnectionData.Username == "" || commandData.ConnnectionData.Password == "" {
 		commandData.ConnnectionData.Username = common.GetOption(commandData.UserCommand.Parameters, []string{"--user", "-u"})
 		commandData.ConnnectionData.Password = common.GetOption(commandData.UserCommand.Parameters, []string{"--password", "-p"})
@@ -93,9 +93,10 @@ func (pc *pluginConnection) getServiceKeyDetails(commandData *domain.CommandData
 			commandData.ConnnectionData.Password = user.Password
 		}
 	}
-	// throw an error if no credentials found
-	if commandData.ConnnectionData.Username == "" || commandData.ConnnectionData.Password == "" {
-		return errors.New("Unable to retrieve username/password from the servicekey")
-	}
+
+	// find the access token if any
+	token, _ := pc.cliConnection.AccessToken()
+	commandData.ConnnectionData.Token = token
+
 	return
 }

@@ -12,8 +12,7 @@ import (
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the Geode/PCC locator
 func GetEndPoints(commandData *domain.CommandData, requester impl.RequestHelper) error {
 	apiDocURL := commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
-	urlResponse, err := requester.Exchange(apiDocURL, "GET", nil, commandData.ConnnectionData.Username,
-		commandData.ConnnectionData.Password)
+	urlResponse, err := requester.Exchange(apiDocURL, "GET", nil, nil)
 
 	if err != nil {
 		return errors.New("unable to reach " + apiDocURL + ": " + err.Error())
@@ -25,7 +24,7 @@ func GetEndPoints(commandData *domain.CommandData, requester impl.RequestHelper)
 	if err != nil {
 		return errors.New("invalid response " + urlResponse + ": " + err.Error())
 	}
-
+	commandData.ConnnectionData.UseToken = apiPaths.Info.TokenEnabled == "true"
 	commandData.AvailableEndpoints = make(map[string]domain.RestEndPoint)
 	for url, v := range apiPaths.Paths {
 		for methodType := range v {

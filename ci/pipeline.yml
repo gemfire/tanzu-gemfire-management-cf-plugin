@@ -76,6 +76,8 @@ jobs:
             args:
               - -ec
               - |
+                apt-get update
+                apt-get install -y jq
                 cd cloudcache-management-cf-plugin
                 go get github.com/onsi/ginkgo/ginkgo
                 ginkgo -r

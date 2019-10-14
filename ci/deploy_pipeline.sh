@@ -15,4 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-fly -t concourse.gemfire.pivotal.io set-pipeline -p cloudcache-management-cf-plugin -c pipeline.yml
+TARGET=concourse.gemfire-ci.info
+URL=https://${TARGET}
+TEAM=main
+
+fly -t ${TARGET} login --team-name=${TEAM} --concourse-url=${URL}
+fly -t ${TARGET} set-pipeline -p cloudcache-management-cf-plugin -c pipeline.yml

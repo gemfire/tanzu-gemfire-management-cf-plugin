@@ -17,67 +17,66 @@
 ---
 
 resources:
-  - name: cloudcache-management-cf-plugin
-    type: git
-    source:
-      uri: git@github.com:gemfire/cloudcache-management-cf-plugin.git
-      branch: develop
-      private_key: ((gemfire-ci-private-key))
+- name: cloudcache-management-cf-plugin
+  type: git
+  source:
+    uri: git@github.com:gemfire/cloudcache-management-cf-plugin.git
+    branch: develop
+    private_key: ((gemfire-ci-private-key))
+- name: golang-image
+  type: registry-image
+  source:
+    repository: golang
+    tag: latest
 
 jobs:
   - name: build-cloudcache-management-cf-plugin
     serial: true
     plan:
-      - aggregate:
-          - get: cloudcache-management-cf-plugin
-            trigger: true
-      - task: build-image
-        timeout: 1h
-        config:
-          image_resource:
-            type: docker-image
-            source:
-              repository: golang
-              tag: latest
-          inputs:
-            - name: cloudcache-management-cf-plugin
-          outputs:
-            - name: results
-          platform: linux
-          run:
-            path: /bin/sh
-            args:
-              - -ec
-              - |
-                cd cloudcache-management-cf-plugin
-                go build -o ./pcc ./cmd/main
+    - in_parallel:
+      - get: cloudcache-management-cf-plugin
+        trigger: true
+      - get: golang-image
+    - task: build-image
+      timeout: 1h
+      image: golang-image
+      config:
+        inputs:
+          - name: cloudcache-management-cf-plugin
+        outputs:
+          - name: results
+        platform: linux
+        run:
+          path: /bin/sh
+          args:
+            - -ec
+            - |
+              cd cloudcache-management-cf-plugin
+              go build -o ./pcc ./cmd/main
   - name: test-cloudcache-management-cf-plugin
     serial: true
     plan:
-      - aggregate:
-          - get: cloudcache-management-cf-plugin
-            trigger: true
-            passed: [build-cloudcache-management-cf-plugin]
-      - task: build-image
-        timeout: 1h
-        config:
-          image_resource:
-            type: docker-image
-            source:
-              repository: golang
-              tag: latest
-          inputs:
-            - name: cloudcache-management-cf-plugin
-          outputs:
-            - name: results
-          platform: linux
-          run:
-            path: /bin/sh
-            args:
-              - -ec
-              - |
-                apt-get update
-                apt-get install -y jq
-                cd cloudcache-management-cf-plugin
-                go get github.com/onsi/ginkgo/ginkgo
-                ginkgo -r
+    - in_parallel:
+      - get: cloudcache-management-cf-plugin
+        trigger: true
+        passed: [build-cloudcache-management-cf-plugin]
+      - get: golang-image
+    - task: build-image
+      timeout: 1h
+      image: golang-image
+      config:
+        inputs:
+          - name: cloudcache-management-cf-plugin
+        outputs:
+          - name: results
+        platform: linux
+        run:
+          path: /bin/sh
+          args:
+            - -ec
+            - |
+              apt-get update
+              apt-get install -y jq
+              cd cloudcache-management-cf-plugin
+              go get github.com/onsi/ginkgo/ginkgo
+              ginkgo -r

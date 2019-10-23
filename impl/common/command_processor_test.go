@@ -43,12 +43,23 @@ var _ = Describe("CommandProcessor", func() {
 		})
 
 		It("Returns an error if RequestHelper cannot get endpoints", func() {
-			helper.ExchangeReturns("", errors.New("Unable to get endpoints"))
+			helper.ExchangeReturnsOnCall(0, "", errors.New("Unable to get endpoints"))
+			helper.ExchangeReturnsOnCall(1, "", errors.New("Unable to get endpoints"))
 			err = commandProcessor.ProcessCommand(&commandData)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("unable to reach /management/experimental/api-docs: Unable to get endpoints"))
+			Expect(err.Error()).To(Equal("unable to reach /management/v1/api-docs: Unable to get endpoints"))
 			Expect(len(commandData.AvailableEndpoints)).To(BeZero())
-			Expect(helper.ExchangeCallCount()).To(Equal(1))
+			Expect(helper.ExchangeCallCount()).To(Equal(2))
+		})
+
+		It("will try the 2nd url", func() {
+			helper.ExchangeReturnsOnCall(0, "", errors.New("Unable to get endpoints"))
+			helper.ExchangeReturnsOnCall(1, "{}", nil)
+			err = commandProcessor.ProcessCommand(&commandData)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Invalid command: "))
+			Expect(len(commandData.AvailableEndpoints)).To(BeZero())
+			Expect(helper.ExchangeCallCount()).To(Equal(2))
 		})
 
 		It("Returns an error if the command is not in the list of available commands", func() {

@@ -17,7 +17,6 @@ package common_test
 
 import (
 	"errors"
-
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	. "github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/implfakes"
@@ -42,19 +41,28 @@ var _ = Describe("CommandProcessor", func() {
 			commandData = domain.CommandData{}
 		})
 
-		It("Returns an error if RequestHelper cannot get endpoints", func() {
-			helper.ExchangeReturnsOnCall(0, "", errors.New("Unable to get endpoints"))
-			helper.ExchangeReturnsOnCall(1, "", errors.New("Unable to get endpoints"))
+		It("v1 url returns 404, but experimental url has internal error ", func() {
+			helper.ExchangeReturnsOnCall(0, "", 404, nil)
+			helper.ExchangeReturnsOnCall(1, "", 500, errors.New("Unable to get endpoints"))
 			err = commandProcessor.ProcessCommand(&commandData)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("unable to reach /management/v1/api-docs: Unable to get endpoints"))
+			Expect(err.Error()).To(Equal("unable to reach /management/experimental/api-docs. Error: Unable to get endpoints"))
 			Expect(len(commandData.AvailableEndpoints)).To(BeZero())
 			Expect(helper.ExchangeCallCount()).To(Equal(2))
 		})
 
-		It("will try the 2nd url", func() {
-			helper.ExchangeReturnsOnCall(0, "", errors.New("Unable to get endpoints"))
-			helper.ExchangeReturnsOnCall(1, "{}", nil)
+		It("v1 url does not return 404", func() {
+			helper.ExchangeReturnsOnCall(0, "", 500, nil)
+			err = commandProcessor.ProcessCommand(&commandData)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("unable to reach /management/v1/api-docs. Status Code: 500"))
+			Expect(len(commandData.AvailableEndpoints)).To(BeZero())
+			Expect(helper.ExchangeCallCount()).To(Equal(1))
+		})
+
+		It("older url get the response", func() {
+			helper.ExchangeReturnsOnCall(0, "", 404, nil)
+			helper.ExchangeReturnsOnCall(1, "{}", 200, nil)
 			err = commandProcessor.ProcessCommand(&commandData)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Invalid command: "))
@@ -64,7 +72,7 @@ var _ = Describe("CommandProcessor", func() {
 
 		It("Returns an error if the command is not in the list of available commands", func() {
 			// fake getEndPoint returns empty end points
-			helper.ExchangeReturns("{}", nil)
+			helper.ExchangeReturns("{}", 200, nil)
 			commandData.UserCommand.Command = "badcommand"
 			commandData.AvailableEndpoints = make(map[string]domain.RestEndPoint)
 			err = commandProcessor.ProcessCommand(&commandData)

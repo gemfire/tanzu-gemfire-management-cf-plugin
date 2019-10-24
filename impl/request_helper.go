@@ -24,5 +24,5 @@ import (
 
 // RequestHelper interface provides a way to get request related items
 type RequestHelper interface {
-	Exchange(url string, method string, bodyReader io.Reader, connectionData *domain.ConnectionData) (urlResponse string, err error)
+	Exchange(url string, method string, bodyReader io.Reader, connectionData *domain.ConnectionData) (urlResponse string, statusCode int, err error)
 }

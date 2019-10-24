@@ -28,13 +28,13 @@ import (
 type Requester struct{}
 
 // Exchange implements the RequestHelper interface
-func (requester *Requester) Exchange(url string, method string, bodyReader io.Reader, connectionData *domain.ConnectionData) (urlResponse string, err error) {
+func (requester *Requester) Exchange(url string, method string, bodyReader io.Reader, connectionData *domain.ConnectionData) (urlResponse string, statusCode int, err error) {
 	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	client := &http.Client{Transport: transport}
 
 	req, err := http.NewRequest(method, url, bodyReader)
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
 	if connectionData != nil {
@@ -48,10 +48,12 @@ func (requester *Requester) Exchange(url string, method string, bodyReader io.Re
 	req.Header.Add("content-type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
-	return getURLOutput(resp)
+	urlResponse, err = getURLOutput(resp)
+	statusCode = resp.StatusCode
+	return
 }
 
 func getURLOutput(resp *http.Response) (urlResponse string, err error) {

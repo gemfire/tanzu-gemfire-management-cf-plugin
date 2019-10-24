@@ -123,7 +123,8 @@ func executeCommand(commandData *domain.CommandData, requester impl.RequestHelpe
 			return "", err
 		}
 	}
-	return requester.Exchange(endpointURL, httpAction, bodyReader, &commandData.ConnnectionData)
+	urlResponse, _, err = requester.Exchange(endpointURL, httpAction, bodyReader, &commandData.ConnnectionData)
+	return
 }
 
 func getBodyReader(jsonFile string) (bodyReader io.Reader, err error) {

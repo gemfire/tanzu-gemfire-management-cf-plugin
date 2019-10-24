@@ -2,15 +2,15 @@
 package implfakes
 
 import (
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"io"
 	"sync"
 
+	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
 )
 
 type FakeRequestHelper struct {
-	ExchangeStub        func(string, string, io.Reader, *domain.ConnectionData) (string, error)
+	ExchangeStub        func(string, string, io.Reader, *domain.ConnectionData) (string, int, error)
 	exchangeMutex       sync.RWMutex
 	exchangeArgsForCall []struct {
 		arg1 string
@@ -20,17 +20,19 @@ type FakeRequestHelper struct {
 	}
 	exchangeReturns struct {
 		result1 string
-		result2 error
+		result2 int
+		result3 error
 	}
 	exchangeReturnsOnCall map[int]struct {
 		result1 string
-		result2 error
+		result2 int
+		result3 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRequestHelper) Exchange(arg1 string, arg2 string, arg3 io.Reader, arg4 *domain.ConnectionData) (string, error) {
+func (fake *FakeRequestHelper) Exchange(arg1 string, arg2 string, arg3 io.Reader, arg4 *domain.ConnectionData) (string, int, error) {
 	fake.exchangeMutex.Lock()
 	ret, specificReturn := fake.exchangeReturnsOnCall[len(fake.exchangeArgsForCall)]
 	fake.exchangeArgsForCall = append(fake.exchangeArgsForCall, struct {
@@ -45,10 +47,10 @@ func (fake *FakeRequestHelper) Exchange(arg1 string, arg2 string, arg3 io.Reader
 		return fake.ExchangeStub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1, ret.result2, ret.result3
 	}
 	fakeReturns := fake.exchangeReturns
-	return fakeReturns.result1, fakeReturns.result2
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
 func (fake *FakeRequestHelper) ExchangeCallCount() int {
@@ -57,7 +59,7 @@ func (fake *FakeRequestHelper) ExchangeCallCount() int {
 	return len(fake.exchangeArgsForCall)
 }
 
-func (fake *FakeRequestHelper) ExchangeCalls(stub func(string, string, io.Reader, *domain.ConnectionData) (string, error)) {
+func (fake *FakeRequestHelper) ExchangeCalls(stub func(string, string, io.Reader, *domain.ConnectionData) (string, int, error)) {
 	fake.exchangeMutex.Lock()
 	defer fake.exchangeMutex.Unlock()
 	fake.ExchangeStub = stub
@@ -70,30 +72,33 @@ func (fake *FakeRequestHelper) ExchangeArgsForCall(i int) (string, string, io.Re
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeRequestHelper) ExchangeReturns(result1 string, result2 error) {
+func (fake *FakeRequestHelper) ExchangeReturns(result1 string, result2 int, result3 error) {
 	fake.exchangeMutex.Lock()
 	defer fake.exchangeMutex.Unlock()
 	fake.ExchangeStub = nil
 	fake.exchangeReturns = struct {
 		result1 string
-		result2 error
-	}{result1, result2}
+		result2 int
+		result3 error
+	}{result1, result2, result3}
 }
 
-func (fake *FakeRequestHelper) ExchangeReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeRequestHelper) ExchangeReturnsOnCall(i int, result1 string, result2 int, result3 error) {
 	fake.exchangeMutex.Lock()
 	defer fake.exchangeMutex.Unlock()
 	fake.ExchangeStub = nil
 	if fake.exchangeReturnsOnCall == nil {
 		fake.exchangeReturnsOnCall = make(map[int]struct {
 			result1 string
-			result2 error
+			result2 int
+			result3 error
 		})
 	}
 	fake.exchangeReturnsOnCall[i] = struct {
 		result1 string
-		result2 error
-	}{result1, result2}
+		result2 int
+		result3 error
+	}{result1, result2, result3}
 }
 
 func (fake *FakeRequestHelper) Invocations() map[string][][]interface{} {

@@ -103,7 +103,7 @@ var _ = Describe("Endpoints", func() {
 			requester.ExchangeReturns("", errors.New("Failed call"))
 			err := GetEndPoints(&commandData, requester)
 			Expect(err).NotTo(BeNil())
-			Expect(err.Error()).To(Equal("unable to reach /management/experimental/api-docs: Failed call"))
+			Expect(err.Error()).To(Equal("unable to reach /management/v1/api-docs: Failed call"))
 		})
 
 		It("Returns an error when swagger output cannot be parsed", func() {

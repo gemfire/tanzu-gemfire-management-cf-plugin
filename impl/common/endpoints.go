@@ -26,11 +26,19 @@ import (
 
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the Geode/PCC locator
 func GetEndPoints(commandData *domain.CommandData, requester impl.RequestHelper) error {
-	apiDocURL := commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
+	apiDocURL := commandData.ConnnectionData.LocatorAddress + "/management/v1/api-docs"
 	urlResponse, err := requester.Exchange(apiDocURL, "GET", nil, nil)
 
+	// if unable to reach /management/v1 then try /management/experimental for older releases
 	if err != nil {
-		return errors.New("unable to reach " + apiDocURL + ": " + err.Error())
+		oldApiDocURL := commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
+		oldUrlResponse, oldErr := requester.Exchange(oldApiDocURL, "GET", nil, nil)
+		if oldErr != nil {
+			// when the /experimental also failed, we want to report the error message that's given
+			// by the /v1 link
+			return errors.New("unable to reach " + apiDocURL + ": " + err.Error())
+		}
+		urlResponse = oldUrlResponse
 	}
 
 	var apiPaths domain.RestAPI

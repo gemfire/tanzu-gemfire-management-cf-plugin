@@ -22,11 +22,27 @@ import (
 	"os"
 	"strings"
 
+	"code.cloudfoundry.org/cli/cf/errors"
+	jq "github.com/threatgrid/jqpipe-go"
 	"github.com/vito/go-interact/interact/terminal"
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	jq "github.com/threatgrid/jqpipe-go"
 )
+
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . JQFilter
+
+// JQFilter interface provides a way to fake the filter implementation for testing
+type JQFilter interface {
+	Eval(js string, expr string, opts ...string) ([]json.RawMessage, error)
+}
+
+type Formatter struct {
+	JsonFilter JQFilter
+}
+
+func NewFormatter(jsonFilter JQFilter) *Formatter {
+	return &Formatter{JsonFilter: jsonFilter}
+}
 
 // Fill ensures that a column is filled with desired filler characters to desired size
 func Fill(columnSize int, value string, filler string) (response string) {
@@ -47,17 +63,17 @@ func Fill(columnSize int, value string, filler string) (response string) {
 }
 
 // FormatResponse extracts JSON from a response
-func FormatResponse(urlResponse string, jqFilter string, userFilter bool) (jsonOutput string, err error) {
+func (formatter *Formatter) FormatResponse(urlResponse string, jqFilter string, userFilter bool) (jsonOutput string, err error) {
 	if jqFilter == "" {
 		return indent([]byte(urlResponse))
 	}
 	// otherwise use the filter string to generate the list to display in table format
-	filteredJSON, err := filterWithJQ(urlResponse, jqFilter)
+	filteredJSON, err := formatter.filterWithJQ(urlResponse, jqFilter)
 
 	// if using the default jqFilter does not yield any data, then display the unfiltered result
 	if filteredJSON == "[]" && !userFilter && jqFilter != "." {
 		jqFilter = "."
-		filteredJSON, err = filterWithJQ(urlResponse, jqFilter)
+		filteredJSON, err = formatter.filterWithJQ(urlResponse, jqFilter)
 	}
 
 	if err != nil {
@@ -73,14 +89,23 @@ func FormatResponse(urlResponse string, jqFilter string, userFilter bool) (jsonO
 	return table + "\n" + "JQFilter: " + jqFilter + "\n", nil
 }
 
-func filterWithJQ(jsonString string, jqFilter string) (string, error) {
-	jsonRawMessage, err := jq.Eval(jsonString, jqFilter)
+type JayQFilter struct{}
+
+func (filter *JayQFilter) Eval(js string, expr string, opts ...string) ([]json.RawMessage, error) {
+	return jq.Eval(js, expr)
+}
+
+func (formatter *Formatter) filterWithJQ(jsonString string, jqFilter string) (string, error) {
+	jsonRawMessage, err := formatter.JsonFilter.Eval(jsonString, jqFilter)
 	if err != nil {
-		return "unable to filter the response with: " + jqFilter, err
+		if strings.Contains(err.Error(), "executable file not found") {
+			return "", errors.New("'-t' or '--table' option requires 'jq' to be installed. (https://stedolan.github.io/jq/)")
+		}
+		return "", errors.New(fmt.Sprintf("unable to filter the response with: %s, %s", jqFilter, err))
 	}
 	jsonByte, err := json.Marshal(&jsonRawMessage)
 	if err != nil {
-		return "unable to filter the response with: " + jqFilter, err
+		return "", errors.New(fmt.Sprintf("unable to filter the response with: %s, %s", jqFilter, err))
 	}
 	return string(jsonByte), nil
 }
@@ -91,7 +116,7 @@ func Tabular(jsonString string) (string, error) {
 	var result []map[string]interface{}
 	err := json.Unmarshal([]byte(jsonString), &result)
 	if err != nil {
-		return "unable to parse: " + jsonString, err
+		return "", errors.New(fmt.Sprintf("unable to parse: %s, %s", jsonString, err))
 	}
 
 	if len(result) == 0 {

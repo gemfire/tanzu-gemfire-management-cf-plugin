@@ -89,7 +89,8 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 		}
 	}
 
-	jsonToBePrinted, err := FormatResponse(urlResponse, jqFilter, userFilter)
+	formatter := &Formatter{JsonFilter: new(JayQFilter)}
+	jsonToBePrinted, err := formatter.FormatResponse(urlResponse, jqFilter, userFilter)
 	if err != nil {
 		return
 	}

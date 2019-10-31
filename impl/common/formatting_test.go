@@ -17,9 +17,11 @@ package common_test
 
 import (
 	"strings"
+	"errors"
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/commonfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -89,45 +91,80 @@ var _ = Describe("Formatting", func() {
 	})
 
 	Context("FormatResponse tests", func() {
+		var (
+			formatter common.Formatter
+		)
+
+		BeforeEach(func() {
+			formatter = common.Formatter{JsonFilter: new(common.JayQFilter)}
+		})
+
 		It("Returns the input as an indented string", func() {
 			inputString := `{"name": "value"}`
 			expectedString := "{\n  \"name\": \"value\"\n}"
-			output, err := common.FormatResponse(inputString, "", false)
+			output, err := formatter.FormatResponse(inputString, "", false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(expectedString))
 		})
 		It("Returns the input 'as-is'", func() {
 			inputString := "foobar"
-			output, err := common.FormatResponse(inputString, "", false)
+			output, err := formatter.FormatResponse(inputString, "", false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(inputString))
 		})
 
 		It("with correct userFilter", func() {
 			inputString := `[{"name": "value"}]`
-			output, err := common.FormatResponse(inputString, ".[] | {name:.name}", true)
+			output, err := formatter.FormatResponse(inputString, ".[] | {name:.name}", true)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(" name  \n-------\n value \n\nJQFilter: .[] | {name:.name}\n"))
 		})
 		It("with userFilter that yields empty array", func() {
 			inputString := `{"result": []}`
 			filter := `.result[]`
-			output, err := common.FormatResponse(inputString, filter, true)
+			output, err := formatter.FormatResponse(inputString, filter, true)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal("\nJQFilter: " + filter + "\n"))
 		})
 		It("with default filter that yields empty array", func() {
 			inputString := `{"result": []}`
 			filter := `.result[]`
-			output, err := common.FormatResponse(inputString, filter, false)
+			output, err := formatter.FormatResponse(inputString, filter, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(" result \n--------\n []     \n\nJQFilter: .\n"))
 		})
 		It("with default . filter", func() {
 			inputString := `{"name": "value"}`
-			output, err := common.FormatResponse(inputString, ".", false)
+			output, err := formatter.FormatResponse(inputString, ".", false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(" name  \n-------\n value \n\nJQFilter: .\n"))
+		})
+
+		Context("JQ returns errors", func() {
+			var (
+				jsonFilter *commonfakes.FakeJQFilter
+			)
+
+			BeforeEach(func() {
+				jsonFilter = new(commonfakes.FakeJQFilter)
+				formatter = common.Formatter{JsonFilter: jsonFilter}
+			})
+
+			It("Provides a meaningful message when JQ is not installed", func() {
+				jsonFilter.EvalReturns(nil, errors.New("executable file not found"))
+				inputString := `{"name": "value"}`
+				_, err := formatter.FormatResponse(inputString, ".", false)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("option requires 'jq'"))
+			})
+
+			It("Passes on JQ errors when filters fail", func() {
+				jsonFilter.EvalReturns(nil, errors.New("unexplained jq failure"))
+				inputString := `{"name": "value"}`
+				_, err := formatter.FormatResponse(inputString, ".", false)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("unexplained jq failure"))
+			})
 		})
 	})
 
@@ -162,9 +199,9 @@ var _ = Describe("Formatting", func() {
 			Expect(output).To(Equal(""))
 		})
 		It("invalid json string", func() {
-			output, err := common.Tabular(`{"name":"test"}`)
+			_, err := common.Tabular(`{"name":"test"}`)
 			Expect(err).To(HaveOccurred())
-			Expect(output).To(ContainSubstring("unable to parse:"))
+			Expect(err.Error()).To(ContainSubstring("unable to parse:"))
 		})
 	})
 

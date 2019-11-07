@@ -15,6 +15,7 @@ require (
 	github.com/cloudfoundry/bosh-utils v0.0.0-20190615100124-d63061c11969 // indirect
 	github.com/cppforlife/go-patch v0.2.0 // indirect
 	github.com/fatih/color v1.7.0 // indirect
+	github.com/jmelchio/jqpipe-go v0.0.0-20191031211905-e13c8d3e1c9d
 	github.com/lunixbochs/vtclean v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
@@ -22,11 +23,9 @@ require (
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/ginkgo v1.10.1
 	github.com/onsi/gomega v1.7.0
-	github.com/savaki/jq v0.0.0-20161209013833-0e6baecebbf8
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/tedsuo/rata v1.0.0 // indirect
-	github.com/threatgrid/jq-go v0.0.0-20140326011412-3e60d678d7d9 // indirect
-	github.com/threatgrid/jqpipe-go v0.0.0-20160108233133-b5e15fb6d9f3
+	github.com/threatgrid/jq-go v0.0.0-20140326011412-3e60d678d7d9
 	github.com/vito/go-interact v0.0.0-20171111012221-fa338ed9e9ec
 	golang.org/x/crypto v0.0.0-20190617133340-57b3e21c3d56 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28 // indirect

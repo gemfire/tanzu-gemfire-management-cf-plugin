@@ -16,12 +16,13 @@
 package common_test
 
 import (
-	"strings"
 	"errors"
+	"strings"
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/commonfakes"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/filter"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -96,7 +97,7 @@ var _ = Describe("Formatting", func() {
 		)
 
 		BeforeEach(func() {
-			formatter = common.Formatter{JsonFilter: new(common.JayQFilter)}
+			formatter = common.Formatter{JsonFilter: new(filter.JQCLFilter)}
 		})
 
 		It("Returns the input as an indented string", func() {
@@ -142,16 +143,16 @@ var _ = Describe("Formatting", func() {
 
 		Context("JQ returns errors", func() {
 			var (
-				jsonFilter *commonfakes.FakeJQFilter
+				jsonFilter *commonfakes.FakeJsonFilter
 			)
 
 			BeforeEach(func() {
-				jsonFilter = new(commonfakes.FakeJQFilter)
+				jsonFilter = new(commonfakes.FakeJsonFilter)
 				formatter = common.Formatter{JsonFilter: jsonFilter}
 			})
 
 			It("Provides a meaningful message when JQ is not installed", func() {
-				jsonFilter.EvalReturns(nil, errors.New("executable file not found"))
+				jsonFilter.FilterReturns(nil, errors.New("executable file not found"))
 				inputString := `{"name": "value"}`
 				_, err := formatter.FormatResponse(inputString, ".", false)
 				Expect(err).To(HaveOccurred())
@@ -159,7 +160,7 @@ var _ = Describe("Formatting", func() {
 			})
 
 			It("Passes on JQ errors when filters fail", func() {
-				jsonFilter.EvalReturns(nil, errors.New("unexplained jq failure"))
+				jsonFilter.FilterReturns(nil, errors.New("unexplained jq failure"))
 				inputString := `{"name": "value"}`
 				_, err := formatter.FormatResponse(inputString, ".", false)
 				Expect(err).To(HaveOccurred())

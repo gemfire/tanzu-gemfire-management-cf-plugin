@@ -33,7 +33,7 @@ import (
 // JsonFilter interface provides a way to provide different json filter implementations
 // or to replace the filter with a fake for testing
 type JsonFilter interface {
-	Filter(json string, expr string, opts ...string) ([]json.RawMessage, error)
+	Filter(jsonString string, expr string) ([]json.RawMessage, error)
 }
 
 type Formatter struct {

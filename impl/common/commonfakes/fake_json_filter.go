@@ -9,12 +9,11 @@ import (
 )
 
 type FakeJsonFilter struct {
-	FilterStub        func(string, string, ...string) ([]json.RawMessage, error)
+	FilterStub        func(string, string) ([]json.RawMessage, error)
 	filterMutex       sync.RWMutex
 	filterArgsForCall []struct {
 		arg1 string
 		arg2 string
-		arg3 []string
 	}
 	filterReturns struct {
 		result1 []json.RawMessage
@@ -28,18 +27,17 @@ type FakeJsonFilter struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeJsonFilter) Filter(arg1 string, arg2 string, arg3 ...string) ([]json.RawMessage, error) {
+func (fake *FakeJsonFilter) Filter(arg1 string, arg2 string) ([]json.RawMessage, error) {
 	fake.filterMutex.Lock()
 	ret, specificReturn := fake.filterReturnsOnCall[len(fake.filterArgsForCall)]
 	fake.filterArgsForCall = append(fake.filterArgsForCall, struct {
 		arg1 string
 		arg2 string
-		arg3 []string
-	}{arg1, arg2, arg3})
-	fake.recordInvocation("Filter", []interface{}{arg1, arg2, arg3})
+	}{arg1, arg2})
+	fake.recordInvocation("Filter", []interface{}{arg1, arg2})
 	fake.filterMutex.Unlock()
 	if fake.FilterStub != nil {
-		return fake.FilterStub(arg1, arg2, arg3...)
+		return fake.FilterStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -54,17 +52,17 @@ func (fake *FakeJsonFilter) FilterCallCount() int {
 	return len(fake.filterArgsForCall)
 }
 
-func (fake *FakeJsonFilter) FilterCalls(stub func(string, string, ...string) ([]json.RawMessage, error)) {
+func (fake *FakeJsonFilter) FilterCalls(stub func(string, string) ([]json.RawMessage, error)) {
 	fake.filterMutex.Lock()
 	defer fake.filterMutex.Unlock()
 	fake.FilterStub = stub
 }
 
-func (fake *FakeJsonFilter) FilterArgsForCall(i int) (string, string, []string) {
+func (fake *FakeJsonFilter) FilterArgsForCall(i int) (string, string) {
 	fake.filterMutex.RLock()
 	defer fake.filterMutex.RUnlock()
 	argsForCall := fake.filterArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeJsonFilter) FilterReturns(result1 []json.RawMessage, result2 error) {

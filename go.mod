@@ -14,7 +14,7 @@ require (
 	github.com/cloudfoundry/bosh-cli v5.5.1+incompatible // indirect
 	github.com/cloudfoundry/bosh-utils v0.0.0-20190615100124-d63061c11969 // indirect
 	github.com/cppforlife/go-patch v0.2.0 // indirect
-	github.com/jmelchio/gojq v0.6.1-0.20191111021339-63872a757f13
+	github.com/jmelchio/gojq v0.6.1-0.20191111185750-374bbafdec69
 	github.com/jmelchio/jqpipe-go v0.0.0-20191031211905-e13c8d3e1c9d
 	github.com/lunixbochs/vtclean v1.0.0 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.2.2

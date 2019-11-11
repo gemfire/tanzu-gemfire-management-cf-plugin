@@ -42,8 +42,8 @@ github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 h1:IPJ3dvxmJ4uc
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869/go.mod h1:cJ6Cj7dQo+O6GJNiMx+Pa94qKj+TG8ONdKHgMNIyyag=
 github.com/jessevdk/go-flags v1.4.0 h1:4IU2WS7AumrZ/40jfhf4QVDMsQwqA7VEHozFRrGARJA=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
-github.com/jmelchio/gojq v0.6.1-0.20191111021339-63872a757f13 h1:KZhiRfLxXvq/tdaXeAdKhmgSMa6htV+4KbwyFJkFSLU=
-github.com/jmelchio/gojq v0.6.1-0.20191111021339-63872a757f13/go.mod h1:M7Gj4S4sBmpp7Y2gRGJ5d/2lia8Pp/+pdsfM68rV1hY=
+github.com/jmelchio/gojq v0.6.1-0.20191111185750-374bbafdec69 h1:1W1kim88zWANEDkexFgnRIXH6ZNOlVa6idoxZeNZGRs=
+github.com/jmelchio/gojq v0.6.1-0.20191111185750-374bbafdec69/go.mod h1:M7Gj4S4sBmpp7Y2gRGJ5d/2lia8Pp/+pdsfM68rV1hY=
 github.com/jmelchio/jqpipe-go v0.0.0-20191031211905-e13c8d3e1c9d h1:Ecdguf04/y2wu0glO0S6Zri/pWwjQPaouoAWNu3L/5M=
 github.com/jmelchio/jqpipe-go v0.0.0-20191031211905-e13c8d3e1c9d/go.mod h1:anbvpts+1cmrExlzUEVCIHdLTXw99I6KVRdDsrTMM3U=
 github.com/joefitzgerald/rainbow-reporter v0.1.0 h1:AuMG652zjdzI0YCCnXAqATtRBpGXMcAnrajcaTrSeuo=

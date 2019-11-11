@@ -16,12 +16,10 @@
 package common_test
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/commonfakes"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/filter"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -97,7 +95,7 @@ var _ = Describe("Formatting", func() {
 		)
 
 		BeforeEach(func() {
-			formatter = common.Formatter{JsonFilter: new(filter.JQCLFilter)}
+			formatter = common.Formatter{JsonFilter: new(filter.GOJQFilter)}
 		})
 
 		It("Returns the input as an indented string", func() {
@@ -107,6 +105,7 @@ var _ = Describe("Formatting", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(expectedString))
 		})
+
 		It("Returns the input 'as-is'", func() {
 			inputString := "foobar"
 			output, err := formatter.FormatResponse(inputString, "", false)
@@ -114,58 +113,42 @@ var _ = Describe("Formatting", func() {
 			Expect(output).To(Equal(inputString))
 		})
 
-		It("with correct userFilter", func() {
+		It("Returns an error when faulty json query string is used", func() {
+			inputString := `[{"name": "value"}]`
+			output, err := formatter.FormatResponse(inputString, ".[], | {name:.name}", true)
+			Expect(output).To(BeEmpty())
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("json query failed"))
+		})
+
+		It("Returns filtered input with correct userFilter appended", func() {
 			inputString := `[{"name": "value"}]`
 			output, err := formatter.FormatResponse(inputString, ".[] | {name:.name}", true)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(" name  \n-------\n value \n\nJQFilter: .[] | {name:.name}\n"))
 		})
-		It("with userFilter that yields empty array", func() {
+
+		It("Returns no results with userFilter that yields empty array", func() {
 			inputString := `{"result": []}`
 			filter := `.result[]`
 			output, err := formatter.FormatResponse(inputString, filter, true)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal("\nJQFilter: " + filter + "\n"))
 		})
-		It("with default filter that yields empty array", func() {
+
+		It("Returns a result with default filter that yields empty array", func() {
 			inputString := `{"result": []}`
 			filter := `.result[]`
 			output, err := formatter.FormatResponse(inputString, filter, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(" result \n--------\n []     \n\nJQFilter: .\n"))
 		})
-		It("with default . filter", func() {
+
+		It("Returns all results with default . filter", func() {
 			inputString := `{"name": "value"}`
 			output, err := formatter.FormatResponse(inputString, ".", false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(" name  \n-------\n value \n\nJQFilter: .\n"))
-		})
-
-		Context("JQ returns errors", func() {
-			var (
-				jsonFilter *commonfakes.FakeJsonFilter
-			)
-
-			BeforeEach(func() {
-				jsonFilter = new(commonfakes.FakeJsonFilter)
-				formatter = common.Formatter{JsonFilter: jsonFilter}
-			})
-
-			It("Provides a meaningful message when JQ is not installed", func() {
-				jsonFilter.FilterReturns(nil, errors.New("executable file not found"))
-				inputString := `{"name": "value"}`
-				_, err := formatter.FormatResponse(inputString, ".", false)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("option requires 'jq'"))
-			})
-
-			It("Passes on JQ errors when filters fail", func() {
-				jsonFilter.FilterReturns(nil, errors.New("unexplained jq failure"))
-				inputString := `{"name": "value"}`
-				_, err := formatter.FormatResponse(inputString, ".", false)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("unexplained jq failure"))
-			})
 		})
 	})
 

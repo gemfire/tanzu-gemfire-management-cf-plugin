@@ -92,9 +92,6 @@ func (formatter *Formatter) FormatResponse(urlResponse string, jqFilter string, 
 func (formatter *Formatter) filterWithJQ(jsonString string, expr string) (string, error) {
 	jsonRawMessage, err := formatter.JsonFilter.Filter(jsonString, expr)
 	if err != nil {
-		if strings.Contains(err.Error(), "executable file not found") {
-			return "", errors.New("'-t' or '--table' option requires 'jq' to be installed. (https://stedolan.github.io/jq/)")
-		}
 		return "", errors.New(fmt.Sprintf("unable to filter the response with: %s, %s", expr, err))
 	}
 	jsonByte, err := json.Marshal(&jsonRawMessage)

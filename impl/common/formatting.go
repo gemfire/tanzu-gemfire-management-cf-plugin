@@ -23,24 +23,24 @@ import (
 	"strings"
 
 	"code.cloudfoundry.org/cli/cf/errors"
-	jq "github.com/threatgrid/jqpipe-go"
 	"github.com/vito/go-interact/interact/terminal"
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 )
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . JQFilter
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . JsonFilter
 
-// JQFilter interface provides a way to fake the filter implementation for testing
-type JQFilter interface {
-	Eval(js string, expr string, opts ...string) ([]json.RawMessage, error)
+// JsonFilter interface provides a way to provide different json filter implementations
+// or to replace the filter with a fake for testing
+type JsonFilter interface {
+	Filter(jsonString string, expr string) ([]json.RawMessage, error)
 }
 
 type Formatter struct {
-	JsonFilter JQFilter
+	JsonFilter JsonFilter
 }
 
-func NewFormatter(jsonFilter JQFilter) *Formatter {
+func NewFormatter(jsonFilter JsonFilter) *Formatter {
 	return &Formatter{JsonFilter: jsonFilter}
 }
 
@@ -89,23 +89,14 @@ func (formatter *Formatter) FormatResponse(urlResponse string, jqFilter string, 
 	return table + "\n" + "JQFilter: " + jqFilter + "\n", nil
 }
 
-type JayQFilter struct{}
-
-func (filter *JayQFilter) Eval(js string, expr string, opts ...string) ([]json.RawMessage, error) {
-	return jq.Eval(js, expr)
-}
-
-func (formatter *Formatter) filterWithJQ(jsonString string, jqFilter string) (string, error) {
-	jsonRawMessage, err := formatter.JsonFilter.Eval(jsonString, jqFilter)
+func (formatter *Formatter) filterWithJQ(jsonString string, expr string) (string, error) {
+	jsonRawMessage, err := formatter.JsonFilter.Filter(jsonString, expr)
 	if err != nil {
-		if strings.Contains(err.Error(), "executable file not found") {
-			return "", errors.New("'-t' or '--table' option requires 'jq' to be installed. (https://stedolan.github.io/jq/)")
-		}
-		return "", errors.New(fmt.Sprintf("unable to filter the response with: %s, %s", jqFilter, err))
+		return "", errors.New(fmt.Sprintf("unable to filter the response with: %s, %s", expr, err))
 	}
 	jsonByte, err := json.Marshal(&jsonRawMessage)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("unable to filter the response with: %s, %s", jqFilter, err))
+		return "", errors.New(fmt.Sprintf("unable to filter the response with: %s, %s", expr, err))
 	}
 	return string(jsonByte), nil
 }

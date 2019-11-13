@@ -26,6 +26,7 @@ import (
 	"code.cloudfoundry.org/cli/cf/errors"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/filter"
 )
 
 // CommandProcessor struct holds the implementation for the RequestHelper interface
@@ -89,7 +90,7 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 		}
 	}
 
-	formatter := &Formatter{JsonFilter: new(JayQFilter)}
+	formatter := &Formatter{JsonFilter: new(filter.GOJQFilter)}
 	jsonToBePrinted, err := formatter.FormatResponse(urlResponse, jqFilter, userFilter)
 	if err != nil {
 		return

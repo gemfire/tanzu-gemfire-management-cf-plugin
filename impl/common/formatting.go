@@ -30,18 +30,20 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . JsonFilter
 
-// JsonFilter interface provides a way to provide different json filter implementations
+// JSONFilter interface provides a way to provide different json filter implementations
 // or to replace the filter with a fake for testing
-type JsonFilter interface {
+type JSONFilter interface {
 	Filter(jsonString string, expr string) ([]json.RawMessage, error)
 }
 
+// Formatter is the struct that anchors the JSONFilter interface
 type Formatter struct {
-	JsonFilter JsonFilter
+	JSONFilter JSONFilter
 }
 
-func NewFormatter(jsonFilter JsonFilter) *Formatter {
-	return &Formatter{JsonFilter: jsonFilter}
+// NewFormatter constructs the implementation of the JSONFilter interface
+func NewFormatter(jsonFilter JSONFilter) *Formatter {
+	return &Formatter{JSONFilter: jsonFilter}
 }
 
 // Fill ensures that a column is filled with desired filler characters to desired size
@@ -71,7 +73,7 @@ func (formatter *Formatter) FormatResponse(urlResponse string, jqFilter string, 
 	filteredJSON, err := formatter.filterWithJQ(urlResponse, jqFilter)
 
 	// if using the default jqFilter does not yield any data, then display the unfiltered result
-	if filteredJSON == "[]" && !userFilter && jqFilter != "." {
+	if filteredJSON == "null" && !userFilter && jqFilter != "." {
 		jqFilter = "."
 		filteredJSON, err = formatter.filterWithJQ(urlResponse, jqFilter)
 	}
@@ -90,7 +92,7 @@ func (formatter *Formatter) FormatResponse(urlResponse string, jqFilter string, 
 }
 
 func (formatter *Formatter) filterWithJQ(jsonString string, expr string) (string, error) {
-	jsonRawMessage, err := formatter.JsonFilter.Filter(jsonString, expr)
+	jsonRawMessage, err := formatter.JSONFilter.Filter(jsonString, expr)
 	if err != nil {
 		return "", errors.New(fmt.Sprintf("unable to filter the response with: %s, %s", expr, err))
 	}

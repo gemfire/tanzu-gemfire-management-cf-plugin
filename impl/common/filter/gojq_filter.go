@@ -16,42 +16,56 @@
 package filter
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/itchyny/gojq"
 )
 
+// GOJQFilter is the placeholder struct for the Filter interface implementation
 type GOJQFilter struct{}
 
+// Filter is the implementation of the Filter interface
 func (filter *GOJQFilter) Filter(jsonString string, expr string) ([]json.RawMessage, error) {
 	query, err := gojq.Parse(expr)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("json query failed: %s", err.Error()))
+		return nil, fmt.Errorf("json query failed: %s", err.Error())
 	}
 
-	var inputBuffer bytes.Buffer
-	var returnJson []json.RawMessage
+	var returnJSON []json.RawMessage
 
-	inputBuffer.WriteString(jsonString)
-	dec := json.NewDecoder(&inputBuffer)
-	var input json.RawMessage
-	err = dec.Decode(&input)
+	var interfaceInput interface{}
+	err = json.Unmarshal([]byte(jsonString), &interfaceInput)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("problem decoding input: %s", err.Error()))
+		return nil, fmt.Errorf("problem decoding input: %s", err.Error())
 	}
-	iter := query.Run(input)
+	iter := query.Run(interfaceInput)
 	for {
 		v, ok := iter.Next()
 		if !ok {
 			break
 		}
-		if fmt.Sprintf("%T", v) != "json.RawMessage" {
-			return nil, errors.New(fmt.Sprintf("problem decoding output: %v", v))
+		switch x := v.(type) {
+		case error:
+			return nil, fmt.Errorf("problem decoding output: %s", x.Error())
+		case [2]interface{}:
+			if s, ok := x[0].(string); ok {
+				if s == "HALT:" {
+					return returnJSON, nil
+				}
+				if s == "STDERR:" {
+					return nil, fmt.Errorf("problem decoding output: %s", x[1])
+				}
+			}
+		case json.RawMessage:
+			returnJSON = append(returnJSON, x)
+		default:
+			rawJSON, err := json.Marshal(v)
+			if err != nil {
+				return nil, fmt.Errorf("problem decoding output: %v", v)
+			}
+			returnJSON = append(returnJSON, rawJSON)
 		}
-		returnJson = append(returnJson, v.(json.RawMessage))
 	}
-	return returnJson, nil
+	return returnJSON, nil
 }

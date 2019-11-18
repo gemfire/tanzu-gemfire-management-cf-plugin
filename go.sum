@@ -39,6 +39,7 @@ github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e/go.mod h1:p
 github.com/hpcloud/tail v1.0.0 h1:nfCOvKYfkgYP8hkirhJocXT2+zOD8yUNjXaWfTlyFKI=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/itchyny/astgen-go v0.0.0-20190623123749-11f6ca3e2b1f/go.mod h1:9Gyr9nZoENI+woes+xm+BFhmvYmAp6bPtXD866pQH9g=
+github.com/itchyny/gojq v0.6.0 h1:e2HaLuHYtr7MsgzxT9QdpWXTi2HFgLsZqhEwVJ0k2JM=
 github.com/itchyny/gojq v0.6.0/go.mod h1:6yPawVf3ozjJMNC4qRlH+JBAvCW7by+uX/J5zIR7pQc=
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 h1:IPJ3dvxmJ4uczJe5YQdrYB16oTJlGSC/OyZDqUk9xX4=
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869/go.mod h1:cJ6Cj7dQo+O6GJNiMx+Pa94qKj+TG8ONdKHgMNIyyag=

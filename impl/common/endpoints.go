@@ -41,9 +41,8 @@ func GetEndPoints(commandData *domain.CommandData, requester impl.RequestHelper)
 	if statusCode != 200 {
 		if err != nil {
 			return errors.New("unable to reach " + apiDocURL + ". Error: " + err.Error())
-		} else {
-			return errors.New("unable to reach " + apiDocURL + ". Status Code: " + getString(statusCode))
 		}
+		return errors.New("unable to reach " + apiDocURL + ". Status Code: " + getString(statusCode))
 	}
 
 	var apiPaths domain.RestAPI

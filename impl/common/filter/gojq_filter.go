@@ -21,32 +21,37 @@ import (
 	"errors"
 	"fmt"
 
-	jq "github.com/jmelchio/gojq/cli"
+	"github.com/itchyny/gojq"
 )
 
 type GOJQFilter struct{}
 
 func (filter *GOJQFilter) Filter(jsonString string, expr string) ([]json.RawMessage, error) {
+	query, err := gojq.Parse(expr)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("json query failed: %s", err.Error()))
+	}
+
 	var inputBuffer bytes.Buffer
-	var outputBuffer bytes.Buffer
-	var errBuffer bytes.Buffer
+	var returnJson []json.RawMessage
 
 	inputBuffer.WriteString(jsonString)
-
-	args := []string{expr, "-M"}
-	returnCode := jq.RunLib(&inputBuffer, &outputBuffer, &errBuffer, args)
-
-	if returnCode != 0 {
-		return nil, errors.New(fmt.Sprintf("json query failed: %s, %d", errBuffer.String(), returnCode))
-	}
-	if outputBuffer.Len() == 0 {
-		return []json.RawMessage{}, nil
-	}
-	dec := json.NewDecoder(&outputBuffer)
-	var output json.RawMessage
-	err := dec.Decode(&output)
+	dec := json.NewDecoder(&inputBuffer)
+	var input json.RawMessage
+	err = dec.Decode(&input)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("problem decoding output: %s", err.Error()))
+		return nil, errors.New(fmt.Sprintf("problem decoding input: %s", err.Error()))
 	}
-	return []json.RawMessage{output}, nil
+	iter := query.Run(input)
+	for {
+		v, ok := iter.Next()
+		if !ok {
+			break
+		}
+		if fmt.Sprintf("%T", v) != "json.RawMessage" {
+			return nil, errors.New(fmt.Sprintf("problem decoding output: %v", v))
+		}
+		returnJson = append(returnJson, v.(json.RawMessage))
+	}
+	return returnJson, nil
 }

@@ -14,14 +14,16 @@ require (
 	github.com/cloudfoundry/bosh-cli v5.5.1+incompatible // indirect
 	github.com/cloudfoundry/bosh-utils v0.0.0-20190615100124-d63061c11969 // indirect
 	github.com/cppforlife/go-patch v0.2.0 // indirect
-	github.com/jmelchio/gojq v0.6.1-0.20191111185750-374bbafdec69
-	github.com/jmelchio/jqpipe-go v0.0.0-20191031211905-e13c8d3e1c9d
+	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
+	github.com/itchyny/gojq v0.6.0
+	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/lunixbochs/vtclean v1.0.0 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.2.2
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/ginkgo v1.10.1
 	github.com/onsi/gomega v1.7.0
 	github.com/sirupsen/logrus v1.4.2 // indirect
+	github.com/tebeka/strftime v0.1.3 // indirect
 	github.com/tedsuo/rata v1.0.0 // indirect
 	github.com/vito/go-interact v0.0.0-20171111012221-fa338ed9e9ec
 	golang.org/x/crypto v0.0.0-20190617133340-57b3e21c3d56 // indirect

@@ -28,7 +28,7 @@ import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 )
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . JsonFilter
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . JSONFilter
 
 // JSONFilter interface provides a way to provide different json filter implementations
 // or to replace the filter with a fake for testing

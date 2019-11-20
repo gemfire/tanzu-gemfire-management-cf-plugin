@@ -35,7 +35,8 @@ resources:
     uri: git@github.com:gemfire/cloudcache-management-cf-plugin.git
     branch: ((branch))
     ignore_paths:
-      - "ci/*"
+      - "ci/pipeline.yml"
+      - "ci/deploy_pipeline.sh"
       - "**/*.md"
     private_key: ((gemfire-ci-private-key))
 
@@ -228,6 +229,7 @@ jobs:
           - |
             cd cloudcache-management-cf-plugin
             ./build.sh
+            cp pcc ../pcc-plugin/
   - task: smoke-test
     image: cloudcache-management-cf-plugin-ci-image
     config:

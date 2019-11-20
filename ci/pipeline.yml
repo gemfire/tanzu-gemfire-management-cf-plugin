@@ -28,6 +28,12 @@ resource_types:
     repository: pivotalcf/pivnet-resource
     tag: latest-final
 
+- name: gcs-resource
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+
 resources:
 - name: cloudcache-management-cf-plugin
   type: git
@@ -83,6 +89,24 @@ resources:
     username: "_json_key"
     password: ((!concourse-gcp-key))
     repository: gcr.io/gemfire-dev/cloudcache-management-cf-plugin-ci
+
+- name: gemfire-9.9
+  type: s3
+  icon: file-cloud
+  source:
+    bucket: gemfire-releases
+    region_name: ((aws-default-region))
+    access_key_id: ((gemfire-aws-access-key-id))
+    secret_access_key: ((gemfire-aws-secret-access-key))
+    versioned_file: 9.9/9.9.0/pivotal-gemfire-9.9.0.tgz
+
+- name: gemfire-develop
+  type: gcs-resource
+  icon: file-cloud
+  source:
+    bucket: gemfire-build-resources
+    json_key: ((concourse-gcp-key))
+    regexp: artifacts/gemfire/develop/pivotal-gemfire-regression-(.*).tgz
 
 - name: weekly
   type: time
@@ -152,11 +176,120 @@ jobs:
       build: cloudcache-management-cf-plugin-ci-dockerfile/ci/docker
       tag_as_latest: true
 
+- name: test-cloudcache-management-cf-standalone-9.9
+  serial: true
+  plan:
+  - in_parallel:
+    - get: cloudcache-management-cf-plugin
+      trigger: true
+      passed: [test-cloudcache-management-cf-plugin]
+    - get: golang-image
+    - get: gemfire-9.9
+  - task: build-plugin
+    timeout: 1h
+    image: golang-image
+    config:
+      inputs:
+        - name: cloudcache-management-cf-plugin
+      outputs:
+        - name: pcc-plugin
+      platform: linux
+      run:
+        path: /bin/sh
+        args:
+          - -ec
+          - |
+            cd cloudcache-management-cf-plugin
+            ./build.sh
+            cp pcc ../pcc-plugin/
+  - task: standalone-rest-accept-test
+    timeout: 1h
+    config:
+      image_resource:
+        type: docker-image
+        source:
+          repository: openjdk
+          tag: 8
+      inputs:
+        - name: cloudcache-management-cf-plugin
+        - name: pcc-plugin
+        - name: gemfire-9.9
+          path: gemfire
+      platform: linux
+      run:
+        path: /bin/sh
+        args:
+          - -ecx
+          - |
+            tar xzf gemfire/pivotal-gemfire-*.tgz
+            *gemfire*/bin/gfsh -e "version --full" -e "start locator"
+            cd cloudcache-management-cf-plugin
+            pcc="../pcc-plugin/pcc"
+            $pcc --help
+            cf="$pcc http://localhost:7070"
+            $cf commands
+            $cf list members
+
+- name: test-cloudcache-management-cf-standalone-develop
+  serial: true
+  plan:
+  - in_parallel:
+    - get: cloudcache-management-cf-plugin
+      trigger: true
+      passed: [test-cloudcache-management-cf-plugin]
+    - get: golang-image
+    - get: gemfire-develop
+  - task: build-plugin
+    timeout: 1h
+    image: golang-image
+    config:
+      inputs:
+        - name: cloudcache-management-cf-plugin
+      outputs:
+        - name: pcc-plugin
+      platform: linux
+      run:
+        path: /bin/sh
+        args:
+          - -ec
+          - |
+            cd cloudcache-management-cf-plugin
+            ./build.sh
+            cp pcc ../pcc-plugin/
+  - task: standalone-rest-accept-test
+    timeout: 1h
+    config:
+      image_resource:
+        type: docker-image
+        source:
+          repository: openjdk
+          tag: 8
+      inputs:
+        - name: cloudcache-management-cf-plugin
+        - name: pcc-plugin
+        - name: gemfire-develop
+          path: gemfire
+      platform: linux
+      run:
+        path: /bin/sh
+        args:
+          - -ecx
+          - |
+            tar xzf gemfire/pivotal-gemfire-*.tgz
+            bin/gfsh -e "version --full" -e "start locator"
+            cd cloudcache-management-cf-plugin
+            pcc="../pcc-plugin/pcc"
+            $pcc --help
+            cf="$pcc http://localhost:7070"
+            $cf commands
+            $cf list members
+
+
 - name: get-env
   plan:
   - get: cloudcache-management-cf-plugin
     trigger: true
-    passed: [test-cloudcache-management-cf-plugin]
+    passed: [test-cloudcache-management-cf-plugin, test-cloudcache-management-cf-standalone-9.9, test-cloudcache-management-cf-standalone-develop]
   - get: cloudcache-management-cf-plugin-ci-image
   - put: gcp-env
     tags: [pivotal-internal-worker]

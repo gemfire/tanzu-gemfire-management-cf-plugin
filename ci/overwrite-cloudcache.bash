@@ -41,8 +41,8 @@ function overwrite() {
   do
 
     echo "push cloudcache-metrics-release jar file to vm ${i}"
-    bosh -d service-instance_${GUID} scp cloudcache-metrics-jar/cloudcache-metrics.jar ${i}:/tmp/
-    bosh -d service-instance_${GUID} scp cloudcache-metrics-source/ci/remote-upgradecloudcachemetrics.bash ${i}:/tmp/
+    bosh -d service-instance_${GUID} scp ../cloudcache-metrics-jar/cloudcache-metrics.jar ${i}:/tmp/
+    bosh -d service-instance_${GUID} scp ci/remote-upgradecloudcachemetrics.bash ${i}:/tmp/
 
     echo "Start actual overwrite of cloudcache-metrics.jar"
     bosh -d service-instance_${GUID} ssh ${i} "sudo bash /tmp/remote-upgradecloudcachemetrics.bash"

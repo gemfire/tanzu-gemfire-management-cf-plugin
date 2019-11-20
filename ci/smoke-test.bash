@@ -6,6 +6,7 @@ env_name=$(jq -r .name < "${gcp_metadata_path}")
 ops_man_user="$(jq -r .ops_manager.username < "${gcp_metadata_path}")"
 ops_man_url="$(jq -r .ops_manager.url < "${gcp_metadata_path}")"
 ops_man_password="$(jq -r .ops_manager.password < "${gcp_metadata_path}")"
+service_instance_name="test"
 
 om_exec() {
    om --target "${ops_man_url}" --username "${ops_man_user}" --password "${ops_man_password}"  --skip-ssl-validation "$@"
@@ -32,30 +33,18 @@ function login_and_target_cf_space() {
   cf login -a https://api.sys.${env_name}.cf-app.com -u "admin" -p "${uaa_admin_password}" -o "system" -s "test_space" --skip-ssl-validation
 }
 
-function install_nozzle() {
-  cf install-plugin -r CF-Community "Firehose Plugin" -f
+function install_plugin() {
+  echo Installing plugin
+  ./install.sh
 }
 
 function smoke_test() {
-  echo "Asserting that ReplyWaitsInProgress shows up in the logs"
-  cf nozzle -f ValueMetric | grep -q ReplyWaitsInProgress && touch done.txt &
-  PID1=$!
-  TIMEOUT=0
-  until [[ -e done.txt ]] || [[ TIMEOUT -ge 60 ]]
-  do
-    sleep 1
-    echo -n .
-    let TIMEOUT=$TIMEOUT+1
-  done
-
-  if [[ ! -e done.txt ]]; then
-    exit 1
-  fi
-  echo ""
+  cf pcc --help
+  cf pcc ${service_instance_name} list members
 }
 
 login_and_target_cf_space
-install_nozzle
+install_plugin
 smoke_test
 
 set +e

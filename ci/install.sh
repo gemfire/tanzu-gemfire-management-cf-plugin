@@ -78,7 +78,7 @@ function configure_tile() {
   export OM_VAR_pas_network=${pas_network}
   export OM_VAR_services_network=${services_network}
 
-  om_exec configure-product --config cloudcache-metrics-source/ci/configure-product-template.yml --vars-env OM_VAR
+  om_exec configure-product --config ci/configure-product-template.yml --vars-env OM_VAR
 }
 
 

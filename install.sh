@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-go build -o ./pcc ./cmd/main
+./build.sh
 echo Y | cf install-plugin pcc
 echo "    _______  ________    ________  _______  _______"
 echo "   / _____/ / ______/   / ____  / / _____/ / _____/"

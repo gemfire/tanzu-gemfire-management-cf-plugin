@@ -39,4 +39,4 @@ fi
 cd ../win64 || exit 1
 env GOOS=windows GOARCH=amd64 go build -o ./pcc.exe ../../cmd/main
 md5 ./pcc.exe >md5.txt
-echo "Built windows exectable"
+echo "Built windows executable"

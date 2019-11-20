@@ -16,67 +16,212 @@
 # under the License.
 ---
 
+resource_types:
+- name: pcf-pool
+  type: docker-image
+  source:
+    repository: cftoolsmiths/toolsmiths-envs-resource
+
+- name: pivnet
+  type: docker-image
+  source:
+    repository: pivotalcf/pivnet-resource
+    tag: latest-final
+
 resources:
 - name: cloudcache-management-cf-plugin
   type: git
   source:
     uri: git@github.com:gemfire/cloudcache-management-cf-plugin.git
-    branch: develop
+    branch: ((branch))
+    ignore_paths:
+      - "ci/*"
+      - "**/*.md"
     private_key: ((gemfire-ci-private-key))
+
 - name: golang-image
   type: registry-image
   source:
     repository: golang
     tag: latest
 
+- name: gcp-env
+  type: pcf-pool
+  tags: [cloudcache-management-cf-plugin]
+  source:
+    api_token: ((poolsmiths-api-token))
+    hostname: environments.toolsmiths.cf-app.com
+    pool_name: us_2_6
+
+- name: latest-ci-passing-pcc
+  type: pivnet
+  source:
+    api_token: ((pivnet-api-token))
+    product_slug: p-cloudcache
+    product_version: 1\.10\..*
+
+- name: cloudcache-management-cf-plugin-ci-dockerfile
+  type: git
+  source:
+    uri: git@github.com:gemfire/cloudcache-management-cf-plugin.git
+    branch: ((branch))
+    paths:
+      - "ci/docker/*"
+    private_key: ((!gemfire-ci-private-key))
+
+- name: stemcell
+  type: pivnet
+  source:
+    api_token: ((pivnet-api-token))
+    product_slug: stemcells-ubuntu-xenial
+    product_version: 456\..*
+
+- name: cloudcache-management-cf-plugin-ci-image
+  type: docker-image
+  source:
+    username: "_json_key"
+    password: ((!concourse-gcp-key))
+    repository: gcr.io/gemfire-dev/cloudcache-management-cf-plugin-ci
+
+- name: weekly
+  type: time
+  source:
+    start: 3:00 AM
+    stop: 11:00 PM
+    days: [Wednesday]
+    location: America/Los_Angeles
+
+
 jobs:
-  - name: build-cloudcache-management-cf-plugin
-    serial: true
-    plan:
-    - in_parallel:
-      - get: cloudcache-management-cf-plugin
-        trigger: true
-      - get: golang-image
-    - task: build-image
-      timeout: 1h
-      image: golang-image
-      config:
-        inputs:
-          - name: cloudcache-management-cf-plugin
-        outputs:
-          - name: results
-        platform: linux
-        run:
-          path: /bin/sh
-          args:
-            - -ec
-            - |
-              cd cloudcache-management-cf-plugin
-              go build -o ./pcc ./cmd/main
-  - name: test-cloudcache-management-cf-plugin
-    serial: true
-    plan:
-    - in_parallel:
-      - get: cloudcache-management-cf-plugin
-        trigger: true
-        passed: [build-cloudcache-management-cf-plugin]
-      - get: golang-image
-    - task: build-image
-      timeout: 1h
-      image: golang-image
-      config:
-        inputs:
-          - name: cloudcache-management-cf-plugin
-        outputs:
-          - name: results
-        platform: linux
-        run:
-          path: /bin/sh
-          args:
-            - -ec
-            - |
-              apt-get update
-              apt-get install -y jq
-              cd cloudcache-management-cf-plugin
-              go get github.com/onsi/ginkgo/ginkgo
-              ginkgo -r
+- name: build-cloudcache-management-cf-plugin
+  serial: true
+  plan:
+  - in_parallel:
+    - get: cloudcache-management-cf-plugin
+      trigger: true
+    - get: golang-image
+  - task: build-image
+    timeout: 1h
+    image: golang-image
+    config:
+      inputs:
+        - name: cloudcache-management-cf-plugin
+      platform: linux
+      run:
+        path: /bin/sh
+        args:
+          - -ec
+          - |
+            cd cloudcache-management-cf-plugin
+            ./build.sh
+- name: test-cloudcache-management-cf-plugin
+  serial: true
+  plan:
+  - in_parallel:
+    - get: cloudcache-management-cf-plugin
+      trigger: true
+      passed: [build-cloudcache-management-cf-plugin]
+    - get: golang-image
+  - task: build-image
+    timeout: 1h
+    image: golang-image
+    config:
+      inputs:
+        - name: cloudcache-management-cf-plugin
+      platform: linux
+      run:
+        path: /bin/sh
+        args:
+          - -ec
+          - |
+            apt-get update
+            apt-get install -y jq
+            cd cloudcache-management-cf-plugin
+            go get github.com/onsi/ginkgo/ginkgo
+            ginkgo -r
+
+- name: build-docker-image
+  plan:
+  - get: weekly
+    trigger: true
+  - get: cloudcache-management-cf-plugin-ci-dockerfile
+    trigger: true
+  - put: cloudcache-management-cf-plugin-ci-image
+    params:
+      build: cloudcache-management-cf-plugin-ci-dockerfile/ci/docker
+      tag_as_latest: true
+
+- name: get-env
+  plan:
+  - get: cloudcache-management-cf-plugin
+    trigger: true
+    passed: [test-cloudcache-management-cf-plugin]
+  - get: cloudcache-management-cf-plugin-ci-image
+  - put: gcp-env
+    tags: [cloudcache-management-cf-plugin]
+    params:
+      action: claim
+  - task: output-env-details
+    config:
+      platform: linux
+      inputs:
+      - name: gcp-env
+      image_resource:
+        type: docker-image
+        source:
+          repository: alpine
+      run:
+        path: sh
+        args:
+        - -ec
+        - head -1000 gcp-env/*
+
+- name: install-pcc-and-run-tests
+  plan:
+  - aggregate:
+    - get: gcp-env
+      tags: [cloudcache-management-cf-plugin]
+      trigger: true
+      passed:
+      - get-env
+    - get: cloudcache-management-cf-plugin
+      trigger: true
+      passed:
+      - get-env
+    - get: latest-ci-passing-pcc
+    - get: stemcell
+      params:
+        preserve_filename: true
+        globs: ["*google*"]
+    - get: cloudcache-management-cf-plugin-ci-image
+  - task: install-pcc
+    image: cloudcache-management-cf-plugin-ci-image
+    config:
+      platform: linux
+      inputs:
+      - name: gcp-env
+      - name: latest-ci-passing-pcc
+      - name: cloudcache-management-cf-plugin
+      - name: stemcell
+      run:
+        path: bash
+        args:
+        - -exc
+        - |
+          cd cloudcache-management-cf-plugin
+          ci/install.sh -p "$PWD/latest-ci-passing-pcc" -s "$(ls $PWD/stemcell/*.tgz)" -g "$PWD/gcp-env/metadata"
+          ci/create-service.bash -g "$PWD/gcp-env/metadata"
+          ci/smoke-test.bash "${PWD}/gcp-env/metadata"
+
+- name: release-env
+  plan:
+  - get: gcp-env
+    tags: [cloudcache-management-cf-plugin]
+    trigger: true
+    passed:
+    - install-pcc-and-run-tests
+  - put: gcp-env
+    tags: [cloudcache-management-cf-plugin]
+    params:
+      action: unclaim
+      env_file: gcp-env/metadata

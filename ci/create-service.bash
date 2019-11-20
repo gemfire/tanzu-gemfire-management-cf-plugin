@@ -77,6 +77,7 @@ login_to_cf_cli
 create_space
 create_service_instance
 wait_for_create_service
+cf create-service-key "${service_instance_name}" myKey
 
 set +e
 exit 0

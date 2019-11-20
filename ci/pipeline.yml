@@ -47,7 +47,7 @@ resources:
 
 - name: gcp-env
   type: pcf-pool
-  tags: [cloudcache-management-cf-plugin]
+  tags: [pivotal-internal-worker]
   source:
     api_token: ((poolsmiths-api-token))
     hostname: environments.toolsmiths.cf-app.com
@@ -158,7 +158,7 @@ jobs:
     passed: [test-cloudcache-management-cf-plugin]
   - get: cloudcache-management-cf-plugin-ci-image
   - put: gcp-env
-    tags: [cloudcache-management-cf-plugin]
+    tags: [pivotal-internal-worker]
     params:
       action: claim
   - task: output-env-details
@@ -180,7 +180,7 @@ jobs:
   plan:
   - aggregate:
     - get: gcp-env
-      tags: [cloudcache-management-cf-plugin]
+      tags: [pivotal-internal-worker]
       trigger: true
       passed:
       - get-env
@@ -209,19 +209,19 @@ jobs:
         - -exc
         - |
           cd cloudcache-management-cf-plugin
-          ci/install.sh -p "$PWD/latest-ci-passing-pcc" -s "$(ls $PWD/stemcell/*.tgz)" -g "$PWD/gcp-env/metadata"
-          ci/create-service.bash -g "$PWD/gcp-env/metadata"
-          ci/smoke-test.bash "${PWD}/gcp-env/metadata"
+          ci/install.sh -p "$PWD/../latest-ci-passing-pcc" -s "$(ls $PWD/../stemcell/*.tgz)" -g "$PWD/../gcp-env/metadata"
+          ci/create-service.bash -g "$PWD/../gcp-env/metadata"
+          ci/smoke-test.bash "${PWD}/../gcp-env/metadata"
 
 - name: release-env
   plan:
   - get: gcp-env
-    tags: [cloudcache-management-cf-plugin]
+    tags: [pivotal-internal-worker]
     trigger: true
     passed:
     - install-pcc-and-run-tests
   - put: gcp-env
-    tags: [cloudcache-management-cf-plugin]
+    tags: [pivotal-internal-worker]
     params:
       action: unclaim
       env_file: gcp-env/metadata

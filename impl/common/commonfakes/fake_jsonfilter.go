@@ -8,7 +8,7 @@ import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 )
 
-type FakeJsonFilter struct {
+type FakeJSONFilter struct {
 	FilterStub        func(string, string) ([]json.RawMessage, error)
 	filterMutex       sync.RWMutex
 	filterArgsForCall []struct {
@@ -27,7 +27,7 @@ type FakeJsonFilter struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeJsonFilter) Filter(arg1 string, arg2 string) ([]json.RawMessage, error) {
+func (fake *FakeJSONFilter) Filter(arg1 string, arg2 string) ([]json.RawMessage, error) {
 	fake.filterMutex.Lock()
 	ret, specificReturn := fake.filterReturnsOnCall[len(fake.filterArgsForCall)]
 	fake.filterArgsForCall = append(fake.filterArgsForCall, struct {
@@ -46,26 +46,26 @@ func (fake *FakeJsonFilter) Filter(arg1 string, arg2 string) ([]json.RawMessage,
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeJsonFilter) FilterCallCount() int {
+func (fake *FakeJSONFilter) FilterCallCount() int {
 	fake.filterMutex.RLock()
 	defer fake.filterMutex.RUnlock()
 	return len(fake.filterArgsForCall)
 }
 
-func (fake *FakeJsonFilter) FilterCalls(stub func(string, string) ([]json.RawMessage, error)) {
+func (fake *FakeJSONFilter) FilterCalls(stub func(string, string) ([]json.RawMessage, error)) {
 	fake.filterMutex.Lock()
 	defer fake.filterMutex.Unlock()
 	fake.FilterStub = stub
 }
 
-func (fake *FakeJsonFilter) FilterArgsForCall(i int) (string, string) {
+func (fake *FakeJSONFilter) FilterArgsForCall(i int) (string, string) {
 	fake.filterMutex.RLock()
 	defer fake.filterMutex.RUnlock()
 	argsForCall := fake.filterArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeJsonFilter) FilterReturns(result1 []json.RawMessage, result2 error) {
+func (fake *FakeJSONFilter) FilterReturns(result1 []json.RawMessage, result2 error) {
 	fake.filterMutex.Lock()
 	defer fake.filterMutex.Unlock()
 	fake.FilterStub = nil
@@ -75,7 +75,7 @@ func (fake *FakeJsonFilter) FilterReturns(result1 []json.RawMessage, result2 err
 	}{result1, result2}
 }
 
-func (fake *FakeJsonFilter) FilterReturnsOnCall(i int, result1 []json.RawMessage, result2 error) {
+func (fake *FakeJSONFilter) FilterReturnsOnCall(i int, result1 []json.RawMessage, result2 error) {
 	fake.filterMutex.Lock()
 	defer fake.filterMutex.Unlock()
 	fake.FilterStub = nil
@@ -91,7 +91,7 @@ func (fake *FakeJsonFilter) FilterReturnsOnCall(i int, result1 []json.RawMessage
 	}{result1, result2}
 }
 
-func (fake *FakeJsonFilter) Invocations() map[string][][]interface{} {
+func (fake *FakeJSONFilter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.filterMutex.RLock()
@@ -103,7 +103,7 @@ func (fake *FakeJsonFilter) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeJsonFilter) recordInvocation(key string, args []interface{}) {
+func (fake *FakeJSONFilter) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -115,4 +115,4 @@ func (fake *FakeJsonFilter) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ common.JsonFilter = new(FakeJsonFilter)
+var _ common.JSONFilter = new(FakeJSONFilter)

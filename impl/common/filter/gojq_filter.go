@@ -16,37 +16,56 @@
 package filter
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 
-	jq "github.com/jmelchio/gojq/cli"
+	"github.com/itchyny/gojq"
 )
 
+// GOJQFilter is the placeholder struct for the Filter interface implementation
 type GOJQFilter struct{}
 
+// Filter is the implementation of the Filter interface
 func (filter *GOJQFilter) Filter(jsonString string, expr string) ([]json.RawMessage, error) {
-	var inputBuffer bytes.Buffer
-	var outputBuffer bytes.Buffer
-	var errBuffer bytes.Buffer
-
-	inputBuffer.WriteString(jsonString)
-
-	args := []string{expr, "-M"}
-	returnCode := jq.RunLib(&inputBuffer, &outputBuffer, &errBuffer, args)
-
-	if returnCode != 0 {
-		return nil, errors.New(fmt.Sprintf("json query failed: %s, %d", errBuffer.String(), returnCode))
-	}
-	if outputBuffer.Len() == 0 {
-		return []json.RawMessage{}, nil
-	}
-	dec := json.NewDecoder(&outputBuffer)
-	var output json.RawMessage
-	err := dec.Decode(&output)
+	query, err := gojq.Parse(expr)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("problem decoding output: %s", err.Error()))
+		return nil, fmt.Errorf("json query failed: %s", err.Error())
 	}
-	return []json.RawMessage{output}, nil
+
+	var returnJSON []json.RawMessage
+
+	var interfaceInput interface{}
+	err = json.Unmarshal([]byte(jsonString), &interfaceInput)
+	if err != nil {
+		return nil, fmt.Errorf("problem decoding input: %s", err.Error())
+	}
+	iter := query.Run(interfaceInput)
+	for {
+		v, ok := iter.Next()
+		if !ok {
+			break
+		}
+		switch x := v.(type) {
+		case error:
+			return nil, fmt.Errorf("problem decoding output: %s", x.Error())
+		case [2]interface{}:
+			if s, ok := x[0].(string); ok {
+				if s == "HALT:" {
+					return returnJSON, nil
+				}
+				if s == "STDERR:" {
+					return nil, fmt.Errorf("problem decoding output: %s", x[1])
+				}
+			}
+		case json.RawMessage:
+			returnJSON = append(returnJSON, x)
+		default:
+			rawJSON, err := json.Marshal(v)
+			if err != nil {
+				return nil, fmt.Errorf("problem decoding output: %v", v)
+			}
+			returnJSON = append(returnJSON, rawJSON)
+		}
+	}
+	return returnJSON, nil
 }

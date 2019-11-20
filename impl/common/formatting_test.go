@@ -95,7 +95,7 @@ var _ = Describe("Formatting", func() {
 		)
 
 		BeforeEach(func() {
-			formatter = common.Formatter{JsonFilter: new(filter.GOJQFilter)}
+			formatter = common.Formatter{JSONFilter: new(filter.GOJQFilter)}
 		})
 
 		It("Returns the input as an indented string", func() {
@@ -149,6 +149,22 @@ var _ = Describe("Formatting", func() {
 			output, err := formatter.FormatResponse(inputString, ".", false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(" name  \n-------\n value \n\nJQFilter: .\n"))
+		})
+
+		It("Returns list results with filter", func() {
+			inputString := `{"result": [{"name": "value1"}, {"name":"value2"}, {"name":"value3"}, {"name":"value4"}]}`
+			filter := `.result[]`
+			output, err := formatter.FormatResponse(inputString, filter, false)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output).To(Equal(` name   
+--------
+ value1 
+ value2 
+ value3 
+ value4 
+
+JQFilter: .result[]
+`))
 		})
 	})
 

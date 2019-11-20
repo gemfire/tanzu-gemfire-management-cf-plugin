@@ -194,6 +194,7 @@ jobs:
         preserve_filename: true
         globs: ["*google*"]
     - get: cloudcache-management-cf-plugin-ci-image
+    - get: golang-image
   - task: install-pcc
     image: cloudcache-management-cf-plugin-ci-image
     config:
@@ -211,6 +212,36 @@ jobs:
           cd cloudcache-management-cf-plugin
           ci/install.sh -p "$PWD/../latest-ci-passing-pcc" -s "$(ls $PWD/../stemcell/*.tgz)" -g "$PWD/../gcp-env/metadata"
           ci/create-service.bash -g "$PWD/../gcp-env/metadata"
+  - task: build-plugin
+    timeout: 1h
+    image: golang-image
+    config:
+      inputs:
+        - name: cloudcache-management-cf-plugin
+      outputs:
+        - name: pcc-plugin
+      platform: linux
+      run:
+        path: /bin/sh
+        args:
+          - -ec
+          - |
+            cd cloudcache-management-cf-plugin
+            ./build.sh
+  - task: smoke-test
+    image: cloudcache-management-cf-plugin-ci-image
+    config:
+      platform: linux
+      inputs:
+      - name: gcp-env
+      - name: cloudcache-management-cf-plugin
+      - name: pcc-plugin
+      run:
+        path: bash
+        args:
+        - -exc
+        - |
+          cd cloudcache-management-cf-plugin
           ci/smoke-test.bash "${PWD}/../gcp-env/metadata"
 
 - name: release-env

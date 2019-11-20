@@ -35,7 +35,7 @@ function login_and_target_cf_space() {
 
 function install_plugin() {
   echo Installing plugin
-  ./install.sh
+  echo Y | cf install-plugin ../pcc-plugin/pcc
 }
 
 function smoke_test() {

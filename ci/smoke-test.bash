@@ -2,7 +2,6 @@
 set -ex -o pipefail
 
 service_instance_name="test"
-cf="cf pcc ${service_instance_name}"
 
 function expect {
   tee result.json

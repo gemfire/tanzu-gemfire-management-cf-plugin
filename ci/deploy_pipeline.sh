@@ -235,7 +235,7 @@ for gem in $STANDALONE_GEMFIRE_VERSIONS; do
             cd cloudcache-management-cf-plugin
             ./build.sh
             cp pcc ../pcc-plugin/
-  - task: standalone-rest-accept-test
+  - task: standalone-test
     timeout: 1h
     config:
       image_resource:
@@ -260,7 +260,7 @@ for gem in $STANDALONE_GEMFIRE_VERSIONS; do
             cd cloudcache-management-cf-plugin
             pcc="../pcc-plugin/pcc"
             \$pcc --help
-            cf="\$pcc http://localhost:7070" ci/smoke_test.bash
+            cf="\$pcc http://localhost:7070" ci/smoke-test.bash
 EOF
 done
 for gem in $STANDALONE_GEMFIRE_VERSIONS ; do

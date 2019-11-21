@@ -1,54 +1,26 @@
 #!/usr/bin/env bash
-set -e
-gcp_metadata_path=${1}
+set -ex -o pipefail
 
-env_name=$(jq -r .name < "${gcp_metadata_path}")
-ops_man_user="$(jq -r .ops_manager.username < "${gcp_metadata_path}")"
-ops_man_url="$(jq -r .ops_manager.url < "${gcp_metadata_path}")"
-ops_man_password="$(jq -r .ops_manager.password < "${gcp_metadata_path}")"
 service_instance_name="test"
+cf="cf pcc ${service_instance_name}"
 
-om_exec() {
-   om --target "${ops_man_url}" --username "${ops_man_user}" --password "${ops_man_password}"  --skip-ssl-validation "$@"
-   return $?
+function expect {
+  tee result.json
+  for s; do
+    if ! grep -q "$s" result.json ; then
+      echo "Test Failed: expected '$s' but it was not found" 1>&2
+      exit 1
+    fi
+  done
 }
 
-function login_and_target_cf_space() {
-  echo "getting cf guid"
-  cf_guid="$(om_exec curl -s -x GET --path /api/v0/deployed/products -s | jq -r 'map(select(.type=="cf")) | .[].guid')"
-  if [[ $? -ne 0 ]] || [[ "$cf_guid" == "" ]]; then
-    error "failed to get the cf guid"
-    exit 1
-  fi
-
-  echo "getting auth info"
-  uaa_admin_password="$(om_exec  curl -s -x GET --path /api/v0/deployed/products/${cf_guid}/credentials/.uaa.admin_credentials -s | jq -r .credential.value.password)"
-  if [[ $? -ne 0 ]] || [[ "$uaa_admin_password" == "" ]]; then
-    error "failed to get the uaa_admin_password"
-    exit 1
-  fi
-
-  echo "cf_guid = ${cf_guid}, password=${uaa_admin_password}"
-
-  cf login -a https://api.sys.${env_name}.cf-app.com -u "admin" -p "${uaa_admin_password}" -o "system" -s "test_space" --skip-ssl-validation
+function expectSuccess {
+  expect '"statusCode": "OK"'
 }
 
-function install_plugin() {
-  echo Installing plugin
-  echo Y | cf install-plugin ../pcc-plugin/pcc
-}
-
-function smoke_test() {
-  set -x
-  cf pcc --help
-  cf pcc ${service_instance_name} list members
-  echo status code: $?
-  exit 1
-  set +x
-}
-
-login_and_target_cf_space
-install_plugin
-smoke_test
-
-set +e
+cf pcc --help
+$cf commands
+$cf commands | grep ^list | sed 's/.--.*//' | while read cmd; do
+  $cf $cmd | expectSuccess
+done
+$cf list members

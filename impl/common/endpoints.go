@@ -99,8 +99,12 @@ func buildStructure(propertiesMap map[string]domain.PropertyDetail, definitions 
 			if len(property.Ref) > 0 {
 				refName := strings.ReplaceAll(property.Ref, "#/definitions/", "")
 				if refName != "" {
-					subStructure := buildStructure(definitions[refName].Properties, definitions)
-					structure[key] = subStructure
+					if refName == "DeclarableType" {
+						structure[key] = "DeclarableType"
+					} else {
+						subStructure := buildStructure(definitions[refName].Properties, definitions)
+						structure[key] = subStructure
+					}
 				}
 			}
 		default:
@@ -122,6 +126,9 @@ func generateSampleArray(itemMap map[string]string, definitions map[string]domai
 		if len(itemMap["$ref"]) > 0 {
 			refName := strings.ReplaceAll(itemMap["$ref"], "#/definitions/", "")
 			if refName != "" {
+				if refName == "DeclarableType" {
+					return []string{"DeclarableType", "DeclarableType"}
+				}
 				subStructure := buildStructure(definitions[refName].Properties, definitions)
 				return []interface{}{subStructure}
 			}

@@ -156,45 +156,36 @@ jobs:
     - get: cloudcache-management-cf-plugin
       trigger: true
     - get: golang-image
-  - task: build-plugin
-    timeout: 1h
-    image: golang-image
-    config:
-      inputs:
-        - name: cloudcache-management-cf-plugin
-      platform: linux
-      run:
-        path: /bin/sh
-        args:
-          - -ec
-          - |
-            cd cloudcache-management-cf-plugin
-            ./build.sh
-- name: test-cloudcache-management-cf-plugin
-  serial: true
-  plan:
   - in_parallel:
-    - get: cloudcache-management-cf-plugin
-      trigger: true
-      passed: [build-cloudcache-management-cf-plugin]
-    - get: golang-image
-  - task: build-plugin
-    timeout: 1h
-    image: golang-image
-    config:
-      inputs:
-        - name: cloudcache-management-cf-plugin
-      platform: linux
-      run:
-        path: /bin/sh
-        args:
-          - -ec
-          - |
-            apt-get update
-            apt-get install -y jq
-            cd cloudcache-management-cf-plugin
-            go get github.com/onsi/ginkgo/ginkgo
-            ginkgo -r
+    - task: build-plugin
+      timeout: 1h
+      image: golang-image
+      config:
+        inputs:
+          - name: cloudcache-management-cf-plugin
+        platform: linux
+        run:
+          path: /bin/sh
+          args:
+            - -ec
+            - |
+              cd cloudcache-management-cf-plugin
+              ./build.sh
+    - task: ginkgo
+      timeout: 1h
+      image: golang-image
+      config:
+        inputs:
+          - name: cloudcache-management-cf-plugin
+        platform: linux
+        run:
+          path: /bin/sh
+          args:
+            - -ec
+            - |
+              cd cloudcache-management-cf-plugin
+              go get github.com/onsi/ginkgo/ginkgo
+              ginkgo -r
 
 - name: build-docker-image
   plan:
@@ -215,7 +206,7 @@ for gem in $STANDALONE_GEMFIRE_VERSIONS; do
   - in_parallel:
     - get: cloudcache-management-cf-plugin
       trigger: true
-      passed: [test-cloudcache-management-cf-plugin]
+      passed: [build-cloudcache-management-cf-plugin]
     - get: golang-image
     - get: gemfire-$gem
   - task: build-plugin

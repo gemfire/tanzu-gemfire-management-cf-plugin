@@ -17,7 +17,6 @@ function expectSuccess {
   expect '"statusCode": "OK"'
 }
 
-cf pcc --help
 $cf commands
 $cf commands | grep ^list | sed 's/.--.*//' | while read cmd; do
   $cf $cmd | expectSuccess

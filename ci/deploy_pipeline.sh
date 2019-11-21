@@ -156,36 +156,21 @@ jobs:
     - get: cloudcache-management-cf-plugin
       trigger: true
     - get: golang-image
-  - in_parallel:
-    - task: build-plugin
-      timeout: 1h
-      image: golang-image
-      config:
-        inputs:
-          - name: cloudcache-management-cf-plugin
-        platform: linux
-        run:
-          path: /bin/sh
-          args:
-            - -ec
-            - |
-              cd cloudcache-management-cf-plugin
-              ./build.sh
-    - task: ginkgo
-      timeout: 1h
-      image: golang-image
-      config:
-        inputs:
-          - name: cloudcache-management-cf-plugin
-        platform: linux
-        run:
-          path: /bin/sh
-          args:
-            - -ec
-            - |
-              cd cloudcache-management-cf-plugin
-              go get github.com/onsi/ginkgo/ginkgo
-              ginkgo -r
+  - task: ginkgo
+    timeout: 1h
+    image: golang-image
+    config:
+      inputs:
+        - name: cloudcache-management-cf-plugin
+      platform: linux
+      run:
+        path: /bin/sh
+        args:
+          - -ec
+          - |
+            cd cloudcache-management-cf-plugin
+            go get github.com/onsi/ginkgo/ginkgo
+            ginkgo -r
 
 - name: build-docker-image
   plan:

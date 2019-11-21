@@ -63,6 +63,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	err = c.comm.ProcessCommand(&c.commandData)
 	if err != nil {
 		fmt.Println(err.Error())
+		os.Exit(1)
 	}
 
 	return

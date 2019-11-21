@@ -15,7 +15,12 @@ function expect {
   set -x
 }
 
+# Test that we can list available commands
 $cf commands
+
+# Test that we can list all top-level collections
 $cf commands | grep '^list *[^ ]*s\b' | sed 's/.--.*//' | while read cmd; do
   $cf $cmd | expect '"statusCode": "OK"'
 done
+
+# Add more tests here!

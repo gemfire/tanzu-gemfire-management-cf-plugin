@@ -17,7 +17,7 @@
 
 # Concourse configuration
 TARGET=concourse.gemfire-ci.info
-TEAM=developer
+TEAM=main
 PIPELINE=cloudcache-management-cf-plugin
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
@@ -194,6 +194,9 @@ for gem in $STANDALONE_GEMFIRE_VERSIONS; do
       passed: [build-cloudcache-management-cf-plugin]
     - get: golang-image
     - get: gemfire-$gem
+EOF
+function buildPlugin {
+  cat << EOF >> pipeline.yml
   - task: build-plugin
     timeout: 1h
     image: golang-image
@@ -211,6 +214,10 @@ for gem in $STANDALONE_GEMFIRE_VERSIONS; do
             cd cloudcache-management-cf-plugin
             ./build.sh
             cp pcc ../pcc-plugin/
+EOF
+}
+buildPlugin
+cat << EOF >> pipeline.yml
   - task: standalone-test
     timeout: 1h
     config:
@@ -262,6 +269,9 @@ for pccver in $PCC_VERSIONS; do
       tags: [pivotal-internal-worker]
       params:
         action: claim
+EOF
+buildPlugin
+cat << EOF >> pipeline.yml
   - task: install-pcc
     image: cloudcache-management-cf-plugin-ci-image
     config:
@@ -279,24 +289,7 @@ for pccver in $PCC_VERSIONS; do
           cd cloudcache-management-cf-plugin
           ci/install.sh -p "../pcc-$pccver" -s "\$(ls ../stemcell/*.tgz)" -g "../gcp-env/metadata"
           ci/create-service.bash -g "../gcp-env/metadata"
-  - task: build-plugin
-    timeout: 1h
-    image: golang-image
-    config:
-      inputs:
-        - name: cloudcache-management-cf-plugin
-      outputs:
-        - name: pcc-plugin
-      platform: linux
-      run:
-        path: /bin/sh
-        args:
-          - -ec
-          - |
-            cd cloudcache-management-cf-plugin
-            ./build.sh
-            cp pcc ../pcc-plugin/
-  - task: smoke-test
+  - task: plugin-test
     image: cloudcache-management-cf-plugin-ci-image
     config:
       platform: linux

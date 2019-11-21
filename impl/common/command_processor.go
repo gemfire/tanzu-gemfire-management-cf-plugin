@@ -90,7 +90,7 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 		}
 	}
 
-	formatter := &Formatter{JsonFilter: new(filter.GOJQFilter)}
+	formatter := &Formatter{JSONFilter: new(filter.GOJQFilter)}
 	jsonToBePrinted, err := formatter.FormatResponse(urlResponse, jqFilter, userFilter)
 	if err != nil {
 		return
@@ -100,6 +100,7 @@ func (c *CommandProcessor) ProcessCommand(commandData *domain.CommandData) (err 
 	return
 }
 
+// CheckRequiredParam checks if required parameters have been provided
 func CheckRequiredParam(restEndPoint domain.RestEndPoint, command domain.UserCommand) error {
 	for _, s := range restEndPoint.Parameters {
 		if s.Required {

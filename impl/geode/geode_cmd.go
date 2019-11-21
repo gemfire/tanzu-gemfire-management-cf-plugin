@@ -22,19 +22,20 @@ import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 )
 
-type geodeCommand struct {
+// Command is the basic struct that the command works on
+type Command struct {
 	commandData domain.CommandData
 	comm        common.CommandProcessor
 }
 
 // NewGeodeCommand provides a constructor for the Geode standalone implementation for the client
-func NewGeodeCommand(comm common.CommandProcessor) (geodeCommand, error) {
-	return geodeCommand{comm: comm}, nil
+func NewGeodeCommand(comm common.CommandProcessor) (Command, error) {
+	return Command{comm: comm}, nil
 }
 
 // Run is the main entry point for the standalone Geode command line interface
 // It is run once for each command executed
-func (gc *geodeCommand) Run(args []string) (err error) {
+func (gc *Command) Run(args []string) (err error) {
 
 	gc.commandData.Target, gc.commandData.UserCommand = common.GetTargetAndClusterCommand(args)
 

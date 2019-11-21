@@ -348,4 +348,4 @@ done
 
 fly -t ${TARGET} login --team-name=${TEAM} --concourse-url=https://${TARGET}
 fly -t ${TARGET} set-pipeline -p ${PIPELINE} -c pipeline.yml
-#rm pipeline.yml
+rm pipeline.yml

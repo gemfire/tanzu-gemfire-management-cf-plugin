@@ -289,7 +289,7 @@ jobs:
   plan:
   - get: cloudcache-management-cf-plugin
     trigger: true
-    passed: [test-cloudcache-management-cf-plugin, test-cloudcache-management-cf-standalone-9.9, test-cloudcache-management-cf-standalone-develop]
+    passed: [test-cloudcache-management-cf-standalone-9.9]
   - get: cloudcache-management-cf-plugin-ci-image
   - put: gcp-env
     tags: [pivotal-internal-worker]

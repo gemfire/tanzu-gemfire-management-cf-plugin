@@ -39,10 +39,12 @@ function install_plugin() {
 }
 
 function smoke_test() {
+  set -x
   cf pcc --help
   cf pcc ${service_instance_name} list members
   echo status code: $?
   exit 1
+  set +x
 }
 
 login_and_target_cf_space

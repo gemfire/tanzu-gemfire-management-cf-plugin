@@ -1,0 +1,114 @@
+product-name:
+  ((product_name))
+product-properties:
+  .properties.vm_extensions:
+    value: ["public_ip"]
+  .properties.default_distributed_system_id:
+    value: 5
+  .properties.syslog:
+    value: "disable"
+  .properties.errand_plan:
+    value: "devplan"
+  .properties.plan1_enable_service_plan:
+    value: "enable"
+  .properties.plan1_enable_service_plan.enable.plan_description:
+    value: "Caching Plan 1"
+  .properties.plan1_enable_service_plan.enable.service_metrics:
+    value: true
+  .properties.plan1_enable_service_plan.enable.cf_service_access:
+    value: "enable"
+  .properties.plan1_enable_service_plan.enable.service_instance_quota:
+    value: 12
+  .properties.plan1_enable_service_plan.enable.service_instance_azs:
+    value: ((availability_zones_for_gcp))
+  .properties.plan1_enable_service_plan.enable.locator_vm_type:
+    value: "medium.mem"
+  .properties.plan1_enable_service_plan.enable.locator_persistent_disk_type:
+    value: "10240"
+  .properties.plan1_enable_service_plan.enable.server_vm_type:
+    value: "medium.mem"
+  .properties.plan1_enable_service_plan.enable.server_persistent_disk_type:
+    value: "10240"
+  .properties.plan2_enable_service_plan:
+    value: "enable"
+  .properties.plan2_enable_service_plan.enable.plan_description:
+    value: "Caching Plan 2"
+  .properties.plan2_enable_service_plan.enable.cf_service_access:
+    value: "enable"
+  .properties.plan2_enable_service_plan.enable.service_metrics:
+    value: false
+  .properties.plan2_enable_service_plan.enable.service_instance_quota:
+    value: 12
+  .properties.plan2_enable_service_plan.enable.service_instance_azs:
+    value: ((availability_zones_for_gcp))
+  .properties.plan2_enable_service_plan.enable.locator_vm_type:
+    value: "medium.mem"
+  .properties.plan2_enable_service_plan.enable.locator_persistent_disk_type:
+    value: "10240"
+  .properties.plan2_enable_service_plan.enable.server_vm_type:
+    value: "xlarge.mem"
+  .properties.plan2_enable_service_plan.enable.server_persistent_disk_type:
+    value: "10240"
+  .properties.plan3_enable_service_plan:
+    value: "enable"
+  .properties.plan3_enable_service_plan.enable.plan_description:
+    value: "Manual Caching Plan 3"
+  .properties.plan3_enable_service_plan.enable.cf_service_access:
+    value: "manual"
+  .properties.plan3_enable_service_plan.enable.service_instance_quota:
+    value: 12
+  .properties.plan3_enable_service_plan.enable.service_instance_azs:
+    value: ((availability_zones_for_gcp))
+  .properties.plan3_enable_service_plan.enable.locator_vm_type:
+    value: "xlarge.mem"
+  .properties.plan3_enable_service_plan.enable.locator_persistent_disk_type:
+    value: "10240"
+  .properties.plan3_enable_service_plan.enable.server_vm_type:
+    value: "medium.mem"
+  .properties.plan3_enable_service_plan.enable.server_persistent_disk_type:
+    value: "10240"
+  .properties.plan3_enable_service_plan.enable.service_metrics:
+    value: false
+  .properties.plan4_enable_service_plan:
+    value: "disable"
+  .properties.plan5_enable_service_plan:
+    value: "disable"
+  .properties.dev_plan_enable_service_plan:
+    value: "enable"
+  .properties.dev_plan_enable_service_plan.enable.cf_service_access:
+    value: "enable"
+  .properties.dev_plan_enable_service_plan.enable.service_instance_quota:
+    value: 12
+  .properties.dev_plan_enable_service_plan.enable.service_instance_azs:
+    value: ((availability_zones_for_gcp))
+  .properties.dev_plan_enable_service_plan.enable.vm_type:
+    value: "medium.mem"
+  .properties.dev_plan_enable_service_plan.enable.persistent_disk_type:
+    value: "10240"
+  .properties.confirm_tls_setup:
+    value: "X"
+  .properties.small_footprint_enable_service_plan:
+    value: "enable"
+  .properties.small_footprint_enable_service_plan.enable.cf_service_access:
+    value: "enable"
+  .properties.small_footprint_enable_service_plan.enable.service_metrics:
+    value: true
+  .properties.small_footprint_enable_service_plan.enable.service_instance_quota:
+    value: 12
+  .properties.small_footprint_enable_service_plan.enable.service_instance_azs:
+    value: ((availability_zones_for_gcp))
+  .properties.small_footprint_enable_service_plan.enable.vm_type:
+    value: "medium.mem"
+  .properties.small_footprint_enable_service_plan.enable.persistent_disk_type:
+    value: "10240"
+network-properties:
+  network:
+    name: ((pas_network))
+  singleton_availability_zone:
+    name: ((availability_zone_0))
+  other_availability_zones:
+    - name: ((availability_zone_0))
+    - name: ((availability_zone_1))
+    - name: ((availability_zone_2))
+  service_network:
+    name: ((services_network))

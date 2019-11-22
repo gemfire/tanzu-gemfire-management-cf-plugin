@@ -25,8 +25,11 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 POOL_NAME=us_2_6
 POOLSMITHS_API_TOKEN=0d82e637-6681-4d4a-9e9f-90a71db5de0d
 
-# To get PCC snapshots and releases
+# To get PCC and stemcell snapshots and releases
 PIVNET_API_TOKEN=c90e06904710409eb60d55459e3b3dbd-r
+
+# To get access to latest stemcells
+PIVNET_API_TOKEN_LATEST=4b4b8fadaac9460dbdc0f6dd08c2939a-r
 
 # Blessed PCC tile from https://pcc1.ci.cf-app.com/teams/main/pipelines/cloudcache-1.10.x
 BLESSED_KEY="AKIAJPMW5"G'JQJPVJVR6Q'
@@ -35,9 +38,11 @@ BLESSED_SECRET='n41r3zdlwKCtln'"w22plhTJUhE"/9iBWQmh4p26fPY
 # Version(s) of GemFire for stand-alone testing, whitespace-separated
 STANDALONE_GEMFIRE_VERSIONS="9.9 9.10 develop"
 
-# Version(s) of PCC+stemcell for testing as plugin, whitespace-separated
-# See https://docs.google.com/spreadsheets/d/1iYp71cfXVXCeJF5mm9Wh6KoVCjjm64eAICprjwSK1Zk/edit
-PCC_VERSIONS="1.10+456"
+# Version(s) of PCC+stemcell for testing as plugin, whitespace-separated.
+# Last one in the list will be taken from blessed bucket, the rest from pivnet
+# Special string latest gives latest stemcell, for example 1.9+456 1.10+latest
+# See https://docs.google.com/spreadsheets/d/1iYp71cfXVXCeJF5mm9Wh6KoVCjjm64eAICprjwSK1Zk/edit and https://bosh.io/stemcells/
+PCC_VERSIONS="1.10+latest"
 
 cat << EOF > pipeline.yml
 ---
@@ -142,11 +147,21 @@ for stemcellver in $(for pccstemvers in $PCC_VERSIONS; do echo "${pccstemvers#*+
 - name: stemcell-$stemcellver
   type: pivnet
   source:
-    api_token: $PIVNET_API_TOKEN
     product_slug: stemcells-ubuntu-xenial
+EOF
+  if [ "$stemcellver" = "latest" ] ; then
+    cat << EOF >> pipeline.yml
+    api_token: $PIVNET_API_TOKEN
+    sort_by: semver
+
+EOF
+  else
+    cat << EOF >> pipeline.yml
+    api_token: $PIVNET_API_TOKEN_LATEST
     product_version: ${stemcellver}\..*
 
 EOF
+  fi
 done
 cat << EOF >> pipeline.yml
 - name: cloudcache-management-cf-plugin-ci-image

@@ -98,6 +98,7 @@ function deploy_tile() {
 
   echo ""
   echo "Deploying PCC product for deployment = ${pcc_deployment_guid}"
+  echo "If any error, look here for clues: $ops_man_url  user=$ops_man_user pass=$ops_man_password"
   trigger_json=$(om_exec curl -x POST --path "/api/v0/installations" -d '{"deploy_products": ["'"$pcc_deployment_guid"'"], "ignore_warnings": true }' 2> /dev/null)
   install_id=$(echo ${trigger_json} | jq .install.id)
 }

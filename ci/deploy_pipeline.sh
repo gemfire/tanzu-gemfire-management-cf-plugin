@@ -76,6 +76,14 @@ for pccstemvers in $PCC_VERSIONS; do
     api_token: $PIVNET_API_TOKEN
     product_slug: p-cloudcache
     product_version: ${regex}.*
+
+- name: pcc-env-$pccver
+  type: pcf-pool
+  tags: [pivotal-internal-worker]
+  source:
+    api_token: $POOLSMITHS_API_TOKEN
+    hostname: environments.toolsmiths.cf-app.com
+    pool_name: $POOL_NAME
 EOF
 done
 cat << EOF >> pipeline.yml
@@ -94,14 +102,6 @@ cat << EOF >> pipeline.yml
   source:
     repository: golang
     tag: latest
-
-- name: gcp-env
-  type: pcf-pool
-  tags: [pivotal-internal-worker]
-  source:
-    api_token: $POOLSMITHS_API_TOKEN
-    hostname: environments.toolsmiths.cf-app.com
-    pool_name: $POOL_NAME
 
 - name: cloudcache-management-cf-plugin-ci-dockerfile
   type: git
@@ -278,7 +278,7 @@ for pccstemvers in $PCC_VERSIONS; do
         globs: ["*google*"]
     - get: cloudcache-management-cf-plugin-ci-image
     - get: golang-image
-    - put: gcp-env
+    - put: pcc-env-$pccver
       tags: [pivotal-internal-worker]
       params:
         action: claim
@@ -290,7 +290,7 @@ cat << EOF >> pipeline.yml
     config:
       platform: linux
       inputs:
-      - name: gcp-env
+      - name: pcc-env-$pccver
       - name: pcc-$pccver
       - name: cloudcache-management-cf-plugin
       - name: stemcell-$stemcellver
@@ -300,14 +300,14 @@ cat << EOF >> pipeline.yml
         - -exc
         - |
           cd cloudcache-management-cf-plugin
-          ci/install.sh -p "../pcc-$pccver" -s ../stemcell-$stemcellver/*.tgz -g "../gcp-env/metadata"
-          ci/create-service.bash -g "../gcp-env/metadata"
+          ci/install.sh -p ../pcc-$pccver -s ../stemcell-$stemcellver/*.tgz -g ../pcc-env-$pccver/metadata
+          ci/create-service.bash -g ../pcc-env-$pccver/metadata
   - task: plugin-test
     image: cloudcache-management-cf-plugin-ci-image
     config:
       platform: linux
       inputs:
-      - name: gcp-env
+      - name: pcc-env-$pccver
       - name: cloudcache-management-cf-plugin
       - name: pcc-plugin
       run:
@@ -316,15 +316,15 @@ cat << EOF >> pipeline.yml
         - -exc
         - |
           cd cloudcache-management-cf-plugin
-          ci/login.bash "../gcp-env/metadata"
+          ci/login.bash ../pcc-env-$pccver/metadata
           cf="cf pcc test" ci/smoke-test.bash
     ensure:
       aggregate:
-      - put: gcp-env
+      - put: pcc-env-$pccver
         tags: [pivotal-internal-worker]
         params:
           action: unclaim
-          env_file: gcp-env/metadata
+          env_file: pcc-env-$pccver/metadata
 EOF
 done
 

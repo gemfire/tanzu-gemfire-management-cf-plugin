@@ -12,7 +12,11 @@ while getopts "p:s:g:" opt; do
 done
 
 product_path="$(ls ${product_dir_path}/*.pivotal)"
-product_version="$(cat ${product_dir_path}/metadata.json | jq  -r '.ProductFiles[] | select(.File | contains("p-cloudcache") ) | .FileVersion')"
+if [ -r ${product_dir_path}/metadata.json ] ; then
+  product_version="$(cat ${product_dir_path}/metadata.json | jq  -r '.ProductFiles[] | select(.File | contains("p-cloudcache") ) | .FileVersion')"
+else
+  product_version="$(cat ${product_dir_path}/version)"
+fi
 
 env_name=$(jq -r .name < "${gcp_metadata_path}")
 ops_man_user="$(jq -r .ops_manager.username < "${gcp_metadata_path}")"

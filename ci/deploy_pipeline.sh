@@ -28,6 +28,10 @@ POOLSMITHS_API_TOKEN=0d82e637-6681-4d4a-9e9f-90a71db5de0d
 # To get PCC snapshots and releases
 PIVNET_API_TOKEN=c90e06904710409eb60d55459e3b3dbd-r
 
+# Blessed PCC tile from https://pcc1.ci.cf-app.com/teams/main/pipelines/cloudcache-1.10.x
+BLESSED_KEY="AKIAJPMW5"G'JQJPVJVR6Q'
+BLESSED_SECRET='n41r3zdlwKCtln'"w22plhTJUhE"/9iBWQmh4p26fPY
+
 # Version(s) of GemFire for stand-alone testing, whitespace-separated
 STANDALONE_GEMFIRE_VERSIONS="9.9 9.10 develop"
 
@@ -66,17 +70,37 @@ EOF
   fi
 done
 for pccstemvers in $PCC_VERSIONS; do
+  latestpccver="${pccstemvers%+*}"
+done
+for pccstemvers in $PCC_VERSIONS; do
   pccver="${pccstemvers%+*}"
   stemcellver="${pccstemvers#*+}"
   regex=$(echo "${pccver}." | sed 's#\.#\\\.#')
+  [ "$pccver" = "$latestpccver" ] && getfrompivnet=false || getfrompivnet=true
   cat << EOF >> pipeline.yml
 - name: pcc-$pccver
+EOF
+  if [ "$getfrompivnet" = "false" ] ; then
+    cat << EOF >> pipeline.yml
+  type: s3
+  source:
+    bucket: cloudcache-eng
+    access_key_id: $BLESSED_KEY
+    secret_access_key: $BLESSED_SECRET
+    private: true
+    regexp: blessed-p-cloudcache-tile/p-cloudcache-(${regex}.*).pivotal
+
+EOF
+  else
+    cat << EOF >> pipeline.yml
   type: pivnet
   source:
     api_token: $PIVNET_API_TOKEN
     product_slug: p-cloudcache
     product_version: ${regex}.*
-
+EOF
+  fi
+  cat << EOF >> pipeline.yml
 - name: pcc-env-$pccver
   type: pcf-pool
   tags: [pivotal-internal-worker]

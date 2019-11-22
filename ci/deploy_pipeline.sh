@@ -25,12 +25,15 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 POOL_NAME=us_2_6
 POOLSMITHS_API_TOKEN=0d82e637-6681-4d4a-9e9f-90a71db5de0d
 
+# To get PCC snapshots and releases
+PIVNET_API_TOKEN=c90e06904710409eb60d55459e3b3dbd-r
+
 # Version(s) of GemFire for stand-alone testing, whitespace-separated
 STANDALONE_GEMFIRE_VERSIONS="9.9 9.10 develop"
 
-# Version(s) of PCC for testing as plugin, whitespace-separated
-PCC_VERSIONS="1.10"
-PIVNET_API_TOKEN=c90e06904710409eb60d55459e3b3dbd-r
+# Version(s) of PCC+stemcell for testing as plugin, whitespace-separated
+# See https://docs.google.com/spreadsheets/d/1iYp71cfXVXCeJF5mm9Wh6KoVCjjm64eAICprjwSK1Zk/edit
+PCC_VERSIONS="1.10+456"
 
 cat << EOF > pipeline.yml
 ---
@@ -62,7 +65,9 @@ cat << EOF >> pipeline.yml
 EOF
   fi
 done
-for pccver in $PCC_VERSIONS; do
+for pccstemvers in $PCC_VERSIONS; do
+  pccver="${pccstemvers%+*}"
+  stemcellver="${pccstemvers#*+}"
   regex=$(echo "${pccver}." | sed 's#\.#\\\.#')
   cat << EOF >> pipeline.yml
 - name: pcc-$pccver
@@ -107,13 +112,19 @@ cat << EOF >> pipeline.yml
       - "ci/docker/*"
     private_key: ((!gemfire-ci-private-key))
 
-- name: stemcell
+EOF
+for stemcellver in $(for pccstemvers in $PCC_VERSIONS; do echo "${pccstemvers#*+}"; done | sort -u); do
+  cat << EOF >> pipeline.yml
+- name: stemcell-$stemcellver
   type: pivnet
   source:
     api_token: $PIVNET_API_TOKEN
     product_slug: stemcells-ubuntu-xenial
-    product_version: 456\..*
+    product_version: ${stemcellver}\..*
 
+EOF
+done
+cat << EOF >> pipeline.yml
 - name: cloudcache-management-cf-plugin-ci-image
   type: docker-image
   source:
@@ -125,8 +136,8 @@ cat << EOF >> pipeline.yml
   type: time
   source:
     start: 3:00 AM
-    stop: 11:00 PM
-    days: [Wednesday]
+    stop: 10:00 AM
+    days: [Monday]
     location: America/Los_Angeles
 
 
@@ -250,7 +261,9 @@ for gem in $STANDALONE_GEMFIRE_VERSIONS ; do
   standalone_targets="$standalone_targets,test-cloudcache-management-cf-standalone-$gem"
 done
 standalone_targets=$(echo "$standalone_targets"|cut -c2-)
-for pccver in $PCC_VERSIONS; do
+for pccstemvers in $PCC_VERSIONS; do
+  pccver="${pccstemvers%+*}"
+  stemcellver="${pccstemvers#*+}"
   cat << EOF >> pipeline.yml
 - name: test-cloudcache-management-cf-pcc-$pccver
   plan:
@@ -259,7 +272,7 @@ for pccver in $PCC_VERSIONS; do
       trigger: true
       passed: [$standalone_targets]
     - get: pcc-$pccver
-    - get: stemcell
+    - get: stemcell-$stemcellver
       params:
         preserve_filename: true
         globs: ["*google*"]
@@ -280,14 +293,14 @@ cat << EOF >> pipeline.yml
       - name: gcp-env
       - name: pcc-$pccver
       - name: cloudcache-management-cf-plugin
-      - name: stemcell
+      - name: stemcell-$stemcellver
       run:
         path: bash
         args:
         - -exc
         - |
           cd cloudcache-management-cf-plugin
-          ci/install.sh -p "../pcc-$pccver" -s "\$(ls ../stemcell/*.tgz)" -g "../gcp-env/metadata"
+          ci/install.sh -p "../pcc-$pccver" -s ../stemcell-$stemcellver/*.tgz -g "../gcp-env/metadata"
           ci/create-service.bash -g "../gcp-env/metadata"
   - task: plugin-test
     image: cloudcache-management-cf-plugin-ci-image

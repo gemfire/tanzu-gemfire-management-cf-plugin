@@ -17,6 +17,7 @@ package common
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 
 	"code.cloudfoundry.org/cli/cf/errors"
@@ -32,7 +33,8 @@ func GetEndPoints(commandData *domain.CommandData, requester impl.RequestHelper)
 		return errors.New("unable to reach " + commandData.ConnnectionData.LocatorAddress + ": " + err.Error())
 	}
 
-	if statusCode == 404 {
+	fallbackCodes := "401 403 404 407"
+	if strings.Contains(fallbackCodes, strconv.Itoa(statusCode)) {
 		// if unable to reach /management/v1 then try /management/experimental for older releases
 		apiDocURL = commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
 		urlResponse, statusCode, err = requester.Exchange(apiDocURL, "GET", nil, nil)

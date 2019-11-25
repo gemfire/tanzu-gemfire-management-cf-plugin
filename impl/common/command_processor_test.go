@@ -60,8 +60,38 @@ var _ = Describe("CommandProcessor", func() {
 			Expect(helper.ExchangeCallCount()).To(Equal(1))
 		})
 
-		It("older url get the response", func() {
+		It("older url gets 404 the response", func() {
 			helper.ExchangeReturnsOnCall(0, "", 404, nil)
+			helper.ExchangeReturnsOnCall(1, "{}", 200, nil)
+			err = commandProcessor.ProcessCommand(&commandData)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Invalid command: "))
+			Expect(len(commandData.AvailableEndpoints)).To(BeZero())
+			Expect(helper.ExchangeCallCount()).To(Equal(2))
+		})
+
+		It("older url gets 401 the response", func() {
+			helper.ExchangeReturnsOnCall(0, "", 401, nil)
+			helper.ExchangeReturnsOnCall(1, "{}", 200, nil)
+			err = commandProcessor.ProcessCommand(&commandData)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Invalid command: "))
+			Expect(len(commandData.AvailableEndpoints)).To(BeZero())
+			Expect(helper.ExchangeCallCount()).To(Equal(2))
+		})
+
+		It("older url gets 403 the response", func() {
+			helper.ExchangeReturnsOnCall(0, "", 403, nil)
+			helper.ExchangeReturnsOnCall(1, "{}", 200, nil)
+			err = commandProcessor.ProcessCommand(&commandData)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Invalid command: "))
+			Expect(len(commandData.AvailableEndpoints)).To(BeZero())
+			Expect(helper.ExchangeCallCount()).To(Equal(2))
+		})
+
+		It("older url gets 407 the response", func() {
+			helper.ExchangeReturnsOnCall(0, "", 407, nil)
 			helper.ExchangeReturnsOnCall(1, "{}", 200, nil)
 			err = commandProcessor.ProcessCommand(&commandData)
 			Expect(err).To(HaveOccurred())

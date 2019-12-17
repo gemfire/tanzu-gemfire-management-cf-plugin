@@ -26,16 +26,40 @@ import (
 
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the Geode/PCC locator
 func GetEndPoints(commandData *domain.CommandData, requester impl.RequestHelper) error {
-	apiDocURL := commandData.ConnnectionData.LocatorAddress + "/management/v1/api-docs"
-	urlResponse, statusCode, err := requester.Exchange(apiDocURL, "GET", nil, nil)
+	var apiDocURL, urlResponse string
+	var statusCode int
+	var err error
+
+	managementURL := commandData.ConnnectionData.LocatorAddress + "/management/"
+	urlResponse, statusCode, err = requester.Exchange(managementURL, "GET", nil, nil)
 	if err != nil {
 		return errors.New("unable to reach " + commandData.ConnnectionData.LocatorAddress + ": " + err.Error())
 	}
 
 	if statusCode == 404 {
-		// if unable to reach /management/v1 then try /management/experimental for older releases
-		apiDocURL = commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
+		apiDocURL = commandData.ConnnectionData.LocatorAddress + "/management/v1/api-docs"
 		urlResponse, statusCode, err = requester.Exchange(apiDocURL, "GET", nil, nil)
+		if err != nil {
+			return errors.New("unable to reach " + commandData.ConnnectionData.LocatorAddress + ": " + err.Error())
+		}
+
+		if statusCode == 404 {
+			// if unable to reach /management/v1 then try /management/experimental for older releases
+			apiDocURL = commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
+			urlResponse, statusCode, err = requester.Exchange(apiDocURL, "GET", nil, nil)
+		}
+	} else if statusCode == 200 {
+		var docsMap map[string]interface{}
+		err = json.Unmarshal([]byte(urlResponse), &docsMap)
+		if err != nil {
+			return errors.New("unable to parse " + urlResponse + ". Error: " + err.Error());
+		}
+		apiDocURL, ok := docsMap["latest"]
+		if ok {
+			urlResponse, statusCode, err = requester.Exchange(getString(apiDocURL), "GET", nil, nil)
+		} else {
+			return errors.New("unable to get latest api doc URL: " + urlResponse + ".");
+		}
 	}
 
 	if statusCode != 200 {
@@ -44,7 +68,6 @@ func GetEndPoints(commandData *domain.CommandData, requester impl.RequestHelper)
 		}
 		return errors.New("unable to reach " + apiDocURL + ". Status Code: " + getString(statusCode))
 	}
-
 	var apiPaths domain.RestAPI
 	err = json.Unmarshal([]byte(urlResponse), &apiPaths)
 

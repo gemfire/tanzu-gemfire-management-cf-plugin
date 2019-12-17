@@ -47,7 +47,7 @@ var _ = Describe("CommandProcessor", func() {
 			helper.ExchangeReturnsOnCall(2, "", 500, errors.New("Unable to get endpoints"))
 			err = commandProcessor.ProcessCommand(&commandData)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("unable to reach /management/experimental/api-docs. Error: Unable to get endpoints"))
+			Expect(err.Error()).To(Equal("Unable to reach /management/experimental/api-docs. Error: Unable to get endpoints"))
 			Expect(len(commandData.AvailableEndpoints)).To(BeZero())
 			Expect(helper.ExchangeCallCount()).To(Equal(3))
 		})

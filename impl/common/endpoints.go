@@ -42,7 +42,7 @@ func GetEndPoints(commandData *domain.CommandData, requester impl.RequestHelper)
 		apiDocURL = URL
 		urlResponse, statusCode, err = requester.Exchange(URL, "GET", nil, nil)
 		if err != nil {
-			return errors.New("unable to reach " + URL + ". Error: " + err.Error())
+			return errors.New("Unable to reach " + URL + ". Error: " + err.Error())
 		}
 		if !strings.Contains(fallbackCodes, strconv.Itoa(statusCode)) {
 			if statusCode == 200 {
@@ -56,7 +56,7 @@ func GetEndPoints(commandData *domain.CommandData, requester impl.RequestHelper)
 						apiDocURL = getString(latestURL)
 						urlResponse, statusCode, err = requester.Exchange(apiDocURL, "GET", nil, nil)
 						if err != nil {
-							return errors.New("unable to reach " + apiDocURL + ": " + err.Error())
+							return errors.New("Unable to reach " + apiDocURL + ": " + err.Error())
 						}
 					} else {
 						return errors.New("Unable to determine latest API endpoint: " + urlResponse + ".")

@@ -27,24 +27,49 @@ import (
 
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the Geode/PCC locator
 func GetEndPoints(commandData *domain.CommandData, requester impl.RequestHelper) error {
-	apiDocURL := commandData.ConnnectionData.LocatorAddress + "/management/v1/api-docs"
-	urlResponse, statusCode, err := requester.Exchange(apiDocURL, "GET", nil, nil)
-	if err != nil {
-		return errors.New("unable to reach " + commandData.ConnnectionData.LocatorAddress + ": " + err.Error())
+	var urlResponse, apiDocURL string
+	var statusCode int
+	var err error
+	var responseMap map[string]interface{}
+	fallbackCodes := "401 403 404 407"
+	apiDocURLs := []string{
+		commandData.ConnnectionData.LocatorAddress + "/management/",
+		commandData.ConnnectionData.LocatorAddress + "/management/v1/api-docs",
+		commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs",
 	}
 
-	fallbackCodes := "401 403 404 407"
-	if strings.Contains(fallbackCodes, strconv.Itoa(statusCode)) {
-		// if unable to reach /management/v1 then try /management/experimental for older releases
-		apiDocURL = commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs"
-		urlResponse, statusCode, err = requester.Exchange(apiDocURL, "GET", nil, nil)
+	for pos, URL := range apiDocURLs {
+		apiDocURL = URL
+		urlResponse, statusCode, err = requester.Exchange(URL, "GET", nil, nil)
+		if err != nil {
+			return errors.New("Unable to reach " + URL + ". Error: " + err.Error())
+		}
+		if !strings.Contains(fallbackCodes, strconv.Itoa(statusCode)) {
+			if statusCode == 200 {
+				if pos == 0 {
+					err = json.Unmarshal([]byte(urlResponse), &responseMap)
+					if err != nil {
+						return errors.New("Unable to parse response: " + urlResponse + ". Error: " + err.Error())
+					}
+					latestURL, Ok := responseMap["latest"]
+					if Ok {
+						apiDocURL = getString(latestURL)
+						urlResponse, statusCode, err = requester.Exchange(apiDocURL, "GET", nil, nil)
+						if err != nil {
+							return errors.New("Unable to reach " + apiDocURL + ": " + err.Error())
+						}
+					} else {
+						return errors.New("Unable to determine latest API endpoint: " + urlResponse + ".")
+					}
+				}
+				break
+			}
+			return errors.New("Unable to reach " + URL + ". Status Code: " + strconv.Itoa(statusCode))
+		}
 	}
 
 	if statusCode != 200 {
-		if err != nil {
-			return errors.New("unable to reach " + apiDocURL + ". Error: " + err.Error())
-		}
-		return errors.New("unable to reach " + apiDocURL + ". Status Code: " + getString(statusCode))
+		return errors.New("Unable to reach " + apiDocURL + ". Status Code: " + strconv.Itoa(statusCode))
 	}
 
 	var apiPaths domain.RestAPI

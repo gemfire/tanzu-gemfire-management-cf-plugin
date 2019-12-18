@@ -50,7 +50,8 @@ var _ = Describe("Endpoints", func() {
 		})
 
 		It("Builds AvailableEndpoints when swagger data is received from Gemfire 9.9", func() {
-			requester.ExchangeReturns(fakeResponseGemfire99, 200, nil)
+			requester.ExchangeReturnsOnCall(0, "", 404, nil)
+			requester.ExchangeReturnsOnCall(1, fakeResponseGemfire99, 200, nil)
 			err := GetEndPoints(&commandData, requester)
 			Expect(err).To(BeNil())
 			Expect(len(commandData.AvailableEndpoints)).To(Equal(15))
@@ -95,7 +96,8 @@ var _ = Describe("Endpoints", func() {
 		})
 
 		It("Builds AvailableEndpoints when swagger data is received", func() {
-			requester.ExchangeReturns(fakeResponse, 200, nil)
+			requester.ExchangeReturnsOnCall(0, "", 404, nil)
+			requester.ExchangeReturnsOnCall(1, fakeResponse, 200, nil)
 			err := GetEndPoints(&commandData, requester)
 			Expect(err).To(BeNil())
 			Expect(len(commandData.AvailableEndpoints)).To(Equal(17))
@@ -157,11 +159,12 @@ var _ = Describe("Endpoints", func() {
 			requester.ExchangeReturns("", 0, errors.New("Failed call"))
 			err := GetEndPoints(&commandData, requester)
 			Expect(err).NotTo(BeNil())
-			Expect(err.Error()).To(Equal("unable to reach : Failed call"))
+			Expect(err.Error()).To(Equal("Unable to reach /management/. Error: Failed call"))
 		})
 
 		It("Returns an error when swagger output cannot be parsed", func() {
-			requester.ExchangeReturns("", 200, nil)
+			requester.ExchangeReturnsOnCall(0, "", 404, nil)
+			requester.ExchangeReturnsOnCall(1, "", 200, nil)
 			err := GetEndPoints(&commandData, requester)
 			Expect(err).NotTo(BeNil())
 			Expect(err.Error()).To(Equal("invalid response : unexpected end of JSON input"))

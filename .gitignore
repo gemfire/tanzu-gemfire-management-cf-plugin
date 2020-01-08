@@ -14,8 +14,8 @@
 # Coverprofile files
 **/*.coverprofile
 
-# executable
-pcc
-
 # IntelliJ config
 .idea
+
+# OSX specific
+**/.DS_Store

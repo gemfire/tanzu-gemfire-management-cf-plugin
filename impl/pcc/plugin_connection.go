@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
 
 	"code.cloudfoundry.org/cli/cf/errors"
 	"code.cloudfoundry.org/cli/plugin"
@@ -32,8 +33,11 @@ type pluginConnection struct {
 	cliConnection plugin.CliConnection
 }
 
-// NewPluginConnectionProvider provides a constructor for the PCC implementation of ConnectionProvider
-func NewPluginConnectionProvider(connection plugin.CliConnection) (impl.ConnectionProvider, error) {
+// New provides a constructor for the PCC implementation of ConnectionProvider
+func New(connection plugin.CliConnection) (impl.ConnectionProvider, error) {
+	if connection == nil {
+		return nil, errors.New("cliConnection is not valid")
+	}
 	return &pluginConnection{cliConnection: connection}, nil
 }
 
@@ -56,7 +60,7 @@ func (pc *pluginConnection) getServiceKey(target string) (serviceKey string, err
 	}
 	hasKey := false
 	if strings.Contains(results[1], "No service key for service instance") {
-		return "", fmt.Errorf(common.NoServiceKeyMessage, target, target)
+		return "", fmt.Errorf(format.NoServiceKeyMessage, target, target)
 	}
 	for _, value := range results {
 		line := strings.Fields(value)
@@ -70,7 +74,7 @@ func (pc *pluginConnection) getServiceKey(target string) (serviceKey string, err
 		}
 	}
 	if serviceKey == "" {
-		err = fmt.Errorf(common.NoServiceKeyMessage, target, target)
+		err = fmt.Errorf(format.NoServiceKeyMessage, target, target)
 	}
 	return
 }
@@ -82,7 +86,7 @@ func (pc *pluginConnection) getServiceKeyDetails(commandData *domain.CommandData
 	}
 
 	if len(keyInfo) < 2 {
-		return errors.New(common.InvalidServiceKeyResponse)
+		return errors.New(format.InvalidServiceKeyResponse)
 	}
 	keyInfo = keyInfo[2:] //take out first two lines of cf service-key ... output
 	joinKeyInfo := strings.Join(keyInfo, "\n")

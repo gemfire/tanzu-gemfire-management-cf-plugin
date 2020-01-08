@@ -22,11 +22,8 @@ import (
 	"github.com/itchyny/gojq"
 )
 
-// GOJQFilter is the placeholder struct for the Filter interface implementation
-type GOJQFilter struct{}
-
-// Filter is the implementation of the Filter interface
-func (filter *GOJQFilter) Filter(jsonString string, expr string) ([]json.RawMessage, error) {
+// GOJQFilter is the implementation of the format.JSONFilter function type
+func GOJQFilter(jsonString string, expr string) ([]json.RawMessage, error) {
 	query, err := gojq.Parse(expr)
 	if err != nil {
 		return nil, fmt.Errorf("json query failed: %s", err.Error())

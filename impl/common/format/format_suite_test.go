@@ -13,14 +13,16 @@
  * the License.
  */
 
-package impl
+package format_test
 
 import (
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"io"
+	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . RequestHelper
-
-// RequestHelper function type provides an interface for server request handling
-type RequestHelper func(url string, method string, bodyReader io.Reader, connectionData *domain.ConnectionData) (urlResponse string, statusCode int, err error)
+func TestFormat(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Format Suite")
+}

@@ -15,12 +15,11 @@
 
 package impl
 
-import (
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"io"
-)
+import "github.com/gemfire/cloudcache-management-cf-plugin/domain"
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . RequestHelper
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . CommandProcessor
 
-// RequestHelper function type provides an interface for server request handling
-type RequestHelper func(url string, method string, bodyReader io.Reader, connectionData *domain.ConnectionData) (urlResponse string, statusCode int, err error)
+// CommandProcessor interface provides a way to kick of main processing cycle
+type CommandProcessor interface {
+	ProcessCommand(commandData *domain.CommandData) error
+}

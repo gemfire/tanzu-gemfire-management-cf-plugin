@@ -13,7 +13,7 @@
  * the License.
  */
 
-package common_test
+package format_test
 
 import (
 	"strings"
@@ -21,6 +21,7 @@ import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/filter"
+	. "github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -32,7 +33,7 @@ var _ = Describe("Formatting", func() {
 			columnSize := 5
 			value := "id"
 			filler := "test"
-			response := common.Fill(columnSize, value, filler)
+			response := Fill(columnSize, value, filler)
 			expectedResponse := " id  "
 			Expect(response).To(Equal(expectedResponse))
 			Expect(len(response)).To(Equal(columnSize))
@@ -42,7 +43,7 @@ var _ = Describe("Formatting", func() {
 			columnSize := 4
 			value := "id"
 			filler := " "
-			response := common.Fill(columnSize, value, filler)
+			response := Fill(columnSize, value, filler)
 			expectedResponse := " id "
 			Expect(response).To(Equal(expectedResponse))
 			Expect(len(response)).To(Equal(columnSize))
@@ -52,7 +53,7 @@ var _ = Describe("Formatting", func() {
 			columnSize := 3
 			value := "i"
 			filler := " "
-			response := common.Fill(columnSize, value, filler)
+			response := Fill(columnSize, value, filler)
 			expectedResponse := " i "
 			Expect(response).To(Equal(expectedResponse))
 			Expect(len(response)).To(Equal(columnSize))
@@ -62,7 +63,7 @@ var _ = Describe("Formatting", func() {
 			columnSize := 2
 			value := "idle"
 			filler := " "
-			response := common.Fill(columnSize, value, filler)
+			response := Fill(columnSize, value, filler)
 			expectedResponse := " ... "
 			Expect(response).To(Equal(expectedResponse))
 			Expect(len(response)).To(Equal(5))
@@ -72,7 +73,7 @@ var _ = Describe("Formatting", func() {
 			columnSize := 20
 			value := "some string"
 			filler := "-"
-			response := common.Fill(columnSize, value, filler)
+			response := Fill(columnSize, value, filler)
 			expectedResponse := "-some string--------"
 			Expect(response).To(Equal(expectedResponse))
 			Expect(len(response)).To(Equal(columnSize))
@@ -82,7 +83,7 @@ var _ = Describe("Formatting", func() {
 			columnSize := 20
 			value := "some strings that is longer than 20 characters"
 			filler := "-"
-			response := common.Fill(columnSize, value, filler)
+			response := Fill(columnSize, value, filler)
 			expectedResponse := "-some strings th...-"
 			Expect(response).To(Equal(expectedResponse))
 			Expect(len(response)).To(Equal(columnSize))
@@ -92,10 +93,12 @@ var _ = Describe("Formatting", func() {
 	Context("FormatResponse tests", func() {
 		var (
 			formatter common.Formatter
+			err       error
 		)
 
 		BeforeEach(func() {
-			formatter = common.Formatter{JSONFilter: new(filter.GOJQFilter)}
+			formatter, err = New(filter.GOJQFilter)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("Returns the input as an indented string", func() {
@@ -175,7 +178,7 @@ JQFilter: .result[]
 				"status": "online"},
 			  {"id": "locator",
 				"status": "online"}]`
-			output, _ := common.Tabular(json)
+			output, _ := Tabular(json)
 			splitOutput := strings.Split(output, "\n")
 			Expect(splitOutput[0]).To(ContainSubstring("id"))
 			Expect(splitOutput[0]).To(ContainSubstring("status"))
@@ -185,7 +188,7 @@ JQFilter: .result[]
 		})
 		It("different attributes", func() {
 			json := `[{"id": "server"},{"status": "online"}]`
-			output, _ := common.Tabular(json)
+			output, _ := Tabular(json)
 			splitOutput := strings.Split(output, "\n")
 			Expect(splitOutput[0]).To(ContainSubstring("id"))
 			Expect(splitOutput[0]).To(ContainSubstring("status"))
@@ -195,11 +198,11 @@ JQFilter: .result[]
 		})
 
 		It("empty json array", func() {
-			output, _ := common.Tabular("[]")
+			output, _ := Tabular("[]")
 			Expect(output).To(Equal(""))
 		})
 		It("invalid json string", func() {
-			_, err := common.Tabular(`{"name":"test"}`)
+			_, err := Tabular(`{"name":"test"}`)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("unable to parse:"))
 		})
@@ -207,14 +210,21 @@ JQFilter: .result[]
 
 	Context("DescribeEndpoint", func() {
 		var (
-			endPoint domain.RestEndPoint
+			endPoint  domain.RestEndPoint
+			formatter common.Formatter
+			err       error
 		)
+
+		BeforeEach(func() {
+			formatter, err = New(filter.GOJQFilter)
+			Expect(err).NotTo(HaveOccurred())
+		})
 
 		It("Shows the expected command name in the output", func() {
 			endPoint = domain.RestEndPoint{}
 			endPoint.CommandName = "testcommand"
 
-			result := common.DescribeEndpoint(endPoint, false)
+			result := formatter.DescribeEndpoint(endPoint, false)
 			Expect(result).NotTo(BeEmpty())
 			Expect(result).To(ContainSubstring("testcommand"))
 		})
@@ -227,7 +237,7 @@ JQFilter: .result[]
 			paramTwo.Name = "paramTwo"
 			endPoint.Parameters = []domain.RestAPIParam{paramOne, paramTwo}
 
-			result := common.DescribeEndpoint(endPoint, false)
+			result := formatter.DescribeEndpoint(endPoint, false)
 			Expect(result).NotTo(BeEmpty())
 			Expect(result).To(ContainSubstring("--paramOne"))
 			Expect(result).To(ContainSubstring("--paramTwo"))
@@ -241,7 +251,7 @@ JQFilter: .result[]
 			paramOne.Required = false
 			endPoint.Parameters = []domain.RestAPIParam{paramOne}
 
-			result := common.DescribeEndpoint(endPoint, false)
+			result := formatter.DescribeEndpoint(endPoint, false)
 			Expect(result).NotTo(BeEmpty())
 			Expect(result).To(ContainSubstring("[--paramOne <first parameter>]"))
 		})
@@ -253,7 +263,7 @@ JQFilter: .result[]
 			paramOne.Required = true
 			endPoint.Parameters = []domain.RestAPIParam{paramOne}
 
-			result := common.DescribeEndpoint(endPoint, false)
+			result := formatter.DescribeEndpoint(endPoint, false)
 			Expect(result).NotTo(BeEmpty())
 			Expect(result).NotTo(ContainSubstring("["))
 			Expect(result).NotTo(ContainSubstring("]"))
@@ -263,16 +273,16 @@ JQFilter: .result[]
 		It("Shows GeneralOptions when showDetails flag set to true", func() {
 			endPoint = domain.RestEndPoint{}
 
-			result := common.DescribeEndpoint(endPoint, true)
+			result := formatter.DescribeEndpoint(endPoint, true)
 			Expect(result).NotTo(BeEmpty())
-			Expect(result).To(ContainSubstring(common.GeneralOptions))
+			Expect(result).To(ContainSubstring(GeneralOptions))
 		})
 
 		It("Hides GeneralOptions when showDetails flag set to false", func() {
 			endPoint = domain.RestEndPoint{}
 
-			result := common.DescribeEndpoint(endPoint, false)
-			Expect(result).NotTo(ContainSubstring(common.GeneralOptions))
+			result := formatter.DescribeEndpoint(endPoint, false)
+			Expect(result).NotTo(ContainSubstring(GeneralOptions))
 		})
 
 		It("Correctly display expected body format if 'body' parameter present and showDetails flag set to true", func() {
@@ -307,9 +317,9 @@ JQFilter: .result[]
 		  }
 		}`
 
-			result := common.DescribeEndpoint(endPoint, true)
+			result := formatter.DescribeEndpoint(endPoint, true)
 			Expect(result).To(ContainSubstring(expectedOutput))
-			Expect(result).To(ContainSubstring(common.GeneralOptions))
+			Expect(result).To(ContainSubstring(GeneralOptions))
 		})
 
 		It("describe the rest end point without body param", func() {
@@ -330,7 +340,7 @@ JQFilter: .result[]
 			endPoint.Parameters[0] = param2
 			endPoint.Parameters[1] = param1
 
-			result := common.DescribeEndpoint(endPoint, false)
+			result := formatter.DescribeEndpoint(endPoint, false)
 			Expect(result).To(Equal("test --id <id> [--group <group>]"))
 		})
 
@@ -352,7 +362,7 @@ JQFilter: .result[]
 			endPoint.Parameters[0] = param2
 			endPoint.Parameters[1] = param1
 
-			result := common.DescribeEndpoint(endPoint, false)
+			result := formatter.DescribeEndpoint(endPoint, false)
 			Expect(result).To(Equal("test --config <json or @json_file_path> [--group <group>]"))
 		})
 	})

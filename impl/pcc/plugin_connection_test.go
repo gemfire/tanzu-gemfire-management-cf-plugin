@@ -17,15 +17,16 @@ package pcc_test
 
 import (
 	"fmt"
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	"strings"
+
+	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"code.cloudfoundry.org/cli/plugin/pluginfakes"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
 	. "github.com/gemfire/cloudcache-management-cf-plugin/impl/pcc"
 )
 
@@ -40,7 +41,7 @@ var _ = Describe("PluginConnection", func() {
 
 	BeforeEach(func() {
 		cliConnection = new(pluginfakes.FakeCliConnection)
-		pluginConnectionImpl, err := NewPluginConnectionProvider(cliConnection)
+		pluginConnectionImpl, err := New(cliConnection)
 		pluginConnection = pluginConnectionImpl
 		Expect(err).NotTo(HaveOccurred())
 
@@ -113,7 +114,7 @@ var _ = Describe("PluginConnection", func() {
 			cliConnection.CliCommandWithoutTerminalOutputReturnsOnCall(1, []string{"", ""}, nil)
 			err := pluginConnection.GetConnectionData(&commandData)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal(fmt.Sprintf(common.NoServiceKeyMessage, commandData.Target, commandData.Target)))
+			Expect(err.Error()).To(Equal(fmt.Sprintf(format.NoServiceKeyMessage, commandData.Target, commandData.Target)))
 			Expect(cliConnection.CliCommandWithoutTerminalOutputCallCount()).To(Equal(1))
 			Expect(len(commandData.ConnnectionData.Username)).To(BeZero())
 			Expect(len(commandData.ConnnectionData.Password)).To(BeZero())

@@ -23,10 +23,11 @@ import (
 	"code.cloudfoundry.org/cli/cf/errors"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
 )
 
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the Geode/PCC locator
-func GetEndPoints(commandData *domain.CommandData, requester impl.RequestHelper) error {
+func GetEndPoints(commandData *domain.CommandData, processRequest impl.RequestHelper) error {
 	var urlResponse, apiDocURL string
 	var statusCode int
 	var err error
@@ -40,7 +41,7 @@ func GetEndPoints(commandData *domain.CommandData, requester impl.RequestHelper)
 
 	for pos, URL := range apiDocURLs {
 		apiDocURL = URL
-		urlResponse, statusCode, err = requester.Exchange(URL, "GET", nil, nil)
+		urlResponse, statusCode, err = processRequest(URL, "GET", nil, nil)
 		if err != nil {
 			return errors.New("Unable to reach " + URL + ". Error: " + err.Error())
 		}
@@ -53,8 +54,8 @@ func GetEndPoints(commandData *domain.CommandData, requester impl.RequestHelper)
 					}
 					latestURL, Ok := responseMap["latest"]
 					if Ok {
-						apiDocURL = getString(latestURL)
-						urlResponse, statusCode, err = requester.Exchange(apiDocURL, "GET", nil, nil)
+						apiDocURL = format.GetString(latestURL)
+						urlResponse, statusCode, err = processRequest(apiDocURL, "GET", nil, nil)
 						if err != nil {
 							return errors.New("Unable to reach " + apiDocURL + ": " + err.Error())
 						}

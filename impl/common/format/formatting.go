@@ -13,7 +13,7 @@
  * the License.
  */
 
-package common
+package format
 
 import (
 	"bytes"
@@ -30,20 +30,20 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . JSONFilter
 
-// JSONFilter interface provides a way to provide different json filter implementations
-// or to replace the filter with a fake for testing
-type JSONFilter interface {
-	Filter(jsonString string, expr string) ([]json.RawMessage, error)
-}
+// JSONFilter function type
+type JSONFilter func(jsonString string, expr string) ([]json.RawMessage, error)
 
 // Formatter is the struct that anchors the JSONFilter interface
-type Formatter struct {
-	JSONFilter JSONFilter
+type formatter struct {
+	filterJson JSONFilter
 }
 
 // NewFormatter constructs the implementation of the JSONFilter interface
-func NewFormatter(jsonFilter JSONFilter) *Formatter {
-	return &Formatter{JSONFilter: jsonFilter}
+func New(jsonFilter JSONFilter) (*formatter, error) {
+	if jsonFilter == nil {
+		return nil, errors.New("jsonFilter must not be nil")
+	}
+	return &formatter{filterJson: jsonFilter}, nil
 }
 
 // Fill ensures that a column is filled with desired filler characters to desired size
@@ -65,7 +65,7 @@ func Fill(columnSize int, value string, filler string) (response string) {
 }
 
 // FormatResponse extracts JSON from a response
-func (formatter *Formatter) FormatResponse(urlResponse string, jqFilter string, userFilter bool) (jsonOutput string, err error) {
+func (formatter *formatter) FormatResponse(urlResponse string, jqFilter string, userFilter bool) (jsonOutput string, err error) {
 	if jqFilter == "" {
 		return indent([]byte(urlResponse))
 	}
@@ -91,8 +91,8 @@ func (formatter *Formatter) FormatResponse(urlResponse string, jqFilter string, 
 	return table + "\n" + "JQFilter: " + jqFilter + "\n", nil
 }
 
-func (formatter *Formatter) filterWithJQ(jsonString string, expr string) (string, error) {
-	jsonRawMessage, err := formatter.JSONFilter.Filter(jsonString, expr)
+func (formatter *formatter) filterWithJQ(jsonString string, expr string) (string, error) {
+	jsonRawMessage, err := formatter.filterJson(jsonString, expr)
 	if err != nil {
 		return "", errors.New(fmt.Sprintf("unable to filter the response with: %s, %s", expr, err))
 	}
@@ -175,7 +175,7 @@ func Tabular(jsonString string) (string, error) {
 	// print out the values
 	for _, m := range result {
 		for index, column := range columnNames {
-			response.WriteString(Fill(maxLengths[column], getString(m[column]), " "))
+			response.WriteString(Fill(maxLengths[column], GetString(m[column]), " "))
 			if index < len(columnNames)-1 {
 				response.WriteString("|")
 			} else {
@@ -186,7 +186,7 @@ func Tabular(jsonString string) (string, error) {
 	return response.String(), nil
 }
 
-func getString(value interface{}) string {
+func GetString(value interface{}) string {
 	if value == nil {
 		return ""
 	}
@@ -213,7 +213,7 @@ func getMaxLength(result *[]map[string]interface{}) map[string]int {
 			}
 			maxLength := maxLengths[k]
 			// always leave space before and after
-			strSize := len(getString(v)) + 2
+			strSize := len(GetString(v)) + 2
 			if strSize > maxLength {
 				maxLengths[k] = strSize
 			}
@@ -223,7 +223,7 @@ func getMaxLength(result *[]map[string]interface{}) map[string]int {
 }
 
 // DescribeEndpoint an end point with command name and required/optional parameters
-func DescribeEndpoint(endPoint domain.RestEndPoint, showDetails bool) string {
+func (formatter *formatter) DescribeEndpoint(endPoint domain.RestEndPoint, showDetails bool) string {
 	var buffer bytes.Buffer
 	buffer.WriteString(endPoint.CommandName + " ")
 	// show the required options first
@@ -254,15 +254,6 @@ func DescribeEndpoint(endPoint domain.RestEndPoint, showDetails bool) string {
 	return strings.Trim(buffer.String(), " ")
 }
 
-func writeParam(buffer *bytes.Buffer, param domain.RestAPIParam) {
-	buffer.WriteString("--" + param.Name + " ")
-	if param.In == "body" {
-		buffer.WriteString("<json or @json_file_path>")
-	} else {
-		buffer.WriteString("<" + param.Description + ">")
-	}
-}
-
 func indent(rawJSON []byte) (indented string, err error) {
 	dst := &bytes.Buffer{}
 	err = json.Indent(dst, rawJSON, "", "  ")
@@ -279,6 +270,15 @@ func contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+func writeParam(buffer *bytes.Buffer, param domain.RestAPIParam) {
+	buffer.WriteString("--" + param.Name + " ")
+	if param.In == "body" {
+		buffer.WriteString("<json or @json_file_path>")
+	} else {
+		buffer.WriteString("<" + param.Description + ">")
+	}
 }
 
 func generateSampleBody(param domain.RestAPIParam, buffer *bytes.Buffer) {

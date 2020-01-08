@@ -24,11 +24,9 @@ import (
 	"net/http"
 )
 
-// Requester is the receiver for the RequestHelper implementation
-type Requester struct{}
 
-// Exchange implements the RequestHelper interface
-func (requester *Requester) Exchange(url string, method string, bodyReader io.Reader, connectionData *domain.ConnectionData) (urlResponse string, statusCode int, err error) {
+// Exchange implements the impl.RequestHelper function type
+var Exchange = func(url string, method string, bodyReader io.Reader, connectionData *domain.ConnectionData) (urlResponse string, statusCode int, err error) {
 	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	client := &http.Client{Transport: transport}
 

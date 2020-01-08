@@ -17,21 +17,15 @@ package geode
 
 import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	"os"
 	"strings"
 )
 
-type geodeConnection struct {
+type GeodeConnection struct {
 }
 
-// NewGeodeConnectionProvider provides a constructor for the Geode standalone implementation of ConnectionProvider
-func NewGeodeConnectionProvider() (impl.ConnectionProvider, error) {
-	return &geodeConnection{}, nil
-}
-
-func (gc *geodeConnection) GetConnectionData(commandData *domain.CommandData) error {
+func (gc *GeodeConnection) GetConnectionData(commandData *domain.CommandData) error {
 	commandData.ConnnectionData = domain.ConnectionData{}
 
 	// LocatorAddress, Username and Password may be provided as environment variables

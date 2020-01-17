@@ -16,26 +16,32 @@
 package geode
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
 )
 
 // Command is the basic struct that the command works on
-type Command struct {
+type command struct {
 	commandData domain.CommandData
-	comm        common.CommandProcessor
+	comm        impl.CommandProcessor
 }
 
-// NewGeodeCommand provides a constructor for the Geode standalone implementation for the client
-func NewGeodeCommand(comm common.CommandProcessor) (Command, error) {
-	return Command{comm: comm}, nil
+// New provides a constructor for the Geode standalone implementation for the client
+func New(comm impl.CommandProcessor) (command, error) {
+	if comm == nil {
+		return command{}, errors.New("command processor is not valid")
+	}
+	return command{comm: comm}, nil
 }
 
 // Run is the main entry point for the standalone Geode command line interface
 // It is run once for each command executed
-func (gc *Command) Run(args []string) (err error) {
+func (gc *command) Run(args []string) (err error) {
 
 	gc.commandData.Target, gc.commandData.UserCommand = common.GetTargetAndClusterCommand(args)
 
@@ -50,11 +56,7 @@ func (gc *Command) Run(args []string) (err error) {
 		return
 	}
 
-	geodeConnection, err := NewGeodeConnectionProvider()
-	if err != nil {
-		printHelp()
-		return
-	}
+	geodeConnection := &GeodeConnection{}
 
 	err = geodeConnection.GetConnectionData(&gc.commandData)
 	if err != nil {
@@ -77,6 +79,6 @@ func printHelp() {
 	fmt.Println("\t\tomit if 'GEODE_TARGET' environment variable is set")
 	fmt.Println("\tcommand:\n\t\tuse 'pcc <target> commands' to see a list of supported commands")
 	fmt.Println("\toptions:\n\t\tuse 'pcc <target> <command> -h' to see options for individual command.")
-	fmt.Println(common.GeneralOptions)
+	fmt.Println(format.GeneralOptions)
 	fmt.Println("\thelp:\n\t\tuse -h or --help for general help, and provide <command> for command specific help.")
 }

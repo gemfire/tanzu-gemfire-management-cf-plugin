@@ -32,10 +32,7 @@ var _ = Describe("GeodeConnection", func() {
 	)
 
 	BeforeEach(func() {
-		geodeConnectionImpl, err := NewGeodeConnectionProvider()
-		geodeConnection = geodeConnectionImpl
-		Expect(err).NotTo(HaveOccurred())
-
+		geodeConnection = &GeodeConnection{}
 		commandData = domain.CommandData{}
 		commandData.UserCommand = domain.UserCommand{}
 		commandData.UserCommand.Parameters = make(map[string]string)

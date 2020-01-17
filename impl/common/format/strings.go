@@ -13,7 +13,7 @@
  * the License.
  */
 
-package common
+package format
 
 // Collection of common strings used by the application
 const (

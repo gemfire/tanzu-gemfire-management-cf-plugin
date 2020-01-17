@@ -16,23 +16,29 @@
 package pcc
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
 	"code.cloudfoundry.org/cli/plugin"
 	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
 )
 
 // BasicPlugin declares the dataset that commands work on
 type BasicPlugin struct {
 	commandData domain.CommandData
-	comm        common.CommandProcessor
+	comm        impl.CommandProcessor
 }
 
 // NewBasicPlugin provides the constructor for a BasicPlugin struct
-func NewBasicPlugin(comm common.CommandProcessor) (BasicPlugin, error) {
-	return BasicPlugin{comm: comm}, nil
+func NewBasicPlugin(comm impl.CommandProcessor) (plugin.Plugin, error) {
+	if comm == nil {
+		return nil, errors.New("command processor is not valid")
+	}
+	return &BasicPlugin{comm: comm}, nil
 }
 
 // Run is the main entry point for the CF plugin interface
@@ -48,14 +54,14 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		os.Exit(1)
 	}
 
-	pluginConnection, err := NewPluginConnectionProvider(cliConnection)
+	pluginConnection, err := New(cliConnection)
 	if err != nil {
-		fmt.Printf(common.GenericErrorMessage, err.Error())
+		fmt.Printf(format.GenericErrorMessage, err.Error())
 		os.Exit(1)
 	}
 	err = pluginConnection.GetConnectionData(&c.commandData)
 	if err != nil {
-		fmt.Printf(common.GenericErrorMessage, err.Error())
+		fmt.Printf(format.GenericErrorMessage, err.Error())
 		os.Exit(1)
 	}
 
@@ -89,7 +95,7 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 						"\t\tomit if 'GEODE_TARGET' environment variable is set \n" +
 						"\tcommand:\n\t\tuse 'cf pcc <target> commands' to see a list of supported commands \n" +
 						"\toptions:\n\t\tuse 'cf pcc <target> command -help' to see options for individual command." +
-						common.GeneralOptions + "\n" +
+						format.GeneralOptions + "\n" +
 						"\thelp\nt\t\t: use -h or --help for general help, and provide <command> -help for command specific help",
 				},
 			},

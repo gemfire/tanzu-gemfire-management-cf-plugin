@@ -16,6 +16,7 @@
 package common_test
 
 import (
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
 	"io/ioutil"
 
 	"code.cloudfoundry.org/cli/cf/errors"
@@ -33,6 +34,7 @@ var _ = Describe("Endpoints", func() {
 
 		var (
 			requester             *implfakes.FakeRequestHelper
+			processRequest        impl.RequestHelper
 			commandData           domain.CommandData
 			fakeResponse          string
 			fakeResponseGemfire99 string
@@ -40,6 +42,7 @@ var _ = Describe("Endpoints", func() {
 
 		BeforeEach(func() {
 			requester = new(implfakes.FakeRequestHelper)
+			processRequest = requester.Spy
 			commandData = domain.CommandData{}
 			JSONBytes, err := ioutil.ReadFile("../../testdata/api-docs.json")
 			Expect(err).To(BeNil())
@@ -50,9 +53,9 @@ var _ = Describe("Endpoints", func() {
 		})
 
 		It("Builds AvailableEndpoints when swagger data is received from Gemfire 9.9", func() {
-			requester.ExchangeReturnsOnCall(0, "", 404, nil)
-			requester.ExchangeReturnsOnCall(1, fakeResponseGemfire99, 200, nil)
-			err := GetEndPoints(&commandData, requester)
+			requester.ReturnsOnCall(0, "", 404, nil)
+			requester.ReturnsOnCall(1, fakeResponseGemfire99, 200, nil)
+			err := GetEndPoints(&commandData, processRequest)
 			Expect(err).To(BeNil())
 			Expect(len(commandData.AvailableEndpoints)).To(Equal(15))
 			Expect(commandData.ConnnectionData.UseToken).To(BeFalse())
@@ -96,9 +99,9 @@ var _ = Describe("Endpoints", func() {
 		})
 
 		It("Builds AvailableEndpoints when swagger data is received", func() {
-			requester.ExchangeReturnsOnCall(0, "", 404, nil)
-			requester.ExchangeReturnsOnCall(1, fakeResponse, 200, nil)
-			err := GetEndPoints(&commandData, requester)
+			requester.ReturnsOnCall(0, "", 404, nil)
+			requester.ReturnsOnCall(1, fakeResponse, 200, nil)
+			err := GetEndPoints(&commandData, processRequest)
 			Expect(err).To(BeNil())
 			Expect(len(commandData.AvailableEndpoints)).To(Equal(17))
 			Expect(commandData.ConnnectionData.UseToken).To(BeTrue())
@@ -156,16 +159,16 @@ var _ = Describe("Endpoints", func() {
 		})
 
 		It("Returns an error when Exchange call returns an error", func() {
-			requester.ExchangeReturns("", 0, errors.New("Failed call"))
-			err := GetEndPoints(&commandData, requester)
+			requester.Returns("", 0, errors.New("Failed call"))
+			err := GetEndPoints(&commandData, processRequest)
 			Expect(err).NotTo(BeNil())
 			Expect(err.Error()).To(Equal("Unable to reach /management/. Error: Failed call"))
 		})
 
 		It("Returns an error when swagger output cannot be parsed", func() {
-			requester.ExchangeReturnsOnCall(0, "", 404, nil)
-			requester.ExchangeReturnsOnCall(1, "", 200, nil)
-			err := GetEndPoints(&commandData, requester)
+			requester.ReturnsOnCall(0, "", 404, nil)
+			requester.ReturnsOnCall(1, "", 200, nil)
+			err := GetEndPoints(&commandData, processRequest)
 			Expect(err).NotTo(BeNil())
 			Expect(err.Error()).To(Equal("invalid response : unexpected end of JSON input"))
 		})

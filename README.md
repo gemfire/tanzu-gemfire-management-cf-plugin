@@ -16,16 +16,16 @@ on the API code in a dynamic fashion.
 
 #### In plugin mode:
 * You have installed [CF CLI](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html) and you have
-installed a compatible [PCC tile](https://network.pivotal.io/products/p-cloudcache/) in this environment.
+installed a compatible [VMware Tanzu GemFire](https://network.pivotal.io/products/p-cloudcache/) in this environment.
 (9.10+?)
 * You are logged into CF
     *  `cf login --skip-ssl-validation -a https://api.sys.ENVNAME.cf-app.com -u admin -p PASSWORD`
     * `ENVNAME` corresponds to your CF environment
     * `PASSWORD` can be found in the CF Ops Manager &rarr; PAS tile &rarr; Credentials Tab &rarr; UAA
     Admin Credentials
-* You have a PCC instance running
+* You have a VMware Tanzu GemFire instance running
     * `cf create-service p-cloudcache dev-plan myPCCInstance`
-* Your PCC instance has a service key
+* Your VMware Tanzu GemFire instance has a service key
     * `cf create-service-key myPCCInstance myKey`
 
 #### In standalone mode
@@ -47,7 +47,7 @@ in this cluster. This can be a development version running on `localhost`
     replacing an existing version of the plugin
  1. For Help
     - `cf pcc --help` provides general help
-    - `cf pcc <target> commands` to get a list of commands available to you. `<target>` is the PCC service instance name you are using
+    - `cf pcc <target> commands` to get a list of commands available to you. `<target>` is the VMware Tanzu GemFire service instance name you are using
     - `cf pcc <target> <command> -help` to get `<command>` specific help including the format of `JSON` payload that some commands require
 
 #### As a standalone client

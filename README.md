@@ -1,4 +1,4 @@
-# Cloud Cache Management Cloud Foundry Plugin
+# CF CLI plugin for Tanzu GemFire
 
 ## Getting Started:
 This code is written primarily to function as a CF CLI plugin but it can also be used to execute against

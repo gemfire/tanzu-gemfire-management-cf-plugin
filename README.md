@@ -1,4 +1,6 @@
-# Getting Started:
+# Cloud Cache Management Cloud Foundry Plugin
+
+## Getting Started:
 This code is written primarily to function as a CF CLI plugin but it can also be used to execute against
 any accessible Geode cluster in standalone mode. The minor differences of operation between plugin and
 standalone mode will be explained below.
@@ -10,7 +12,7 @@ Apart from needing the management API to be enabled the client is not bound to a
 the API beyond needing a 1.10+ server. It is written to be able to adapt to the progress that is made
 on the API code in a dynamic fashion.
 
-## Prerequisites
+### Prerequisites
 
 #### In plugin mode:
 * You have installed [CF CLI](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html) and you have
@@ -30,7 +32,7 @@ installed a compatible [PCC tile](https://network.pivotal.io/products/p-cloudcac
 * You have a Geode cluster running and have the co-ordinates (URI, username and password) of a `Locator`
 in this cluster. This can be a development version running on `localhost`
 
-## Running the code
+### Running the code
 
 #### Common instructions
  1. Have a [Go](https://golang.org/) SDK on your machine when compiling the code from the repository

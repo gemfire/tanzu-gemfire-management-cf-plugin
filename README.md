@@ -35,7 +35,7 @@ in this cluster. This can be a development version running on `localhost`
 ### Running the code
 
 #### Common instructions
- 1. Have a [Go](https://golang.org/) SDK on your machine when compiling the code from the repository. for the version of Go, please consider to install more than 1.13.1, due to CVE.
+ 1. Have a [Go](https://golang.org/) SDK on your machine when compiling the code from the repository. It is recommended to get the latest 1.x version of `Go` to ensure all known security issues are addressed.
  1. Clone the Repository
     - `git clone git@github.com:gemfire/cloudcache-management-cf-plugin.git`
  1. Some parameters can be replaced with environment variables to avoid having to type them in repeatedly.

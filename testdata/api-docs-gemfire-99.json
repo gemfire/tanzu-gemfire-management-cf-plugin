@@ -1,0 +1,2411 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "REST API and interface to manage Geode components.",
+    "version": "v2",
+    "title": "Apache Geode Management REST API",
+    "termsOfService": "http://www.apache.org/licenses/",
+    "contact": {
+      "name": "the Apache Geode Community",
+      "url": "http://geode.apache.org",
+      "email": "dev@geode.apache.org"
+    },
+    "license": {
+      "name": "Apache License, version 2.0",
+      "url": "http://www.apache.org/licenses/"
+    }
+  },
+  "host": "localhost:7070",
+  "basePath": "/management",
+  "tags": [
+    {
+      "name": "gateway-management-controller",
+      "description": "Gateway Management Controller"
+    },
+    {
+      "name": "member-management-controller",
+      "description": "Member Management Controller"
+    },
+    {
+      "name": "pdx-management-controller",
+      "description": "Pdx Management Controller"
+    },
+    {
+      "name": "ping-management-controller",
+      "description": "Ping Management Controller"
+    },
+    {
+      "name": "rebalance-operation-controller",
+      "description": "Rebalance Operation Controller"
+    },
+    {
+      "name": "region-management-controller",
+      "description": "Region Management Controller"
+    }
+  ],
+  "paths": {
+    "/experimental/configurations/pdx": {
+      "post": {
+        "tags": [
+          "pdx-management-controller"
+        ],
+        "summary": "configure PDX",
+        "operationId": "configurePdxUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "pdxType",
+            "description": "pdxType",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Pdx"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK.",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementResult"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Invalid Username or Password."
+          },
+          "403": {
+            "description": "Insufficient privileges for operation."
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "GemFire throws an error or exception."
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/experimental/gateways/receivers": {
+      "get": {
+        "tags": [
+          "gateway-management-controller"
+        ],
+        "summary": "listGatewayReceivers",
+        "operationId": "listGatewayReceiversUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "query",
+            "description": "group",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementListResult«GatewayReceiverConfig,GatewayReceiverInfo»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "deprecated": false
+      },
+      "post": {
+        "tags": [
+          "gateway-management-controller"
+        ],
+        "summary": "createGatewayReceiver",
+        "operationId": "createGatewayReceiverUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "gatewayReceiverConfig",
+            "description": "gatewayReceiverConfig",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GatewayReceiverConfig"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementResult"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/experimental/members": {
+      "get": {
+        "tags": [
+          "member-management-controller"
+        ],
+        "summary": "listMembers",
+        "operationId": "listMembersUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "query",
+            "description": "group",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "id",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementListResult«MemberConfig,MemberInformation»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/experimental/members/{id}": {
+      "get": {
+        "tags": [
+          "member-management-controller"
+        ],
+        "summary": "getMember",
+        "operationId": "getMemberUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementListResult«MemberConfig,MemberInformation»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/experimental/operations/rebalances": {
+      "get": {
+        "tags": [
+          "rebalance-operation-controller"
+        ],
+        "summary": "listRebalances",
+        "operationId": "listRebalancesUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementListOperationsResult«RebalanceResult»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "deprecated": false
+      },
+      "post": {
+        "tags": [
+          "rebalance-operation-controller"
+        ],
+        "summary": "startRebalance",
+        "operationId": "startRebalanceUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "operation",
+            "description": "operation",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RebalanceOperation"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementOperationResult«RebalanceResult»"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/experimental/operations/rebalances/{id}": {
+      "get": {
+        "tags": [
+          "rebalance-operation-controller"
+        ],
+        "summary": "checkRebalanceStatus",
+        "operationId": "checkRebalanceStatusUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementOperationStatusResult«RebalanceResult»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/experimental/ping": {
+      "get": {
+        "tags": [
+          "ping-management-controller"
+        ],
+        "summary": "ping",
+        "operationId": "pingUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/experimental/regions": {
+      "get": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "listRegion",
+        "operationId": "listRegionUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "query",
+            "description": "group",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "id",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementListResult«RegionConfig,RuntimeRegionInfo»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "deprecated": false
+      },
+      "post": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "create regions",
+        "operationId": "createRegionUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "regionConfig",
+            "description": "regionConfig",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RegionConfig"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK.",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementResult"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Invalid Username or Password."
+          },
+          "403": {
+            "description": "Insufficient privileges for operation."
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Region already exist."
+          },
+          "500": {
+            "description": "GemFire throws an error or exception."
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/experimental/regions/{id}": {
+      "get": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "getRegion",
+        "operationId": "getRegionUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementListResult«RegionConfig,RuntimeRegionInfo»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "deprecated": false
+      },
+      "delete": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "deleteRegion",
+        "operationId": "deleteRegionUsingDELETE",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "query",
+            "description": "group",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementResult"
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/experimental/regions/{regionName}/indexes": {
+      "get": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "listIndex",
+        "operationId": "listIndexUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "id",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "regionName",
+            "in": "path",
+            "description": "regionName",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementListResult«Index,RuntimeInfo»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/experimental/regions/{regionName}/indexes/{id}": {
+      "get": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "getIndex",
+        "operationId": "getIndexUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "regionName",
+            "in": "path",
+            "description": "regionName",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ClusterManagementListResult«Index,RuntimeInfo»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "deprecated": false
+      }
+    }
+  },
+  "definitions": {
+    "AsynchronousWrites": {
+      "type": "object",
+      "properties": {
+        "bytesThreshold": {
+          "type": "string",
+          "xml": {
+            "name": "bytes-threshold",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "timeInterval": {
+          "type": "string",
+          "xml": {
+            "name": "time-interval",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "AsynchronousWrites"
+    },
+    "CacheServerInfo": {
+      "type": "object",
+      "properties": {
+        "bindAddress": {
+          "type": "string"
+        },
+        "maxConnections": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "maxThreads": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "port": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "running": {
+          "type": "boolean"
+        }
+      },
+      "title": "CacheServerInfo"
+    },
+    "ClassName": {
+      "type": "object",
+      "properties": {
+        "className": {
+          "type": "string"
+        },
+        "initProperties": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        }
+      },
+      "title": "ClassName"
+    },
+    "ClassNameType": {
+      "type": "object",
+      "properties": {
+        "className": {
+          "type": "string",
+          "xml": {
+            "name": "class-name",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "ClassNameType"
+    },
+    "ClusterManagementListOperationsResult«RebalanceResult»": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ClusterManagementOperationResult«RebalanceResult»"
+          }
+        },
+        "statusCode": {
+          "type": "string",
+          "enum": [
+            "ILLEGAL_ARGUMENT",
+            "UNAUTHENTICATED",
+            "UNAUTHORIZED",
+            "ENTITY_EXISTS",
+            "ENTITY_NOT_FOUND",
+            "ERROR",
+            "FAIL_TO_PERSIST",
+            "ACCEPTED",
+            "IN_PROGRESS",
+            "OK"
+          ]
+        },
+        "statusMessage": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "title": "ClusterManagementListOperationsResult«RebalanceResult»"
+    },
+    "ClusterManagementListResult«GatewayReceiverConfig,GatewayReceiverInfo»": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConfigurationResult«GatewayReceiverConfig,GatewayReceiverInfo»"
+          }
+        },
+        "statusCode": {
+          "type": "string",
+          "enum": [
+            "ILLEGAL_ARGUMENT",
+            "UNAUTHENTICATED",
+            "UNAUTHORIZED",
+            "ENTITY_EXISTS",
+            "ENTITY_NOT_FOUND",
+            "ERROR",
+            "FAIL_TO_PERSIST",
+            "ACCEPTED",
+            "IN_PROGRESS",
+            "OK"
+          ]
+        },
+        "statusMessage": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "title": "ClusterManagementListResult«GatewayReceiverConfig,GatewayReceiverInfo»"
+    },
+    "ClusterManagementListResult«Index,RuntimeInfo»": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConfigurationResult«Index,RuntimeInfo»"
+          }
+        },
+        "statusCode": {
+          "type": "string",
+          "enum": [
+            "ILLEGAL_ARGUMENT",
+            "UNAUTHENTICATED",
+            "UNAUTHORIZED",
+            "ENTITY_EXISTS",
+            "ENTITY_NOT_FOUND",
+            "ERROR",
+            "FAIL_TO_PERSIST",
+            "ACCEPTED",
+            "IN_PROGRESS",
+            "OK"
+          ]
+        },
+        "statusMessage": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "title": "ClusterManagementListResult«Index,RuntimeInfo»"
+    },
+    "ClusterManagementListResult«MemberConfig,MemberInformation»": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConfigurationResult«MemberConfig,MemberInformation»"
+          }
+        },
+        "statusCode": {
+          "type": "string",
+          "enum": [
+            "ILLEGAL_ARGUMENT",
+            "UNAUTHENTICATED",
+            "UNAUTHORIZED",
+            "ENTITY_EXISTS",
+            "ENTITY_NOT_FOUND",
+            "ERROR",
+            "FAIL_TO_PERSIST",
+            "ACCEPTED",
+            "IN_PROGRESS",
+            "OK"
+          ]
+        },
+        "statusMessage": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "title": "ClusterManagementListResult«MemberConfig,MemberInformation»"
+    },
+    "ClusterManagementListResult«RegionConfig,RuntimeRegionInfo»": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConfigurationResult«RegionConfig,RuntimeRegionInfo»"
+          }
+        },
+        "statusCode": {
+          "type": "string",
+          "enum": [
+            "ILLEGAL_ARGUMENT",
+            "UNAUTHENTICATED",
+            "UNAUTHORIZED",
+            "ENTITY_EXISTS",
+            "ENTITY_NOT_FOUND",
+            "ERROR",
+            "FAIL_TO_PERSIST",
+            "ACCEPTED",
+            "IN_PROGRESS",
+            "OK"
+          ]
+        },
+        "statusMessage": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "title": "ClusterManagementListResult«RegionConfig,RuntimeRegionInfo»"
+    },
+    "ClusterManagementOperationResult«RebalanceResult»": {
+      "type": "object",
+      "properties": {
+        "operationEnded": {
+          "type": "string",
+          "example": "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+        },
+        "operationStart": {
+          "type": "string",
+          "example": "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "statusCode": {
+          "type": "string",
+          "enum": [
+            "ILLEGAL_ARGUMENT",
+            "UNAUTHENTICATED",
+            "UNAUTHORIZED",
+            "ENTITY_EXISTS",
+            "ENTITY_NOT_FOUND",
+            "ERROR",
+            "FAIL_TO_PERSIST",
+            "ACCEPTED",
+            "IN_PROGRESS",
+            "OK"
+          ]
+        },
+        "statusMessage": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "title": "ClusterManagementOperationResult«RebalanceResult»"
+    },
+    "ClusterManagementOperationStatusResult«RebalanceResult»": {
+      "type": "object",
+      "properties": {
+        "operationEnded": {
+          "type": "string",
+          "example": "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+        },
+        "operationStart": {
+          "type": "string",
+          "example": "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/definitions/RebalanceResult"
+        },
+        "statusCode": {
+          "type": "string",
+          "enum": [
+            "ILLEGAL_ARGUMENT",
+            "UNAUTHENTICATED",
+            "UNAUTHORIZED",
+            "ENTITY_EXISTS",
+            "ENTITY_NOT_FOUND",
+            "ERROR",
+            "FAIL_TO_PERSIST",
+            "ACCEPTED",
+            "IN_PROGRESS",
+            "OK"
+          ]
+        },
+        "statusMessage": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "title": "ClusterManagementOperationStatusResult«RebalanceResult»"
+    },
+    "ClusterManagementResult": {
+      "type": "object",
+      "properties": {
+        "statusCode": {
+          "type": "string",
+          "enum": [
+            "ILLEGAL_ARGUMENT",
+            "UNAUTHENTICATED",
+            "UNAUTHORIZED",
+            "ENTITY_EXISTS",
+            "ENTITY_NOT_FOUND",
+            "ERROR",
+            "FAIL_TO_PERSIST",
+            "ACCEPTED",
+            "IN_PROGRESS",
+            "OK"
+          ]
+        },
+        "statusMessage": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "title": "ClusterManagementResult"
+    },
+    "ConfigurationResult«GatewayReceiverConfig,GatewayReceiverInfo»": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/GatewayReceiverConfig"
+        },
+        "runtimeInfo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GatewayReceiverInfo"
+          }
+        }
+      },
+      "title": "ConfigurationResult«GatewayReceiverConfig,GatewayReceiverInfo»"
+    },
+    "ConfigurationResult«Index,RuntimeInfo»": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/Index"
+        },
+        "runtimeInfo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RuntimeInfo"
+          }
+        }
+      },
+      "title": "ConfigurationResult«Index,RuntimeInfo»"
+    },
+    "ConfigurationResult«MemberConfig,MemberInformation»": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/MemberConfig"
+        },
+        "runtimeInfo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MemberInformation"
+          }
+        }
+      },
+      "title": "ConfigurationResult«MemberConfig,MemberInformation»"
+    },
+    "ConfigurationResult«RegionConfig,RuntimeRegionInfo»": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/RegionConfig"
+        },
+        "runtimeInfo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RuntimeRegionInfo"
+          }
+        }
+      },
+      "title": "ConfigurationResult«RegionConfig,RuntimeRegionInfo»"
+    },
+    "DeclarableType": {
+      "type": "object",
+      "properties": {
+        "className": {
+          "type": "string",
+          "xml": {
+            "name": "class-name",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          }
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ParameterType"
+          }
+        }
+      },
+      "title": "DeclarableType"
+    },
+    "DiskDirType": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "dirSize": {
+          "type": "string",
+          "xml": {
+            "name": "dir-size",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "DiskDirType"
+    },
+    "DiskDirsType": {
+      "type": "object",
+      "properties": {
+        "diskDirs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DiskDirType"
+          }
+        }
+      },
+      "title": "DiskDirsType"
+    },
+    "DiskWriteAttributes": {
+      "type": "object",
+      "properties": {
+        "asynchronousWrites": {
+          "xml": {
+            "name": "asynchronous-writes",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/AsynchronousWrites"
+        },
+        "maxOplogSize": {
+          "type": "string",
+          "xml": {
+            "name": "max-oplog-size",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "rollOplogs": {
+          "type": "string",
+          "xml": {
+            "name": "roll-oplogs",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "synchronousWrites": {
+          "type": "object",
+          "xml": {
+            "name": "synchronous-writes",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "DiskWriteAttributes"
+    },
+    "EvictionAttributes": {
+      "type": "object",
+      "properties": {
+        "lruEntryCount": {
+          "xml": {
+            "name": "lru-entry-count",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/LruEntryCount"
+        },
+        "lruHeapPercentage": {
+          "xml": {
+            "name": "lru-heap-percentage",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/LruHeapPercentage"
+        },
+        "lruMemorySize": {
+          "xml": {
+            "name": "lru-memory-size",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/LruMemorySize"
+        }
+      },
+      "title": "EvictionAttributes"
+    },
+    "ExpirationAttributesType": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "customExpiry": {
+          "$ref": "#/definitions/DeclarableType"
+        },
+        "timeout": {
+          "type": "string"
+        }
+      },
+      "title": "ExpirationAttributesType"
+    },
+    "FixedPartitionAttributes": {
+      "type": "object",
+      "properties": {
+        "isPrimary": {
+          "type": "boolean",
+          "xml": {
+            "name": "is-primary",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "numBuckets": {
+          "type": "string",
+          "xml": {
+            "name": "num-buckets",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "partitionName": {
+          "type": "string",
+          "xml": {
+            "name": "partition-name",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "FixedPartitionAttributes"
+    },
+    "GatewayReceiverConfig": {
+      "type": "object",
+      "properties": {
+        "bindAddress": {
+          "type": "string",
+          "xml": {
+            "name": "bind-address",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "endPort": {
+          "type": "string",
+          "xml": {
+            "name": "end-port",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "gatewayTransportFilters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DeclarableType"
+          }
+        },
+        "group": {
+          "type": "string"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hostnameForSenders": {
+          "type": "string",
+          "xml": {
+            "name": "hostname-for-senders",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "manualStart": {
+          "type": "boolean",
+          "xml": {
+            "name": "manual-start",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "maximumTimeBetweenPings": {
+          "type": "string",
+          "xml": {
+            "name": "maximum-time-between-pings",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "socketBufferSize": {
+          "type": "string",
+          "xml": {
+            "name": "socket-buffer-size",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "startPort": {
+          "type": "string",
+          "xml": {
+            "name": "start-port",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "title": "GatewayReceiverConfig"
+    },
+    "GatewayReceiverInfo": {
+      "type": "object",
+      "properties": {
+        "bindAddress": {
+          "type": "string"
+        },
+        "connectedSenders": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hostnameForSenders": {
+          "type": "string"
+        },
+        "memberName": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "running": {
+          "type": "boolean"
+        },
+        "senderCount": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "GatewayReceiverInfo"
+    },
+    "Index": {
+      "type": "object",
+      "properties": {
+        "expression": {
+          "type": "string",
+          "xml": {
+            "name": "expression",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "fromClause": {
+          "type": "string",
+          "xml": {
+            "name": "from-clause",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "group": {
+          "type": "string"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "imports": {
+          "type": "string",
+          "xml": {
+            "name": "imports",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "keyIndex": {
+          "type": "boolean",
+          "xml": {
+            "name": "key-index",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "name": {
+          "type": "string",
+          "xml": {
+            "name": "name",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "regionName": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "xml": {
+            "name": "type",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "title": "Index"
+    },
+    "LruEntryCount": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "xml": {
+            "name": "action",
+            "attribute": true,
+            "wrapped": false
+          },
+          "enum": [
+            "LOCAL_DESTROY",
+            "OVERFLOW_TO_DISK"
+          ]
+        },
+        "maximum": {
+          "type": "string",
+          "xml": {
+            "name": "maximum",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "LruEntryCount"
+    },
+    "LruHeapPercentage": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "xml": {
+            "name": "action",
+            "attribute": true,
+            "wrapped": false
+          },
+          "enum": [
+            "LOCAL_DESTROY",
+            "OVERFLOW_TO_DISK"
+          ]
+        },
+        "className": {
+          "type": "string",
+          "xml": {
+            "name": "class-name",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          }
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ParameterType"
+          }
+        }
+      },
+      "title": "LruHeapPercentage"
+    },
+    "LruMemorySize": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "xml": {
+            "name": "action",
+            "attribute": true,
+            "wrapped": false
+          },
+          "enum": [
+            "LOCAL_DESTROY",
+            "OVERFLOW_TO_DISK"
+          ]
+        },
+        "className": {
+          "type": "string",
+          "xml": {
+            "name": "class-name",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          }
+        },
+        "maximum": {
+          "type": "string",
+          "xml": {
+            "name": "maximum",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ParameterType"
+          }
+        }
+      },
+      "title": "LruMemorySize"
+    },
+    "MemberConfig": {
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "id": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "title": "MemberConfig"
+    },
+    "MemberInformation": {
+      "type": "object",
+      "properties": {
+        "cacheServerInfo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CacheServerInfo"
+          }
+        },
+        "cacheXmlFilePath": {
+          "type": "string"
+        },
+        "clientCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "coordinator": {
+          "type": "boolean"
+        },
+        "cpuUsage": {
+          "type": "number",
+          "format": "double"
+        },
+        "groups": {
+          "type": "string"
+        },
+        "heapUsage": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "host": {
+          "type": "string"
+        },
+        "hostedRegions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "httpServiceBindAddress": {
+          "type": "string"
+        },
+        "httpServicePort": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "id": {
+          "type": "string"
+        },
+        "initHeapSize": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "locatorPort": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "locators": {
+          "type": "string"
+        },
+        "logFilePath": {
+          "type": "string"
+        },
+        "maxHeapSize": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "memberName": {
+          "type": "string"
+        },
+        "offHeapMemorySize": {
+          "type": "string"
+        },
+        "processId": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "secured": {
+          "type": "boolean"
+        },
+        "server": {
+          "type": "boolean"
+        },
+        "serverBindAddress": {
+          "type": "string"
+        },
+        "statArchiveFilePath": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "webSSL": {
+          "type": "boolean"
+        },
+        "workingDirPath": {
+          "type": "string"
+        }
+      },
+      "title": "MemberInformation"
+    },
+    "MembershipAttributes": {
+      "type": "object",
+      "properties": {
+        "lossAction": {
+          "type": "string",
+          "xml": {
+            "name": "loss-action",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "requiredRoles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RequiredRole"
+          }
+        },
+        "resumptionAction": {
+          "type": "string",
+          "xml": {
+            "name": "resumption-action",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "MembershipAttributes"
+    },
+    "ParameterType": {
+      "type": "object",
+      "properties": {
+        "declarable": {
+          "xml": {
+            "name": "declarable",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/DeclarableType"
+        },
+        "name": {
+          "type": "string",
+          "xml": {
+            "name": "name",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "string": {
+          "type": "string",
+          "xml": {
+            "name": "string",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "ParameterType"
+    },
+    "PartitionAttributes": {
+      "type": "object",
+      "properties": {
+        "colocatedWith": {
+          "type": "string",
+          "xml": {
+            "name": "colocated-with",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "fixedPartitionAttributes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FixedPartitionAttributes"
+          }
+        },
+        "localMaxMemory": {
+          "type": "string",
+          "xml": {
+            "name": "local-max-memory",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "partitionListeners": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DeclarableType"
+          }
+        },
+        "partitionResolver": {
+          "xml": {
+            "name": "partition-resolver",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/DeclarableType"
+        },
+        "recoveryDelay": {
+          "type": "string",
+          "xml": {
+            "name": "recovery-delay",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "redundantCopies": {
+          "type": "string",
+          "xml": {
+            "name": "redundant-copies",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "startupRecoveryDelay": {
+          "type": "string",
+          "xml": {
+            "name": "startup-recovery-delay",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "totalMaxMemory": {
+          "type": "string",
+          "xml": {
+            "name": "total-max-memory",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "totalNumBuckets": {
+          "type": "string",
+          "xml": {
+            "name": "total-num-buckets",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "PartitionAttributes"
+    },
+    "Pdx": {
+      "type": "object",
+      "properties": {
+        "diskStoreName": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ignoreUnreadFields": {
+          "type": "boolean"
+        },
+        "pdxSerializer": {
+          "$ref": "#/definitions/ClassName"
+        },
+        "persistent": {
+          "type": "boolean"
+        },
+        "readSerialized": {
+          "type": "boolean"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "title": "Pdx"
+    },
+    "RebalanceOperation": {
+      "type": "object",
+      "properties": {
+        "excludeRegions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "includeRegions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "simulate": {
+          "type": "boolean"
+        }
+      },
+      "title": "RebalanceOperation"
+    },
+    "RebalanceRegionResult": {
+      "type": "object",
+      "properties": {
+        "bucketCreateBytes": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bucketCreateTimeInMilliseconds": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bucketCreatesCompleted": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bucketTransferBytes": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bucketTransferTimeInMilliseconds": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bucketTransfersCompleted": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "primaryTransferTimeInMilliseconds": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "primaryTransfersCompleted": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "regionName": {
+          "type": "string"
+        },
+        "timeInMilliseconds": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "RebalanceRegionResult"
+    },
+    "RebalanceResult": {
+      "type": "object",
+      "properties": {
+        "rebalanceRegionResults": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RebalanceRegionResult"
+          }
+        },
+        "statusMessage": {
+          "type": "string"
+        }
+      },
+      "title": "RebalanceResult"
+    },
+    "RegionAttributesType": {
+      "type": "object",
+      "properties": {
+        "asyncEventQueueIds": {
+          "type": "string",
+          "xml": {
+            "name": "async-event-queue-ids",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "cacheListeners": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DeclarableType"
+          }
+        },
+        "cacheLoader": {
+          "xml": {
+            "name": "cache-loader",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/DeclarableType"
+        },
+        "cacheWriter": {
+          "xml": {
+            "name": "cache-writer",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/DeclarableType"
+        },
+        "cloningEnabled": {
+          "type": "boolean",
+          "xml": {
+            "name": "cloning-enabled",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "compressor": {
+          "xml": {
+            "name": "compressor",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/ClassNameType"
+        },
+        "concurrencyChecksEnabled": {
+          "type": "boolean",
+          "xml": {
+            "name": "concurrency-checks-enabled",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "concurrencyLevel": {
+          "type": "string",
+          "xml": {
+            "name": "concurrency-level",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "dataPolicy": {
+          "type": "string",
+          "xml": {
+            "name": "data-policy",
+            "attribute": true,
+            "wrapped": false
+          },
+          "enum": [
+            "EMPTY",
+            "NORMAL",
+            "PARTITION",
+            "PERSISTENT_REPLICATE",
+            "PRELOADED",
+            "REPLICATE",
+            "PERSISTENT_PARTITION"
+          ]
+        },
+        "diskDirs": {
+          "xml": {
+            "name": "disk-dirs",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/DiskDirsType"
+        },
+        "diskStoreName": {
+          "type": "string",
+          "xml": {
+            "name": "disk-store-name",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "diskSynchronous": {
+          "type": "boolean",
+          "xml": {
+            "name": "disk-synchronous",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "diskWriteAttributes": {
+          "xml": {
+            "name": "disk-write-attributes",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/DiskWriteAttributes"
+        },
+        "earlyAck": {
+          "type": "boolean",
+          "xml": {
+            "name": "early-ack",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "enableAsyncConflation": {
+          "type": "boolean",
+          "xml": {
+            "name": "enable-async-conflation",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "enableGateway": {
+          "type": "boolean",
+          "xml": {
+            "name": "enable-gateway",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "enableSubscriptionConflation": {
+          "type": "boolean",
+          "xml": {
+            "name": "enable-subscription-conflation",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "entryIdleTime": {
+          "xml": {
+            "name": "entry-idle-time",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/ExpirationAttributesType"
+        },
+        "entryTimeToLive": {
+          "xml": {
+            "name": "entry-time-to-live",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/ExpirationAttributesType"
+        },
+        "evictionAttributes": {
+          "xml": {
+            "name": "eviction-attributes",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/EvictionAttributes"
+        },
+        "gatewaySenderIds": {
+          "type": "string",
+          "xml": {
+            "name": "gateway-sender-ids",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "hubId": {
+          "type": "string",
+          "xml": {
+            "name": "hub-id",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "id": {
+          "type": "string",
+          "xml": {
+            "name": "id",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "ignoreJta": {
+          "type": "boolean",
+          "xml": {
+            "name": "ignore-jta",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "indexUpdateType": {
+          "type": "string",
+          "xml": {
+            "name": "index-update-type",
+            "attribute": true,
+            "wrapped": false
+          },
+          "enum": [
+            "ASYNCHRONOUS",
+            "SYNCHRONOUS"
+          ]
+        },
+        "initialCapacity": {
+          "type": "string",
+          "xml": {
+            "name": "initial-capacity",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "isLockGrantor": {
+          "type": "boolean",
+          "xml": {
+            "name": "is-lock-grantor",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "keyConstraint": {
+          "type": "string",
+          "xml": {
+            "name": "key-constraint",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          }
+        },
+        "loadFactor": {
+          "type": "string",
+          "xml": {
+            "name": "load-factor",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "membershipAttributes": {
+          "xml": {
+            "name": "membership-attributes",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/MembershipAttributes"
+        },
+        "mirrorType": {
+          "type": "string",
+          "xml": {
+            "name": "mirror-type",
+            "attribute": true,
+            "wrapped": false
+          },
+          "enum": [
+            "KEYS",
+            "KEYS_VALUES",
+            "NONE"
+          ]
+        },
+        "multicastEnabled": {
+          "type": "boolean",
+          "xml": {
+            "name": "multicast-enabled",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "offHeap": {
+          "type": "boolean",
+          "xml": {
+            "name": "off-heap",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "partitionAttributes": {
+          "xml": {
+            "name": "partition-attributes",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/PartitionAttributes"
+        },
+        "persistBackup": {
+          "type": "boolean",
+          "xml": {
+            "name": "persist-backup",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "poolName": {
+          "type": "string",
+          "xml": {
+            "name": "pool-name",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "publisher": {
+          "type": "boolean",
+          "xml": {
+            "name": "publisher",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "refid": {
+          "type": "string",
+          "xml": {
+            "name": "refid",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "regionIdleTime": {
+          "xml": {
+            "name": "region-idle-time",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/ExpirationAttributesType"
+        },
+        "regionTimeToLive": {
+          "xml": {
+            "name": "region-time-to-live",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/ExpirationAttributesType"
+        },
+        "scope": {
+          "type": "string",
+          "xml": {
+            "name": "scope",
+            "attribute": true,
+            "wrapped": false
+          },
+          "enum": [
+            "DISTRIBUTED_ACK",
+            "DISTRIBUTED_NO_ACK",
+            "GLOBAL",
+            "LOCAL"
+          ]
+        },
+        "statisticsEnabled": {
+          "type": "boolean",
+          "xml": {
+            "name": "statistics-enabled",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "subscriptionAttributes": {
+          "xml": {
+            "name": "subscription-attributes",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/SubscriptionAttributes"
+        },
+        "valueConstraint": {
+          "type": "string",
+          "xml": {
+            "name": "value-constraint",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "RegionAttributesType"
+    },
+    "RegionConfig": {
+      "type": "object",
+      "properties": {
+        "group": {
+          "type": "string"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "indexes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Index"
+          }
+        },
+        "name": {
+          "type": "string",
+          "xml": {
+            "name": "name",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "regionAttributes": {
+          "xml": {
+            "name": "region-attributes",
+            "namespace": "http://geode.apache.org/schema/cache",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/RegionAttributesType"
+        },
+        "type": {
+          "type": "string",
+          "xml": {
+            "name": "refid",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "title": "RegionConfig"
+    },
+    "RequiredRole": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "xml": {
+            "name": "name",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "RequiredRole"
+    },
+    "RuntimeInfo": {
+      "type": "object",
+      "properties": {
+        "memberName": {
+          "type": "string"
+        }
+      },
+      "title": "RuntimeInfo"
+    },
+    "RuntimeRegionInfo": {
+      "type": "object",
+      "properties": {
+        "entryCount": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "memberName": {
+          "type": "string"
+        }
+      },
+      "title": "RuntimeRegionInfo"
+    },
+    "SubscriptionAttributes": {
+      "type": "object",
+      "properties": {
+        "interestPolicy": {
+          "type": "string",
+          "xml": {
+            "name": "interest-policy",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "SubscriptionAttributes"
+    }
+  }
+}

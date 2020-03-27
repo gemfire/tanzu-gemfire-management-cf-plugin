@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cf uninstall-plugin pcc
-go build -o ./pcc ./cmd/main
-echo Y | cf install-plugin pcc
+cf uninstall-plugin gemfire
+go build -o ./gemfire ./cmd/main
+echo Y | cf install-plugin gemfire
 
 echo "    _______  ________    ________  _______  _______"
 echo "   / _____/ / ______/   / ____  / / _____/ / _____/"

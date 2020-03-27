@@ -78,7 +78,7 @@ func (c *BasicPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 // GetMetadata provides metadata about the CF plugin including a helptext for the user
 func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
-		Name:    "pcc",
+		Name:    "gemfire",
 		Version: domain.VersionType,
 		MinCliVersion: plugin.VersionType{
 			Major: 6,
@@ -87,14 +87,14 @@ func (c *BasicPlugin) GetMetadata() plugin.PluginMetadata {
 		},
 		Commands: []plugin.Command{
 			{
-				Name:     "pcc",
+				Name:     "gemfire",
 				HelpText: "Commands to interact with Geode cluster.\n",
 				UsageDetails: plugin.Usage{
-					Usage: "cf  pcc  [target]  <command>  [options] \n\n" +
+					Usage: "cf  gemfire  [target]  <command>  [options] \n\n" +
 						"\ttarget:\n\t\ta pcc_instance. \n" +
 						"\t\tomit if 'GEODE_TARGET' environment variable is set \n" +
-						"\tcommand:\n\t\tuse 'cf pcc <target> commands' to see a list of supported commands \n" +
-						"\toptions:\n\t\tuse 'cf pcc <target> command -help' to see options for individual command." +
+						"\tcommand:\n\t\tuse 'cf gemfire <target> commands' to see a list of supported commands \n" +
+						"\toptions:\n\t\tuse 'cf gemfire <target> command -help' to see options for individual command." +
 						format.GeneralOptions + "\n" +
 						"\thelp\nt\t\t: use -h or --help for general help, and provide <command> -help for command specific help",
 				},

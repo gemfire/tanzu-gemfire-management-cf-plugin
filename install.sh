@@ -16,7 +16,7 @@
 # limitations under the License.
 
 ./build.sh
-echo Y | cf install-plugin pcc
+echo Y | cf install-plugin gemfire
 echo "    _______  ________    ________  _______  _______"
 echo "   / _____/ / ______/   / ____  / / _____/ / _____/"
 echo "  / /      / /___      / /___/ / / /      / /    "

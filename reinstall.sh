@@ -19,8 +19,4 @@ cf uninstall-plugin gemfire
 go build -o ./gemfire ./cmd/main
 echo Y | cf install-plugin gemfire
 
-echo "    _______  ________    ________  _______  _______"
-echo "   / _____/ / ______/   / ____  / / _____/ / _____/"
-echo "  / /      / /___      / /___/ / / /      / /    "
-echo " / /____  / ____/     / ______/ / /____  / /____"
-echo "/______/ /_/         /_/       /______/ /______/ 1.0.0"
+echo " ----- Plugin gemfire installed ----- "

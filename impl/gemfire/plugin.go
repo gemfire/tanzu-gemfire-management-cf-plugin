@@ -13,7 +13,7 @@
  * the License.
  */
 
-package pcc
+package gemfire
 
 import (
 	"errors"

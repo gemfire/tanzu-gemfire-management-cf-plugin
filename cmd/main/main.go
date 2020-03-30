@@ -25,8 +25,8 @@ import (
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/filter"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
+	"github.com/gemfire/cloudcache-management-cf-plugin/impl/gemfire"
 	"github.com/gemfire/cloudcache-management-cf-plugin/impl/geode"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/pcc"
 )
 
 func main() {
@@ -38,7 +38,7 @@ func main() {
 
 	// figure out who is calling
 	if strings.Contains(os.Args[0], ".cf/plugins") {
-		basicPlugin, err := pcc.NewBasicPlugin(commonCode)
+		basicPlugin, err := gemfire.NewBasicPlugin(commonCode)
 		checkError(err)
 		plugin.Start(basicPlugin)
 	} else {

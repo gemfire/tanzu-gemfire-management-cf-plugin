@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/format"
 )
 
 type FakeJSONFilter struct {

@@ -21,10 +21,10 @@ import (
 	"os"
 
 	"code.cloudfoundry.org/cli/plugin"
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/format"
 )
 
 // BasicPlugin declares the dataset that commands work on

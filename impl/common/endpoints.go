@@ -21,9 +21,9 @@ import (
 	"strings"
 
 	"code.cloudfoundry.org/cli/cf/errors"
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/format"
 )
 
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the Geode/PCC locator

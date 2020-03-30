@@ -37,13 +37,13 @@ in this cluster. This can be a development version running on `localhost`
 #### Common instructions
  1. Have a [Go](https://golang.org/) SDK on your machine when compiling the code from the repository. It is recommended to get the latest 1.x version of `Go` to ensure all known security issues are addressed.
  1. Clone the Repository
-    - `git clone git@github.com:gemfire/cloudcache-management-cf-plugin.git`
+    - `git clone git@github.com:gemfire/tanzu-gemfire-management-cf-plugin.git`
  1. Some parameters can be replaced with environment variables to avoid having to type them in repeatedly.
  Please see the general help for details in each mode
 
 #### As a plugin:
  1. Run the start script
-    -  `./install.sh` from the `cloudcache-management-cf-plugin` directory or `./reinstall.sh` when
+    -  `./install.sh` from the `tanzu-gemfire-management-cf-plugin` directory or `./reinstall.sh` when
     replacing an existing version of the plugin
  1. For Help
     - `cf gemfire --help` provides general help
@@ -52,7 +52,7 @@ in this cluster. This can be a development version running on `localhost`
 
 #### As a standalone client
  1. Run the start script
-    -  `./build.sh` from the `cloudcache-management-cf-plugin` directory
+    -  `./build.sh` from the `tanzu-gemfire-management-cf-plugin` directory
  1. For Help
     - `./gemfire --help` provides general help
     - `./gemfire <target> commands` to get a list of commands available to you. `<target>` is the address of the `locator` you are using

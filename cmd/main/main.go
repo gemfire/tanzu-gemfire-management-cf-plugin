@@ -17,16 +17,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/builder"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/builder"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/filter"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/format"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/gemfire"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/geode"
 	"os"
 	"strings"
 
 	"code.cloudfoundry.org/cli/plugin"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/filter"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/gemfire"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/geode"
 )
 
 func main() {

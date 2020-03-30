@@ -4,9 +4,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
-	. "github.com/gemfire/cloudcache-management-cf-plugin/impl/common/builder"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common"
+	. "github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/builder"
 )
 
 var _ = Describe("RequestBuilder", func() {

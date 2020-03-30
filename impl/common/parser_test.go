@@ -18,7 +18,7 @@ package common_test
 import (
 	"os"
 
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

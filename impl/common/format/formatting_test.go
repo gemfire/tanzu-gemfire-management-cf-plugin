@@ -18,10 +18,10 @@ package format_test
 import (
 	"strings"
 
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/filter"
-	. "github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/filter"
+	. "github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/format"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

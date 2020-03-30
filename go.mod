@@ -1,4 +1,4 @@
-module github.com/gemfire/cloudcache-management-cf-plugin
+module github.com/gemfire/tanzu-gemfire-management-cf-plugin
 
 go 1.12
 

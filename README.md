@@ -57,3 +57,9 @@ in this cluster. This can be a development version running on `localhost`
     - `./gemfire --help` provides general help
     - `./gemfire <target> commands` to get a list of commands available to you. `<target>` is the address of the `locator` you are using
     - `./gemfire <target> <command> -help` to get `<command>` specific help including the format of `JSON` payload that some commands require
+
+### Running the tests
+ 1. Run all the tests
+    - `ginkgo -r` from the `tanzu-gemfire-management-cf-plugin` directory
+
+

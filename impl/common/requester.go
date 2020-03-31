@@ -18,7 +18,7 @@ package common
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
 	"io"
 	"io/ioutil"
 	"net/http"

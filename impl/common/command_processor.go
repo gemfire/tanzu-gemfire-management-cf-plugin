@@ -22,8 +22,8 @@ import (
 	"strings"
 
 	"code.cloudfoundry.org/cli/cf/errors"
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . Formatter

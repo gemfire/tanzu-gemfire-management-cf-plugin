@@ -19,7 +19,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
 )
 
 // GetTargetAndClusterCommand extracts the target and command from the args and environment variables

@@ -13,21 +13,21 @@
  * the License.
  */
 
-package pcc_test
+package gemfire_test
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"code.cloudfoundry.org/cli/plugin/pluginfakes"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
-	. "github.com/gemfire/cloudcache-management-cf-plugin/impl/pcc"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/format"
+	. "github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/gemfire"
 )
 
 var _ = Describe("PluginConnection", func() {

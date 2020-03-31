@@ -5,8 +5,8 @@ import (
 	"io"
 	"sync"
 
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common"
 )
 
 type FakeRequestBuilder struct {

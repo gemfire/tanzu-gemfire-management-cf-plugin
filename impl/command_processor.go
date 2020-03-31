@@ -15,7 +15,7 @@
 
 package impl
 
-import "github.com/gemfire/cloudcache-management-cf-plugin/domain"
+import "github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . CommandProcessor
 

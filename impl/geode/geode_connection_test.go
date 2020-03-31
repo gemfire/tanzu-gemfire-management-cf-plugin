@@ -16,12 +16,12 @@
 package geode_test
 
 import (
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
-	. "github.com/gemfire/cloudcache-management-cf-plugin/impl/geode"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl"
+	. "github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/geode"
 )
 
 var _ = Describe("GeodeConnection", func() {

@@ -16,16 +16,16 @@
 package common_test
 
 import (
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl"
 	"io/ioutil"
 
 	"code.cloudfoundry.org/cli/cf/errors"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	. "github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/implfakes"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
+	. "github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/implfakes"
 )
 
 var _ = Describe("Endpoints", func() {

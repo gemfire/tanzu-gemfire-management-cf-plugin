@@ -18,11 +18,10 @@ package geode
 import (
 	"errors"
 	"fmt"
-
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common"
-	"github.com/gemfire/cloudcache-management-cf-plugin/impl/common/format"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/format"
 )
 
 // Command is the basic struct that the command works on
@@ -73,12 +72,12 @@ func (gc *command) Run(args []string) (err error) {
 func printHelp() {
 	fmt.Println("Commands to interact with geode cluster.")
 	fmt.Println("")
-	fmt.Println("Usage: pcc <target> <command> [options]")
+	fmt.Println("Usage: gemfire <target> <command> [options]")
 	fmt.Println("")
 	fmt.Println("\ttarget: \n\t\turl to a geode locator in the form of : http(s)://host:port")
 	fmt.Println("\t\tomit if 'GEODE_TARGET' environment variable is set")
-	fmt.Println("\tcommand:\n\t\tuse 'pcc <target> commands' to see a list of supported commands")
-	fmt.Println("\toptions:\n\t\tuse 'pcc <target> <command> -h' to see options for individual command.")
+	fmt.Println("\tcommand:\n\t\tuse 'gemfire <target> commands' to see a list of supported commands")
+	fmt.Println("\toptions:\n\t\tuse 'gemfire <target> <command> -h' to see options for individual command.")
 	fmt.Println(format.GeneralOptions)
 	fmt.Println("\thelp:\n\t\tuse -h or --help for general help, and provide <command> for command specific help.")
 }

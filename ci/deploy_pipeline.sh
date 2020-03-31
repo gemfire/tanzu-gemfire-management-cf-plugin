@@ -18,7 +18,7 @@
 # Concourse configuration
 TARGET=concourse.gemfire-ci.info
 TEAM=main
-PIPELINE=cloudcache-management-cf-plugin
+PIPELINE=tanzu-gemfire-management-cf-plugin
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 # Poolsmiths configuration
@@ -116,10 +116,10 @@ EOF
 EOF
 done
 cat << EOF >> pipeline.yml
-- name: cloudcache-management-cf-plugin
+- name: tanzu-gemfire-management-cf-plugin
   type: git
   source:
-    uri: git@github.com:gemfire/cloudcache-management-cf-plugin.git
+    uri: git@github.com:gemfire/tanzu-gemfire-management-cf-plugin.git
     branch: $BRANCH
     ignore_paths:
       - "ci/deploy_pipeline.sh"
@@ -132,10 +132,10 @@ cat << EOF >> pipeline.yml
     repository: golang
     tag: latest
 
-- name: cloudcache-management-cf-plugin-ci-dockerfile
+- name: tanzu-gemfire-management-cf-plugin-ci-dockerfile
   type: git
   source:
-    uri: git@github.com:gemfire/cloudcache-management-cf-plugin.git
+    uri: git@github.com:gemfire/tanzu-gemfire-management-cf-plugin.git
     branch: $BRANCH
     paths:
       - "ci/docker/*"
@@ -164,12 +164,12 @@ EOF
   fi
 done
 cat << EOF >> pipeline.yml
-- name: cloudcache-management-cf-plugin-ci-image
+- name: tanzu-gemfire-management-cf-plugin-ci-image
   type: docker-image
   source:
     username: "_json_key"
     password: ((!concourse-gcp-key))
-    repository: gcr.io/gemfire-dev/cloudcache-management-cf-plugin-ci
+    repository: gcr.io/gemfire-dev/tanzu-gemfire-management-cf-plugin-ci
 
 - name: weekly
   type: time
@@ -199,11 +199,11 @@ resource_types:
 
 
 jobs:
-- name: build-cloudcache-management-cf-plugin
+- name: build-tanzu-gemfire-management-cf-plugin
   serial: true
   plan:
   - in_parallel:
-    - get: cloudcache-management-cf-plugin
+    - get: tanzu-gemfire-management-cf-plugin
       trigger: true
     - get: golang-image
   - task: ginkgo
@@ -211,14 +211,14 @@ jobs:
     image: golang-image
     config:
       inputs:
-        - name: cloudcache-management-cf-plugin
+        - name: tanzu-gemfire-management-cf-plugin
       platform: linux
       run:
         path: /bin/sh
         args:
           - -ec
           - |
-            cd cloudcache-management-cf-plugin
+            cd tanzu-gemfire-management-cf-plugin
             go get github.com/onsi/ginkgo/ginkgo
             ginkgo -r
 
@@ -226,11 +226,11 @@ jobs:
   plan:
   - get: weekly
     trigger: true
-  - get: cloudcache-management-cf-plugin-ci-dockerfile
+  - get: tanzu-gemfire-management-cf-plugin-ci-dockerfile
     trigger: true
-  - put: cloudcache-management-cf-plugin-ci-image
+  - put: tanzu-gemfire-management-cf-plugin-ci-image
     params:
-      build: cloudcache-management-cf-plugin-ci-dockerfile/ci/docker
+      build: tanzu-gemfire-management-cf-plugin-ci-dockerfile/ci/docker
       tag_as_latest: true
 EOF
 for gem in $STANDALONE_GEMFIRE_VERSIONS; do
@@ -239,9 +239,9 @@ for gem in $STANDALONE_GEMFIRE_VERSIONS; do
   serial: true
   plan:
   - in_parallel:
-    - get: cloudcache-management-cf-plugin
+    - get: tanzu-gemfire-management-cf-plugin
       trigger: true
-      passed: [build-cloudcache-management-cf-plugin]
+      passed: [build-tanzu-gemfire-management-cf-plugin]
     - get: golang-image
     - get: gemfire-$gem
 EOF
@@ -252,7 +252,7 @@ function buildPlugin {
     image: golang-image
     config:
       inputs:
-        - name: cloudcache-management-cf-plugin
+        - name: tanzu-gemfire-management-cf-plugin
       outputs:
         - name: pcc-plugin
       platform: linux
@@ -261,7 +261,7 @@ function buildPlugin {
         args:
           - -ec
           - |
-            cd cloudcache-management-cf-plugin
+            cd tanzu-gemfire-management-cf-plugin
             ./build.sh
             cp pcc ../pcc-plugin/
 EOF
@@ -277,7 +277,7 @@ cat << EOF >> pipeline.yml
           repository: openjdk
           tag: 8
       inputs:
-        - name: cloudcache-management-cf-plugin
+        - name: tanzu-gemfire-management-cf-plugin
         - name: pcc-plugin
         - name: gemfire-$gem
           path: gemfire
@@ -290,7 +290,7 @@ cat << EOF >> pipeline.yml
             tar xzf gemfire/pivotal-gemfire-*.tgz
             [ -x bin/gfsh ] && gfsh=bin/gfsh || gfsh=*gemfire*/bin/gfsh
             \$gfsh -e "version --full" -e "start locator"
-            cd cloudcache-management-cf-plugin
+            cd tanzu-gemfire-management-cf-plugin
             pcc="../pcc-plugin/pcc"
             \$pcc --help
             cf="\$pcc http://localhost:7070" ci/smoke-test.bash
@@ -307,7 +307,7 @@ for pccstemvers in $PCC_VERSIONS; do
 - name: test-cloudcache-management-cf-pcc-$pccver
   plan:
   - aggregate:
-    - get: cloudcache-management-cf-plugin
+    - get: tanzu-gemfire-management-cf-plugin
       trigger: true
       passed: [$standalone_targets]
     - get: pcc-$pccver
@@ -315,7 +315,7 @@ for pccstemvers in $PCC_VERSIONS; do
       params:
         preserve_filename: true
         globs: ["*google*"]
-    - get: cloudcache-management-cf-plugin-ci-image
+    - get: tanzu-gemfire-management-cf-plugin-ci-image
     - get: golang-image
     - put: pcc-env-$pccver
       tags: [pivotal-internal-worker]
@@ -325,36 +325,36 @@ EOF
 buildPlugin
 cat << EOF >> pipeline.yml
   - task: install-pcc
-    image: cloudcache-management-cf-plugin-ci-image
+    image: tanzu-gemfire-management-cf-plugin-ci-image
     config:
       platform: linux
       inputs:
       - name: pcc-env-$pccver
       - name: pcc-$pccver
-      - name: cloudcache-management-cf-plugin
+      - name: tanzu-gemfire-management-cf-plugin
       - name: stemcell-$stemcellver
       run:
         path: bash
         args:
         - -exc
         - |
-          cd cloudcache-management-cf-plugin
+          cd tanzu-gemfire-management-cf-plugin
           ci/install.sh -p ../pcc-$pccver -s ../stemcell-$stemcellver/*.tgz -g ../pcc-env-$pccver/metadata
           ci/create-service.bash -g ../pcc-env-$pccver/metadata
   - task: plugin-test
-    image: cloudcache-management-cf-plugin-ci-image
+    image: tanzu-gemfire-management-cf-plugin-ci-image
     config:
       platform: linux
       inputs:
       - name: pcc-env-$pccver
-      - name: cloudcache-management-cf-plugin
+      - name: tanzu-gemfire-management-cf-plugin
       - name: pcc-plugin
       run:
         path: bash
         args:
         - -exc
         - |
-          cd cloudcache-management-cf-plugin
+          cd tanzu-gemfire-management-cf-plugin
           ci/login.bash ../pcc-env-$pccver/metadata
           cf="cf pcc test" ci/smoke-test.bash
     ensure:

@@ -17,7 +17,7 @@ package domain
 
 import "code.cloudfoundry.org/cli/plugin"
 
-var VersionType = plugin.VersionType{Major: 0, Minor: 1, Build: 1}
+var VersionType = plugin.VersionType{Major: 1, Minor: 0, Build: 0}
 
 // CommandData is all the data involved in executing plugin commands
 // This data gets manipulated throughout the program

@@ -18,12 +18,11 @@ package common
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
 	"io"
 	"io/ioutil"
 	"net/http"
 )
-
 
 // Exchange implements the impl.RequestHelper function type
 var Exchange = func(url string, method string, bodyReader io.Reader, connectionData *domain.ConnectionData) (urlResponse string, statusCode int, err error) {

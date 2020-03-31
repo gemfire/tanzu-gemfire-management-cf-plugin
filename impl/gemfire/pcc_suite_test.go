@@ -13,7 +13,7 @@
  * the License.
  */
 
-package pcc_test
+package gemfire_test
 
 import (
 	"testing"

@@ -25,7 +25,7 @@ import (
 	"code.cloudfoundry.org/cli/cf/errors"
 	"github.com/vito/go-interact/interact/terminal"
 
-	"github.com/gemfire/cloudcache-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . JSONFilter

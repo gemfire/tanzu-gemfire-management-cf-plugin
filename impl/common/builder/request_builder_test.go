@@ -1,12 +1,11 @@
 package builder_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
 	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common"
 	. "github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/builder"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("RequestBuilder", func() {
@@ -45,35 +44,31 @@ var _ = Describe("RequestBuilder", func() {
 
 				It("Returns URL, bodyReader and nil error", func() {
 					commandData.UserCommand.Parameters["--regionConfig"] = "@../../../testdata/request-body.json"
-					url, bodyReader, err := buildRequest(restEndPoint, &commandData)
+					request, err := buildRequest(restEndPoint, &commandData)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(url).NotTo(BeNil())
-					Expect(url).To(Equal(expectedRegionURL))
-					Expect(bodyReader).NotTo(BeNil())
+					Expect(request).NotTo(BeNil())
+					Expect(request.URL.String()).To(Equal(expectedRegionURL))
+					Expect(request.Body).NotTo(BeNil())
 				})
 			})
 
 			Context("Body from file, where file is not found", func() {
-
 				It("Returns an error", func() {
 					commandData.UserCommand.Parameters["--regionConfig"] = "@../../../testdata/notfound-body.json"
-					url, bodyReader, err := buildRequest(restEndPoint, &commandData)
+					request, err := buildRequest(restEndPoint, &commandData)
 					Expect(err).To(HaveOccurred())
-					Expect(url).NotTo(BeNil())
-					Expect(url).To(Equal(expectedRegionURL))
-					Expect(bodyReader).To(BeNil())
+					Expect(request).To(BeNil())
 				})
 			})
 
 			Context("Body direct from command line", func() {
-
 				It("Returns URL, bodyReader and nil error", func() {
 					commandData.UserCommand.Parameters["--regionConfig"] = `{"name": "testRegion", "type": "PARTITION"}`
-					url, bodyReader, err := buildRequest(restEndPoint, &commandData)
+					request, err := buildRequest(restEndPoint, &commandData)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(url).NotTo(BeNil())
-					Expect(url).To(Equal(expectedRegionURL))
-					Expect(bodyReader).NotTo(BeNil())
+					Expect(request).NotTo(BeNil())
+					Expect(request.URL.String()).To(Equal(expectedRegionURL))
+					Expect(request.Body).NotTo(BeNil())
 				})
 			})
 		})
@@ -97,11 +92,11 @@ var _ = Describe("RequestBuilder", func() {
 			})
 
 			It("Returns URL, nil bodyReader and nil error", func() {
-				url, bodyReader, err := buildRequest(restEndPoint, &commandData)
+				request, err := buildRequest(restEndPoint, &commandData)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(url).NotTo(BeNil())
-				Expect(url).To(Equal(expectedDeleteURL))
-				Expect(bodyReader).To(BeNil())
+				Expect(request).NotTo(BeNil())
+				Expect(request.URL.String()).To(Equal(expectedDeleteURL))
+				Expect(request.Body).To(BeNil())
 			})
 		})
 
@@ -124,11 +119,38 @@ var _ = Describe("RequestBuilder", func() {
 			})
 
 			It("Returns URL, nil bodyReader and nil error", func() {
-				url, bodyReader, err := buildRequest(restEndPoint, &commandData)
+				request, err := buildRequest(restEndPoint, &commandData)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(url).NotTo(BeNil())
-				Expect(url).To(Equal(expectedListURL))
-				Expect(bodyReader).To(BeNil())
+				Expect(request).NotTo(BeNil())
+				Expect(request.URL.String()).To(Equal(expectedListURL))
+				Expect(request.Body).To(BeNil())
+			})
+		})
+
+		Context("Request with formData", func() {
+			var expectedListURL string
+
+			BeforeEach(func() {
+				restEndPoint.URL = "/deployment"
+				restEndPoint.CommandName = "PUT"
+				restEndPoint.Consumes = []string{"multipart/form-data"}
+				restEndPoint.Parameters = []domain.RestAPIParam{
+					domain.RestAPIParam{Name: "config", In: "query", Type: "string", Required: true},
+					domain.RestAPIParam{Name: "file", In: "formData", Type: "file", Required: true},
+				}
+
+				commandData.UserCommand.Command = "deploy"
+				commandData.UserCommand.Parameters["--config"] = "{}"
+				commandData.UserCommand.Parameters["--file"] = "../../../testdata/request-body.json"
+
+				expectedListURL = "http://localhost:7070/management/deployment?config=%7B%7D"
+			})
+
+			It("Returns URL, nil bodyReader and nil error", func() {
+				request, err := buildRequest(restEndPoint, &commandData)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(request).NotTo(BeNil())
+				Expect(request.URL.String()).To(Equal(expectedListURL))
 			})
 		})
 	})

@@ -18,32 +18,16 @@ package common
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
-	"io"
 	"io/ioutil"
 	"net/http"
 )
 
 // Exchange implements the impl.RequestHelper function type
-var Exchange = func(url string, method string, bodyReader io.Reader, connectionData *domain.ConnectionData) (urlResponse string, statusCode int, err error) {
+var Exchange = func(request *http.Request) (urlResponse string, statusCode int, err error) {
 	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	client := &http.Client{Transport: transport}
 
-	req, err := http.NewRequest(method, url, bodyReader)
-	if err != nil {
-		return "", 0, err
-	}
-
-	if connectionData != nil {
-		if connectionData.UseToken {
-			var bearer = "Bearer " + connectionData.Token
-			req.Header.Add("Authorization", bearer)
-		} else {
-			req.SetBasicAuth(connectionData.Username, connectionData.Password)
-		}
-	}
-	req.Header.Add("content-type", "application/json")
-	resp, err := client.Do(req)
+	resp, err := client.Do(request)
 	if err != nil {
 		return "", 0, err
 	}

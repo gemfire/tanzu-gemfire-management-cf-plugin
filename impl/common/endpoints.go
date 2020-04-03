@@ -17,6 +17,7 @@ package common
 
 import (
 	"encoding/json"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -41,7 +42,11 @@ func GetEndPoints(commandData *domain.CommandData, processRequest impl.RequestHe
 
 	for pos, URL := range apiDocURLs {
 		apiDocURL = URL
-		urlResponse, statusCode, err = processRequest(URL, "GET", nil, nil)
+		request, err := http.NewRequest("GET", URL, nil)
+		if err != nil {
+			return err
+		}
+		urlResponse, statusCode, err = processRequest(request)
 		if err != nil {
 			return errors.New("Unable to reach " + URL + ". Error: " + err.Error())
 		}
@@ -55,7 +60,11 @@ func GetEndPoints(commandData *domain.CommandData, processRequest impl.RequestHe
 					latestURL, Ok := responseMap["latest"]
 					if Ok {
 						apiDocURL = format.GetString(latestURL)
-						urlResponse, statusCode, err = processRequest(apiDocURL, "GET", nil, nil)
+						request, err := http.NewRequest("GET", apiDocURL, nil)
+						if err != nil {
+							return err
+						}
+						urlResponse, statusCode, err = processRequest(request)
 						if err != nil {
 							return errors.New("Unable to reach " + apiDocURL + ": " + err.Error())
 						}
@@ -86,6 +95,7 @@ func GetEndPoints(commandData *domain.CommandData, processRequest impl.RequestHe
 			var endpoint domain.RestEndPoint
 			endpoint.URL = url
 			endpoint.HTTPMethod = methodType
+			endpoint.Consumes = apiPaths.Paths[url][methodType].Consumes
 			endpoint.CommandName = apiPaths.Paths[url][methodType].CommandName
 			endpoint.JQFilter = apiPaths.Paths[url][methodType].JQFilter
 			endpoint.Parameters = []domain.RestAPIParam{}

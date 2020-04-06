@@ -263,7 +263,7 @@ function buildPlugin {
           - |
             cd tanzu-gemfire-management-cf-plugin
             ./build.sh
-            cp pcc ../pcc-plugin/
+            cp gemfire ../pcc-plugin/
 EOF
 }
 buildPlugin
@@ -291,9 +291,9 @@ cat << EOF >> pipeline.yml
             [ -x bin/gfsh ] && gfsh=bin/gfsh || gfsh=*gemfire*/bin/gfsh
             \$gfsh -e "version --full" -e "start locator"
             cd tanzu-gemfire-management-cf-plugin
-            pcc="../pcc-plugin/pcc"
-            \$pcc --help
-            cf="\$pcc http://localhost:7070" ci/smoke-test.bash
+            gemfire="../pcc-plugin/gemfire"
+            \$gemfire --help
+            cf="\$gemfire http://localhost:7070" ci/smoke-test.bash
 EOF
 done
 for gem in $STANDALONE_GEMFIRE_VERSIONS ; do
@@ -356,7 +356,7 @@ cat << EOF >> pipeline.yml
         - |
           cd tanzu-gemfire-management-cf-plugin
           ci/login.bash ../pcc-env-$pccver/metadata
-          cf="cf pcc test" ci/smoke-test.bash
+          cf="cf gemfire test" ci/smoke-test.bash
     ensure:
       aggregate:
       - put: pcc-env-$pccver

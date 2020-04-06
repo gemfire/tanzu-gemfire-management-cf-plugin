@@ -22,7 +22,7 @@ PIPELINE=tanzu-gemfire-management-cf-plugin
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 # Poolsmiths configuration
-POOL_NAME=us_2_6
+POOL_NAME=us_2_8
 POOLSMITHS_API_TOKEN=0d82e637-6681-4d4a-9e9f-90a71db5de0d
 
 # To get PCC and stemcell snapshots and releases

@@ -16,17 +16,37 @@
 package builder
 
 import (
+	"bytes"
 	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
+	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common"
 	"io"
+	"mime/multipart"
+	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
-// BuildRequest implments common.RequestBuilder func type
-func BuildRequest(restEndPoint domain.RestEndPoint, commandData *domain.CommandData) (requestURL string, bodyReader io.Reader, err error) {
-	requestURL = commandData.ConnnectionData.LocatorAddress + "/management" + restEndPoint.URL
+// BuildRequest implements common.RequestBuilder func type
+func BuildRequest(restEndPoint domain.RestEndPoint, commandData *domain.CommandData) (request *http.Request, err error) {
+	connectionData := commandData.ConnnectionData
+	requestURL := connectionData.LocatorAddress + "/management" + restEndPoint.URL
 	var query string
+	var multiPartForm bool
+
+	// for content body reader
+	var bodyReader io.Reader
+
+	// for multipart form body
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// form data are handled differently
+	if common.Contains(restEndPoint.Consumes, "multipart/form-data") {
+		multiPartForm = true
+	}
+
 	for _, param := range restEndPoint.Parameters {
 		value, ok := commandData.UserCommand.Parameters["--"+param.Name]
 		if ok {
@@ -34,6 +54,12 @@ func BuildRequest(restEndPoint domain.RestEndPoint, commandData *domain.CommandD
 			case "path":
 				requestURL = strings.ReplaceAll(requestURL, "{"+param.Name+"}", url.PathEscape(value))
 			case "query":
+				if multiPartForm {
+					err = writer.WriteField(param.Name, value)
+					if err != nil {
+						return nil, err
+					}
+				}
 				if len(query) == 0 {
 					query = "?" + param.Name + "=" + url.PathEscape(value)
 				} else {
@@ -41,11 +67,52 @@ func BuildRequest(restEndPoint domain.RestEndPoint, commandData *domain.CommandD
 				}
 			case "body":
 				bodyReader, err = getBodyReader(value)
+				if err != nil {
+					return nil, err
+				}
+			case "formData":
+				if param.Type == "string" {
+					err = writer.WriteField(param.Name, value)
+				} else if param.Type == "file" {
+					file, err := os.Open(value)
+					if err != nil {
+						return nil, err
+					}
+					defer file.Close()
+					part, err := writer.CreateFormFile(param.Name, filepath.Base(value))
+					if err != nil {
+						return nil, err
+					}
+					_, err = io.Copy(part, file)
+					if err != nil {
+						return nil, err
+					}
+				}
 			}
 		}
 	}
 
+	err = writer.Close()
 	requestURL = requestURL + query
+	httpAction := strings.ToUpper(restEndPoint.HTTPMethod)
+	if multiPartForm {
+		request, err = http.NewRequest(httpAction, requestURL, body)
+	} else {
+		request, err = http.NewRequest(httpAction, requestURL, bodyReader)
+	}
+
+	if connectionData.UseToken {
+		var bearer = "Bearer " + connectionData.Token
+		request.Header.Add("Authorization", bearer)
+	} else {
+		request.SetBasicAuth(connectionData.Username, connectionData.Password)
+	}
+
+	if multiPartForm {
+		request.Header.Set("content-type", writer.FormDataContentType())
+	} else {
+		request.Header.Set("content-type", "application/json")
+	}
 	return
 }
 

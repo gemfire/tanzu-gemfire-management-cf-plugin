@@ -2,7 +2,7 @@
 package commonfakes
 
 import (
-	"io"
+	"net/http"
 	"sync"
 
 	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
@@ -10,27 +10,25 @@ import (
 )
 
 type FakeRequestBuilder struct {
-	Stub        func(domain.RestEndPoint, *domain.CommandData) (string, io.Reader, error)
+	Stub        func(domain.RestEndPoint, *domain.CommandData) (*http.Request, error)
 	mutex       sync.RWMutex
 	argsForCall []struct {
 		arg1 domain.RestEndPoint
 		arg2 *domain.CommandData
 	}
 	returns struct {
-		result1 string
-		result2 io.Reader
-		result3 error
+		result1 *http.Request
+		result2 error
 	}
 	returnsOnCall map[int]struct {
-		result1 string
-		result2 io.Reader
-		result3 error
+		result1 *http.Request
+		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRequestBuilder) Spy(arg1 domain.RestEndPoint, arg2 *domain.CommandData) (string, io.Reader, error) {
+func (fake *FakeRequestBuilder) Spy(arg1 domain.RestEndPoint, arg2 *domain.CommandData) (*http.Request, error) {
 	fake.mutex.Lock()
 	ret, specificReturn := fake.returnsOnCall[len(fake.argsForCall)]
 	fake.argsForCall = append(fake.argsForCall, struct {
@@ -43,9 +41,9 @@ func (fake *FakeRequestBuilder) Spy(arg1 domain.RestEndPoint, arg2 *domain.Comma
 		return fake.Stub(arg1, arg2)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2, ret.result3
+		return ret.result1, ret.result2
 	}
-	return fake.returns.result1, fake.returns.result2, fake.returns.result3
+	return fake.returns.result1, fake.returns.result2
 }
 
 func (fake *FakeRequestBuilder) CallCount() int {
@@ -54,7 +52,7 @@ func (fake *FakeRequestBuilder) CallCount() int {
 	return len(fake.argsForCall)
 }
 
-func (fake *FakeRequestBuilder) Calls(stub func(domain.RestEndPoint, *domain.CommandData) (string, io.Reader, error)) {
+func (fake *FakeRequestBuilder) Calls(stub func(domain.RestEndPoint, *domain.CommandData) (*http.Request, error)) {
 	fake.mutex.Lock()
 	defer fake.mutex.Unlock()
 	fake.Stub = stub
@@ -66,33 +64,30 @@ func (fake *FakeRequestBuilder) ArgsForCall(i int) (domain.RestEndPoint, *domain
 	return fake.argsForCall[i].arg1, fake.argsForCall[i].arg2
 }
 
-func (fake *FakeRequestBuilder) Returns(result1 string, result2 io.Reader, result3 error) {
+func (fake *FakeRequestBuilder) Returns(result1 *http.Request, result2 error) {
 	fake.mutex.Lock()
 	defer fake.mutex.Unlock()
 	fake.Stub = nil
 	fake.returns = struct {
-		result1 string
-		result2 io.Reader
-		result3 error
-	}{result1, result2, result3}
+		result1 *http.Request
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeRequestBuilder) ReturnsOnCall(i int, result1 string, result2 io.Reader, result3 error) {
+func (fake *FakeRequestBuilder) ReturnsOnCall(i int, result1 *http.Request, result2 error) {
 	fake.mutex.Lock()
 	defer fake.mutex.Unlock()
 	fake.Stub = nil
 	if fake.returnsOnCall == nil {
 		fake.returnsOnCall = make(map[int]struct {
-			result1 string
-			result2 io.Reader
-			result3 error
+			result1 *http.Request
+			result2 error
 		})
 	}
 	fake.returnsOnCall[i] = struct {
-		result1 string
-		result2 io.Reader
-		result3 error
-	}{result1, result2, result3}
+		result1 *http.Request
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeRequestBuilder) Invocations() map[string][][]interface{} {

@@ -2,21 +2,17 @@
 package implfakes
 
 import (
-	"io"
+	"net/http"
 	"sync"
 
-	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
 	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl"
 )
 
 type FakeRequestHelper struct {
-	Stub        func(string, string, io.Reader, *domain.ConnectionData) (string, int, error)
+	Stub        func(*http.Request) (string, int, error)
 	mutex       sync.RWMutex
 	argsForCall []struct {
-		arg1 string
-		arg2 string
-		arg3 io.Reader
-		arg4 *domain.ConnectionData
+		arg1 *http.Request
 	}
 	returns struct {
 		result1 string
@@ -32,19 +28,16 @@ type FakeRequestHelper struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRequestHelper) Spy(arg1 string, arg2 string, arg3 io.Reader, arg4 *domain.ConnectionData) (string, int, error) {
+func (fake *FakeRequestHelper) Spy(arg1 *http.Request) (string, int, error) {
 	fake.mutex.Lock()
 	ret, specificReturn := fake.returnsOnCall[len(fake.argsForCall)]
 	fake.argsForCall = append(fake.argsForCall, struct {
-		arg1 string
-		arg2 string
-		arg3 io.Reader
-		arg4 *domain.ConnectionData
-	}{arg1, arg2, arg3, arg4})
-	fake.recordInvocation("RequestHelper", []interface{}{arg1, arg2, arg3, arg4})
+		arg1 *http.Request
+	}{arg1})
+	fake.recordInvocation("RequestHelper", []interface{}{arg1})
 	fake.mutex.Unlock()
 	if fake.Stub != nil {
-		return fake.Stub(arg1, arg2, arg3, arg4)
+		return fake.Stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
@@ -58,16 +51,16 @@ func (fake *FakeRequestHelper) CallCount() int {
 	return len(fake.argsForCall)
 }
 
-func (fake *FakeRequestHelper) Calls(stub func(string, string, io.Reader, *domain.ConnectionData) (string, int, error)) {
+func (fake *FakeRequestHelper) Calls(stub func(*http.Request) (string, int, error)) {
 	fake.mutex.Lock()
 	defer fake.mutex.Unlock()
 	fake.Stub = stub
 }
 
-func (fake *FakeRequestHelper) ArgsForCall(i int) (string, string, io.Reader, *domain.ConnectionData) {
+func (fake *FakeRequestHelper) ArgsForCall(i int) *http.Request {
 	fake.mutex.RLock()
 	defer fake.mutex.RUnlock()
-	return fake.argsForCall[i].arg1, fake.argsForCall[i].arg2, fake.argsForCall[i].arg3, fake.argsForCall[i].arg4
+	return fake.argsForCall[i].arg1
 }
 
 func (fake *FakeRequestHelper) Returns(result1 string, result2 int, result3 error) {

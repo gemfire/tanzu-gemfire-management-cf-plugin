@@ -234,7 +234,7 @@ var _ = Describe("CommandProcessor", func() {
 			Context("When buildRequest fails", func() {
 
 				BeforeEach(func() {
-					requestBuilder.Returns("", nil, errors.New("Build request failed"))
+					requestBuilder.Returns(nil, errors.New("Build request failed"))
 				})
 
 				It("Returns an error indicating buildRequest failed", func() {

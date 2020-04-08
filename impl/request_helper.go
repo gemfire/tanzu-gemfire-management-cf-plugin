@@ -16,11 +16,10 @@
 package impl
 
 import (
-	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
-	"io"
+	"net/http"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . RequestHelper
 
 // RequestHelper function type provides an interface for server request handling
-type RequestHelper func(url string, method string, bodyReader io.Reader, connectionData *domain.ConnectionData) (urlResponse string, statusCode int, err error)
+type RequestHelper func(request *http.Request) (urlResponse string, statusCode int, err error)

@@ -22,7 +22,7 @@ PIPELINE=tanzu-gemfire-management-cf-plugin
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 # Poolsmiths configuration
-POOL_NAME=us_2_6
+POOL_NAME=us_2_8
 POOLSMITHS_API_TOKEN=0d82e637-6681-4d4a-9e9f-90a71db5de0d
 
 # To get PCC and stemcell snapshots and releases
@@ -42,7 +42,7 @@ STANDALONE_GEMFIRE_VERSIONS="9.9 9.10 develop"
 # Last one in the list will be taken from blessed bucket, the rest from pivnet
 # Special string latest gives latest stemcell, for example 1.9+456 1.10+latest
 # See https://docs.google.com/spreadsheets/d/1iYp71cfXVXCeJF5mm9Wh6KoVCjjm64eAICprjwSK1Zk/edit and https://bosh.io/stemcells/
-PCC_VERSIONS="1.10+latest"
+PCC_VERSIONS="1.10+621 1.11+621 1.12+latest"
 
 cat << EOF > pipeline.yml
 ---
@@ -263,7 +263,7 @@ function buildPlugin {
           - |
             cd tanzu-gemfire-management-cf-plugin
             ./build.sh
-            cp pcc ../pcc-plugin/
+            cp gemfire ../pcc-plugin/
 EOF
 }
 buildPlugin
@@ -291,9 +291,9 @@ cat << EOF >> pipeline.yml
             [ -x bin/gfsh ] && gfsh=bin/gfsh || gfsh=*gemfire*/bin/gfsh
             \$gfsh -e "version --full" -e "start locator"
             cd tanzu-gemfire-management-cf-plugin
-            pcc="../pcc-plugin/pcc"
-            \$pcc --help
-            cf="\$pcc http://localhost:7070" ci/smoke-test.bash
+            gemfire="../pcc-plugin/gemfire"
+            \$gemfire --help
+            cf="\$gemfire http://localhost:7070" ci/smoke-test.bash
 EOF
 done
 for gem in $STANDALONE_GEMFIRE_VERSIONS ; do
@@ -356,7 +356,7 @@ cat << EOF >> pipeline.yml
         - |
           cd tanzu-gemfire-management-cf-plugin
           ci/login.bash ../pcc-env-$pccver/metadata
-          cf="cf pcc test" ci/smoke-test.bash
+          cf="cf gemfire test" ci/smoke-test.bash
     ensure:
       aggregate:
       - put: pcc-env-$pccver

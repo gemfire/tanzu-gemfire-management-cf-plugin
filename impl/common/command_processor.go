@@ -17,7 +17,7 @@ package common
 
 import (
 	"fmt"
-	"io"
+	"net/http"
 	"sort"
 	"strings"
 
@@ -37,7 +37,7 @@ type Formatter interface {
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . RequestBuilder
 
 // RequestBuilder is function type generating a request
-type RequestBuilder func(endpoint domain.RestEndPoint, commandData *domain.CommandData) (uri string, bodyReader io.Reader, err error)
+type RequestBuilder func(endpoint domain.RestEndPoint, commandData *domain.CommandData) (request *http.Request, err error)
 
 // CommandProcessor struct holds the implementation for the RequestHelper interface
 type commandProcessor struct {
@@ -138,15 +138,12 @@ func CheckRequiredParam(restEndPoint domain.RestEndPoint, command domain.UserCom
 }
 
 func (c *commandProcessor) executeCommand(commandData *domain.CommandData) (urlResponse string, err error) {
-	var bodyReader io.Reader
-
 	restEndPoint, _ := commandData.AvailableEndpoints[commandData.UserCommand.Command]
-	httpAction := strings.ToUpper(restEndPoint.HTTPMethod)
-	endpointURL, bodyReader, err := c.buildRequest(restEndPoint, commandData)
+	request, err := c.buildRequest(restEndPoint, commandData)
 	if err != nil {
 		return "", err
 	}
-	urlResponse, _, err = c.processRequest(endpointURL, httpAction, bodyReader, &commandData.ConnnectionData)
+	urlResponse, _, err = c.processRequest(request)
 	return
 }
 

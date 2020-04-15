@@ -17,7 +17,7 @@ on the API code in a dynamic fashion.
 #### In plugin mode:
 * You have installed [CF CLI](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html) and you have
 installed a compatible [VMware Tanzu GemFire](https://network.pivotal.io/products/p-cloudcache/) in this environment.
-(9.10+?)
+(1.10+?, prior PCC 1.10)
 * You are logged into CF
     *  `cf login --skip-ssl-validation -a https://api.sys.ENVNAME.cf-app.com -u admin -p PASSWORD`
     * `ENVNAME` corresponds to your CF environment
@@ -29,7 +29,7 @@ installed a compatible [VMware Tanzu GemFire](https://network.pivotal.io/product
     * `cf create-service-key myPCCInstance myKey`
 
 #### In standalone mode
-* You have a Geode cluster running and have the co-ordinates (URI, username and password) of a `Locator`
+* You have a Geode(1.10+) cluster running and have the co-ordinates (URI, username and password) of a `Locator`
 in this cluster. This can be a development version running on `localhost`
 
 ### Running the code

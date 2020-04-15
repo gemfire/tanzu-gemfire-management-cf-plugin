@@ -71,6 +71,7 @@ cat << EOF >> pipeline.yml
     bucket: gemfire-build-resources
     json_key: ((concourse-gcp-key))
     regexp: artifacts/gemfire/$br/pivotal-gemfire-regression-(.*).tgz
+    initial_path: foo
 EOF
   fi
 done

@@ -37,7 +37,7 @@ func main() {
 	checkError(err)
 
 	// figure out who is calling
-	if strings.Contains(os.Args[0], ".cf/plugins") {
+	if strings.Contains(os.Args[0], "plugins") {
 		basicPlugin, err := gemfire.NewBasicPlugin(commonCode)
 		checkError(err)
 		plugin.Start(basicPlugin)

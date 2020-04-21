@@ -36,8 +36,9 @@ func main() {
 	checkError(err)
 
 	// figure out who is calling. If invoked as a standalone cli
-	if strings.HasSuffix(os.Args[0], "main_go") ||
-		strings.HasSuffix(os.Args[0], "gemfire") {
+	if (strings.HasSuffix(os.Args[0], "main_go") ||
+		strings.HasSuffix(os.Args[0], "gemfire")) &&
+		!strings.Contains(os.Args[0], "cf/plugins") {
 		geodeCommand, err := geode.New(commonCode)
 		checkError(err)
 		err = geodeCommand.Run(os.Args)

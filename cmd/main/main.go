@@ -16,6 +16,7 @@
 package main
 
 import (
+	"code.cloudfoundry.org/cli/plugin"
 	"fmt"
 	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common"
 	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/builder"
@@ -25,8 +26,6 @@ import (
 	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/geode"
 	"os"
 	"strings"
-
-	"code.cloudfoundry.org/cli/plugin"
 )
 
 func main() {
@@ -36,16 +35,18 @@ func main() {
 	commonCode, err := common.NewCommandProcessor(processRequest, formatter, builder.BuildRequest)
 	checkError(err)
 
-	// figure out who is calling
-	if strings.Contains(os.Args[0], "plugins") {
-		basicPlugin, err := gemfire.NewBasicPlugin(commonCode)
-		checkError(err)
-		plugin.Start(basicPlugin)
-	} else {
+	// figure out who is calling. If invoked as a standalone cli
+	if strings.HasSuffix(os.Args[0], "main_go") ||
+		strings.HasSuffix(os.Args[0], "gemfire") {
 		geodeCommand, err := geode.New(commonCode)
 		checkError(err)
 		err = geodeCommand.Run(os.Args)
 		checkError(err)
+		// otherwise assume invoked as a plugin
+	} else {
+		basicPlugin, err := gemfire.NewBasicPlugin(commonCode)
+		checkError(err)
+		plugin.Start(basicPlugin)
 	}
 }
 

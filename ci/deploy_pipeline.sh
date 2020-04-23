@@ -248,6 +248,11 @@ for gem in $STANDALONE_GEMFIRE_VERSIONS; do
     - get: golang-image
     - get: gemfire-$gem
 EOF
+if [ $(echo $gem|tr . '\n' | wc -l) -ne 3 ] ; then
+  cat << EOF >> pipeline.yml
+      trigger: true
+EOF
+fi
 function buildPlugin {
   cat << EOF >> pipeline.yml
   - task: build-plugin

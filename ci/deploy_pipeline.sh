@@ -36,7 +36,8 @@ BLESSED_KEY="AKIAJPMW5"G'JQJPVJVR6Q'
 BLESSED_SECRET='n41r3zdlwKCtln'"w22plhTJUhE"/9iBWQmh4p26fPY
 
 # Version(s) of GemFire for stand-alone testing, whitespace-separated
-STANDALONE_GEMFIRE_VERSIONS="9.9 9.10 develop"
+# 3-digit indicates a released version, anything else is latest nightly build"
+STANDALONE_GEMFIRE_VERSIONS="9.9.1 9.9.2 9.9 9.10.0 9.10 develop"
 
 # Version(s) of PCC+stemcell for testing as plugin, whitespace-separated.
 # Last one in the list will be taken from blessed bucket, the rest from pivnet
@@ -49,7 +50,8 @@ cat << EOF > pipeline.yml
 resources:
 EOF
 for gem in $STANDALONE_GEMFIRE_VERSIONS; do
-  if [ "$gem" = "9.9" ] ; then
+  if [ $(echo $gem|tr . '\n' | wc -l) -eq 3 ] ; then
+    mm=${gem%.*}
     cat << EOF >> pipeline.yml
 - name: gemfire-$gem
   type: s3
@@ -59,7 +61,7 @@ for gem in $STANDALONE_GEMFIRE_VERSIONS; do
     region_name: ((aws-default-region))
     access_key_id: ((gemfire-aws-access-key-id))
     secret_access_key: ((gemfire-aws-secret-access-key))
-    versioned_file: 9.9/9.9.0/pivotal-gemfire-9.9.0.tgz
+    versioned_file: ${mm}/${gem}/pivotal-gemfire-${gem}.tgz
 EOF
   else
 [ "$gem" = develop ] && br=develop || br=support/$gem

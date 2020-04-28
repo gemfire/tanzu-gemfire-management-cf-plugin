@@ -23,7 +23,7 @@ const (
 		"use --help or -h for help"
 	GenericErrorMessage       = "Cannot retrieve credentials. Error: %s"
 	InvalidServiceKeyResponse = "The cf service-key response is invalid."
-	GeneralOptions            = "\t\t--user, -u <username> or set 'GEODE_USERNAME' environment variable to set the username\n" +
-		"\t\t--password, -p <password> or set 'GEODE_PASSWORD' environment variable to set the password\n" +
-		"\t\t--table, -t [<jqFilter>] to get tabular output"
+	GeneralOptions            = "\t\t--user, -u <username>, or a 'GEODE_USERNAME' environment variable sets the username\n" +
+		"\t\t--password, -p <password>, or a 'GEODE_PASSWORD' environment variable sets the password\n" +
+		"\t\t--table, -t [<jqFilter>] outputs in a tabular form"
 )

@@ -70,14 +70,14 @@ func (gc *command) Run(args []string) (err error) {
 }
 
 func printHelp() {
-	fmt.Println("Commands to interact with geode cluster.")
+	fmt.Println("Commands to interact with a Geode cluster.")
 	fmt.Println("")
 	fmt.Println("Usage: gemfire <target> <command> [options]")
 	fmt.Println("")
-	fmt.Println("\ttarget: \n\t\turl to a geode locator in the form of : http(s)://host:port")
-	fmt.Println("\t\tomit if 'GEODE_TARGET' environment variable is set")
-	fmt.Println("\tcommand:\n\t\tuse 'gemfire <target> commands' to see a list of supported commands")
-	fmt.Println("\toptions:\n\t\tuse 'gemfire <target> <command> -h' to see options for individual command.")
+	fmt.Println("\ttarget: \n\t\tURL to a Geode locator in the form of: http(s)://host:port")
+	fmt.Println("\t\tOptional if 'GEODE_TARGET' environment variable is set")
+	fmt.Println("\tcommand:\n\t\t'gemfire <target> commands' lists available commands")
+	fmt.Println("\toptions:\n\t\t'gemfire <target> <command> -h' lists options for an individual command")
 	fmt.Println(format.GeneralOptions)
-	fmt.Println("\thelp:\n\t\tuse -h or --help for general help, and provide <command> for command specific help.")
+	fmt.Println("\thelp:\n\t\t--help, -h for general help, and provide <target> and <command> for command-specific help")
 }

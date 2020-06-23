@@ -127,6 +127,8 @@ func buildStructure(propertiesMap map[string]domain.PropertyDetail, definitions 
 			}
 		case "integer":
 			structure[key] = 42
+		case "number":
+			structure[key] = 42.42
 		case "boolean":
 			structure[key] = true
 		case "object":

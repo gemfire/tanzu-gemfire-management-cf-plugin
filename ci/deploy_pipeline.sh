@@ -111,7 +111,7 @@ EOF
   cat << EOF >> pipeline.yml
 - name: pcc-env-$pccver
   type: pcf-pool
-  tags: [pivotal-internal-worker]
+  tags: [nimbus]
   source:
     api_token: $POOLSMITHS_API_TOKEN
     hostname: environments.toolsmiths.cf-app.com
@@ -326,7 +326,7 @@ for pccstemvers in $PCC_VERSIONS; do
     - get: tanzu-gemfire-management-cf-plugin-ci-image
     - get: golang-image
     - put: pcc-env-$pccver
-      tags: [pivotal-internal-worker]
+      tags: [nimbus]
       params:
         action: claim
 EOF
@@ -368,7 +368,7 @@ cat << EOF >> pipeline.yml
     ensure:
       aggregate:
       - put: pcc-env-$pccver
-        tags: [pivotal-internal-worker]
+        tags: [nimbus]
         params:
           action: unclaim
           env_file: pcc-env-$pccver/metadata

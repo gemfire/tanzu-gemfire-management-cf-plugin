@@ -142,7 +142,7 @@ cat << EOF >> pipeline.yml
     branch: $BRANCH
     paths:
       - "ci/docker/*"
-    private_key: ((!gemfire-ci-private-key))
+    private_key: ((gemfire-ci-private-key))
 
 EOF
 for stemcellver in $(for pccstemvers in $PCC_VERSIONS; do echo "${pccstemvers#*+}"; done | sort -u); do
@@ -171,7 +171,7 @@ cat << EOF >> pipeline.yml
   type: docker-image
   source:
     username: "_json_key"
-    password: ((!concourse-gcp-key))
+    password: ((concourse-gcp-key))
     repository: gcr.io/gemfire-dev/tanzu-gemfire-management-cf-plugin-ci
 
 - name: weekly
@@ -377,4 +377,5 @@ done
 
 fly -t ${TARGET}-${TEAM} login --team-name=${TEAM} --concourse-url=https://${TARGET}
 fly -t ${TARGET}-${TEAM} set-pipeline -p ${PIPELINE} -c pipeline.yml
+fly -t ${TARGET}-${TEAM} check-resource -r ${PIPELINE}/weekly --from "time:2000-01-01T00:00:00Z"
 rm pipeline.yml

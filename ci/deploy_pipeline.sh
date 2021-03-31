@@ -22,7 +22,7 @@ PIPELINE=tanzu-gemfire-management-cf-plugin
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 # Poolsmiths configuration
-POOL_NAME=us_2_8
+POOL_NAME=us_2_9
 POOLSMITHS_API_TOKEN=0d82e637-6681-4d4a-9e9f-90a71db5de0d
 
 # To get PCC and stemcell snapshots and releases
@@ -37,13 +37,13 @@ BLESSED_SECRET='n41r3zdlwKCtln'"w22plhTJUhE"/9iBWQmh4p26fPY
 
 # Version(s) of GemFire for stand-alone testing, whitespace-separated
 # 3-digit indicates a released version, anything else is latest nightly build"
-STANDALONE_GEMFIRE_VERSIONS="9.9.1 9.9.2 9.9 9.10.0 9.10 develop"
+STANDALONE_GEMFIRE_VERSIONS="9.9.5 9.10.6 9.10 1.13 1.14 develop"
 
 # Version(s) of PCC+stemcell for testing as plugin, whitespace-separated.
 # Last one in the list will be taken from blessed bucket, the rest from pivnet
 # Special string latest gives latest stemcell, for example 1.9+456 1.10+latest
 # See https://docs.google.com/spreadsheets/d/1iYp71cfXVXCeJF5mm9Wh6KoVCjjm64eAICprjwSK1Zk/edit and https://bosh.io/stemcells/
-PCC_VERSIONS="1.10+621 1.11+621 1.12+latest"
+PCC_VERSIONS="1.11+621 1.12+621 1.13+latest"
 
 cat << EOF > pipeline.yml
 ---
@@ -375,6 +375,6 @@ cat << EOF >> pipeline.yml
 EOF
 done
 
-fly -t ${TARGET} login --team-name=${TEAM} --concourse-url=https://${TARGET}
-fly -t ${TARGET} set-pipeline -p ${PIPELINE} -c pipeline.yml
+fly -t ${TARGET}-${TEAM} login --team-name=${TEAM} --concourse-url=https://${TARGET}
+fly -t ${TARGET}-${TEAM} set-pipeline -p ${PIPELINE} -c pipeline.yml
 rm pipeline.yml

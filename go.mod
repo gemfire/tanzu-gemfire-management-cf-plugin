@@ -1,6 +1,6 @@
 module github.com/gemfire/tanzu-gemfire-management-cf-plugin
 
-go 1.12
+go 1.16
 
 require (
 	code.cloudfoundry.org/bytefmt v0.0.0-20180906201452-2aa6f33b730c // indirect
@@ -20,12 +20,11 @@ require (
 	github.com/lunixbochs/vtclean v1.0.0 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.2.2
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
-	github.com/onsi/ginkgo v1.10.1
-	github.com/onsi/gomega v1.7.0
+	github.com/onsi/ginkgo v1.15.2
+	github.com/onsi/gomega v1.10.1
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/tebeka/strftime v0.1.3 // indirect
 	github.com/tedsuo/rata v1.0.0 // indirect
 	github.com/vito/go-interact v0.0.0-20171111012221-fa338ed9e9ec
-	golang.org/x/crypto v0.0.0-20190617133340-57b3e21c3d56 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28 // indirect
 )

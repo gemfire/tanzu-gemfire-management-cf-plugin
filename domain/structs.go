@@ -77,6 +77,12 @@ type RestAPI struct {
 	Definitions map[string]DefinitionDetail         `json:"definitions"`
 	Paths       map[string]map[string]RestAPIDetail `json:"paths"`
 	Info        APIInfo                             `json:"info"`
+	Components  map[string]Components               `json:"components"`
+}
+
+// Components is the OpenAPI path to Swagger definitions
+type Components struct {
+	Schemas map[string]DefinitionDetail `json:"schemas"`
 }
 
 type APIInfo struct {

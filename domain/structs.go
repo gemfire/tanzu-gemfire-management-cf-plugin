@@ -74,15 +74,10 @@ type RestEndPoint struct {
 // RestAPI is used to parse the swagger json response
 // first key: url | second key: method (get/post) | value: RestAPIDetail
 type RestAPI struct {
-	Definitions map[string]DefinitionDetail         `json:"definitions"`
-	Paths       map[string]map[string]RestAPIDetail `json:"paths"`
-	Info        APIInfo                             `json:"info"`
-	Components  map[string]Components               `json:"components"`
-}
-
-// Components is the OpenAPI path to Swagger definitions
-type Components struct {
-	Schemas map[string]DefinitionDetail `json:"schemas"`
+	Definitions map[string]DefinitionDetail            `json:"definitions"`
+	Paths       map[string]map[string]RestAPIDetail    `json:"paths"`
+	Info        APIInfo                                `json:"info"`
+	Components  map[string]map[string]DefinitionDetail `json:"components"`
 }
 
 type APIInfo struct {
@@ -91,10 +86,17 @@ type APIInfo struct {
 
 // RestAPIDetail provides details about an endpoint
 type RestAPIDetail struct {
-	CommandName string         `json:"summary"`
-	JQFilter    string         `json:"jqFilter"`
-	Consumes    []string       `json:"consumes"`
-	Parameters  []RestAPIParam `json:"parameters"`
+	CommandName string          `json:"summary"`
+	JQFilter    string          `json:"jqFilter"`
+	Consumes    []string        `json:"consumes"`
+	Parameters  []RestAPIParam  `json:"parameters"`
+	RequestBody RestRequestBody `json:"requestBody"`
+}
+
+// RestRequestBody holds body information
+type RestRequestBody struct {
+	Required bool                   `json:"required"`
+	Content  map[string]interface{} `json:"content"`
 }
 
 // DefinitionDetail describes the details of the type definitions

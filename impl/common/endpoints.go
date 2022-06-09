@@ -17,6 +17,7 @@ package common
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -25,6 +26,23 @@ import (
 	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/domain"
 	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl"
 	"github.com/gemfire/tanzu-gemfire-management-cf-plugin/impl/common/format"
+)
+
+// For backwards compatibility purposes before 1.15 (openapi specification)
+var swaggerBodyParams = map[string]string{
+	"configure pdx":            "pdxType",
+	"create disk-store":        "diskStoreConfig",
+	"create gateway-receiver":  "gatewayReceiverConfig",
+	"create index":             "indexConfig",
+	"create region":            "regionConfig",
+	"create region index":      "indexConfig",
+	"start rebalance":          "operation",
+	"start restore-redundancy": "operation",
+}
+
+const (
+	contentTypeJson      = "application/json"
+	contentTypeMultiForm = "multipart/form-data"
 )
 
 // GetEndPoints retrieves available endpoint from the Swagger endpoint on the Geode/PCC locator
@@ -38,6 +56,7 @@ func GetEndPoints(commandData *domain.CommandData, processRequest impl.RequestHe
 		commandData.ConnnectionData.LocatorAddress + "/management/",
 		commandData.ConnnectionData.LocatorAddress + "/management/v1/api-docs",
 		commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs",
+		commandData.ConnnectionData.LocatorAddress + "/management/v3/api-docs",
 	}
 
 	for pos, URL := range apiDocURLs {
@@ -90,6 +109,12 @@ func GetEndPoints(commandData *domain.CommandData, processRequest impl.RequestHe
 	}
 	commandData.ConnnectionData.UseToken = apiPaths.Info.TokenEnabled == "true"
 	commandData.AvailableEndpoints = make(map[string]domain.RestEndPoint)
+	// Openapi specification is used if definitions are not set
+	isOpenApi := false
+	if apiPaths.Definitions == nil {
+		isOpenApi = true
+		apiPaths.Definitions = apiPaths.Components["schemas"]
+	}
 	for url, v := range apiPaths.Paths {
 		for methodType := range v {
 			var endpoint domain.RestEndPoint
@@ -98,24 +123,68 @@ func GetEndPoints(commandData *domain.CommandData, processRequest impl.RequestHe
 			endpoint.Consumes = apiPaths.Paths[url][methodType].Consumes
 			endpoint.CommandName = apiPaths.Paths[url][methodType].CommandName
 			endpoint.JQFilter = apiPaths.Paths[url][methodType].JQFilter
-			endpoint.Parameters = []domain.RestAPIParam{}
 			endpoint.Parameters = apiPaths.Paths[url][methodType].Parameters
 			for index, parameter := range endpoint.Parameters {
 				if parameter.In == "body" {
-					schemaName := strings.ReplaceAll(parameter.Schema["$ref"], "#/definitions/", "")
+					definitionPath := "#/definitions/"
+					schemaName := strings.ReplaceAll(parameter.Schema["$ref"], definitionPath, "")
 					if schemaName != "" {
-						endpoint.Parameters[index].BodyDefinition = buildStructure(apiPaths.Definitions[schemaName].Properties, apiPaths.Definitions)
+						endpoint.Parameters[index].BodyDefinition = buildStructure(apiPaths.Definitions[schemaName].Properties, apiPaths.Definitions, definitionPath)
 					}
 				}
 			}
-
+			if isOpenApi {
+				transformEndpointFromOpenApi(&endpoint, methodType, apiPaths, url)
+			}
 			commandData.AvailableEndpoints[endpoint.CommandName] = endpoint
 		}
 	}
 	return nil
 }
 
-func buildStructure(propertiesMap map[string]domain.PropertyDetail, definitions map[string]domain.DefinitionDetail) (structure map[string]interface{}) {
+func transformEndpointFromOpenApi(endpoint *domain.RestEndPoint, methodType string, apiPaths domain.RestAPI, url string) {
+	if strings.ToLower(methodType) == "post" || strings.ToLower(methodType) == "put" {
+		requestBody := apiPaths.Paths[url][methodType].RequestBody
+		applicationJson, ok := requestBody.Content[contentTypeJson].(map[string]interface{})
+		if ok {
+			endpoint.Consumes = []string{contentTypeJson}
+			schemaName, ok := applicationJson["schema"].(map[string]interface{})["$ref"].(string)
+			parameterName, ok := swaggerBodyParams[endpoint.CommandName]
+			definitionPath := "#/components/schemas/"
+			schemaName = strings.ReplaceAll(schemaName, definitionPath, "")
+			if !ok {
+				parameterName = "body"
+			}
+			param := domain.RestAPIParam{
+				Name:        parameterName,
+				Required:    requestBody.Required,
+				Description: parameterName,
+				In:          "body",
+			}
+			if schemaName != "" {
+				param.BodyDefinition = buildStructure(apiPaths.Definitions[schemaName].Properties, apiPaths.Definitions, definitionPath)
+			}
+			endpoint.Parameters = append(endpoint.Parameters, param)
+		}
+		multipartForm, ok := requestBody.Content[contentTypeMultiForm].(map[string]interface{})
+		if ok {
+			endpoint.Consumes = []string{contentTypeMultiForm}
+			required := multipartForm["schema"].(map[string]interface{})["required"].([]interface{})
+			for _, req := range required {
+				strReq := fmt.Sprintf("%v", req)
+				endpoint.Parameters = append(endpoint.Parameters, domain.RestAPIParam{
+					Name:        strReq,
+					Required:    true,
+					Description: "filePath",
+					Type:        "file",
+					In:          "formData",
+				})
+			}
+		}
+	}
+}
+
+func buildStructure(propertiesMap map[string]domain.PropertyDetail, definitions map[string]domain.DefinitionDetail, definitionPath string) (structure map[string]interface{}) {
 	structure = make(map[string]interface{})
 	for key, property := range propertiesMap {
 		switch property.Type {
@@ -132,15 +201,15 @@ func buildStructure(propertiesMap map[string]domain.PropertyDetail, definitions 
 		case "object":
 			structure[key] = map[string]string{"name": "value"}
 		case "array":
-			structure[key] = generateSampleArray(property.Items, definitions)
+			structure[key] = generateSampleArray(property.Items, definitions, definitionPath)
 		case "":
 			if len(property.Ref) > 0 {
-				refName := strings.ReplaceAll(property.Ref, "#/definitions/", "")
+				refName := strings.ReplaceAll(property.Ref, definitionPath, "")
 				if refName != "" {
 					if refName == "DeclarableType" {
 						structure[key] = "DeclarableType"
 					} else {
-						subStructure := buildStructure(definitions[refName].Properties, definitions)
+						subStructure := buildStructure(definitions[refName].Properties, definitions, definitionPath)
 						structure[key] = subStructure
 					}
 				}
@@ -152,7 +221,7 @@ func buildStructure(propertiesMap map[string]domain.PropertyDetail, definitions 
 	return
 }
 
-func generateSampleArray(itemMap map[string]string, definitions map[string]domain.DefinitionDetail) interface{} {
+func generateSampleArray(itemMap map[string]string, definitions map[string]domain.DefinitionDetail, definitionPath string) interface{} {
 	switch itemMap["type"] {
 	case "string":
 		return []string{"stringOne", "stringTwo"}
@@ -162,12 +231,12 @@ func generateSampleArray(itemMap map[string]string, definitions map[string]domai
 		return []bool{true, false}
 	case "":
 		if len(itemMap["$ref"]) > 0 {
-			refName := strings.ReplaceAll(itemMap["$ref"], "#/definitions/", "")
+			refName := strings.ReplaceAll(itemMap["$ref"], definitionPath, "")
 			if refName != "" {
 				if refName == "DeclarableType" {
 					return []string{"DeclarableType", "DeclarableType"}
 				}
-				subStructure := buildStructure(definitions[refName].Properties, definitions)
+				subStructure := buildStructure(definitions[refName].Properties, definitions, definitionPath)
 				return []interface{}{subStructure}
 			}
 		}

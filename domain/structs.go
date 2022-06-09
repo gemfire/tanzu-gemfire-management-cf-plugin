@@ -88,6 +88,7 @@ type APIInfo struct {
 type RestAPIDetail struct {
 	CommandName string          `json:"summary"`
 	JQFilter    string          `json:"jqFilter"`
+	XJQFilter   string          `json:"x-jqFilter"`
 	Consumes    []string        `json:"consumes"`
 	Parameters  []RestAPIParam  `json:"parameters"`
 	RequestBody RestRequestBody `json:"requestBody"`

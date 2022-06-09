@@ -54,9 +54,9 @@ func GetEndPoints(commandData *domain.CommandData, processRequest impl.RequestHe
 	fallbackCodes := "401 403 404 407"
 	apiDocURLs := []string{
 		commandData.ConnnectionData.LocatorAddress + "/management/",
+		commandData.ConnnectionData.LocatorAddress + "/management/v3/api-docs",
 		commandData.ConnnectionData.LocatorAddress + "/management/v1/api-docs",
 		commandData.ConnnectionData.LocatorAddress + "/management/experimental/api-docs",
-		commandData.ConnnectionData.LocatorAddress + "/management/v3/api-docs",
 	}
 
 	for pos, URL := range apiDocURLs {
@@ -125,6 +125,10 @@ func GetEndPoints(commandData *domain.CommandData, processRequest impl.RequestHe
 			endpoint.JQFilter = apiPaths.Paths[url][methodType].JQFilter
 			endpoint.Parameters = apiPaths.Paths[url][methodType].Parameters
 			for index, parameter := range endpoint.Parameters {
+				if isOpenApi && parameter.Description == "" {
+					// OpenApi omits 'Description', set it as the parameter name
+					endpoint.Parameters[index].Description = parameter.Name
+				}
 				if parameter.In == "body" {
 					definitionPath := "#/definitions/"
 					schemaName := strings.ReplaceAll(parameter.Schema["$ref"], definitionPath, "")
@@ -134,6 +138,7 @@ func GetEndPoints(commandData *domain.CommandData, processRequest impl.RequestHe
 				}
 			}
 			if isOpenApi {
+				endpoint.JQFilter = apiPaths.Paths[url][methodType].XJQFilter
 				transformEndpointFromOpenApi(&endpoint, methodType, apiPaths, url)
 			}
 			commandData.AvailableEndpoints[endpoint.CommandName] = endpoint

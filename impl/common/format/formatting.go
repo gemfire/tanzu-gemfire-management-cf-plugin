@@ -277,7 +277,7 @@ func writeParam(buffer *bytes.Buffer, param domain.RestAPIParam) {
 	if param.In == "body" {
 		buffer.WriteString("<json or @json_file_path>")
 	} else {
-		buffer.WriteString("<" + param.Name + ">")
+		buffer.WriteString("<" + param.Description + ">")
 	}
 }
 

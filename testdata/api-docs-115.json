@@ -1,0 +1,2932 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Apache Geode Management REST API",
+    "description": "REST API to manage Geode. This is experimental. All request/response formats are subject to change.",
+    "termsOfService": "http://www.apache.org/licenses/",
+    "contact": {
+      "name": "the Apache Geode Community",
+      "url": "http://geode.apache.org",
+      "email": "user@geode.apache.org"
+    },
+    "license": {
+      "name": "Apache License, version 2.0",
+      "url": "http://www.apache.org/licenses/"
+    },
+    "version": "v1",
+    "authTokenEnabled": "false"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:7070/management",
+      "description": "Generated server url"
+    }
+  ],
+  "paths": {
+    "/v1/deployments": {
+      "get": {
+        "tags": [
+          "deployment-management-controller"
+        ],
+        "summary": "list deployed",
+        "operationId": "list",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementListResultDeploymentDeploymentInfo"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "deployment-management-controller"
+        ],
+        "summary": "deploy",
+        "operationId": "deploy",
+        "parameters": [
+          {
+            "name": "config",
+            "in": "query",
+            "description": "deployment json configuration",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/configurations/pdx": {
+      "get": {
+        "tags": [
+          "pdx-management-controller"
+        ],
+        "summary": "get pdx",
+        "operationId": "getPDX",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementGetResultPdxPdxInfo"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "pdx-management-controller"
+        ],
+        "summary": "update pdx",
+        "operationId": "updatePdx",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Pdx"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "pdx-management-controller"
+        ],
+        "summary": "configure pdx",
+        "operationId": "configurePdx",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Pdx"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Pdx already configured.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "pdx-management-controller"
+        ],
+        "summary": "delete pdx",
+        "operationId": "deletePDX",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/regions": {
+      "get": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "list regions",
+        "operationId": "listRegion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementListResultRegionRuntimeRegionInfo"
+                }
+              }
+            }
+          }
+        },
+        "x-jqFilter": ".result[] | .groups[] | .runtimeInfo[] + .configuration | {name:.name,type:.type,entryCount:.entryCount}"
+      },
+      "post": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "create region",
+        "operationId": "createRegion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Region"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "409": {
+            "description": "Region already exists.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/regions/{regionName}/indexes": {
+      "get": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "list region indexes",
+        "operationId": "listIndex",
+        "parameters": [
+          {
+            "name": "regionName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementListResultIndexIndexInfo"
+                }
+              }
+            }
+          }
+        },
+        "x-jqFilter": ".result[] | .groups[] | .configuration | {name:.name,expression:.expression}"
+      },
+      "post": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "create region index",
+        "operationId": "createIndexOnRegion",
+        "parameters": [
+          {
+            "name": "regionName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Index"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Index already exists.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/operations/restoreRedundancy": {
+      "get": {
+        "tags": [
+          "restore-redundancy-operation-controller"
+        ],
+        "summary": "list restore-redundancy",
+        "operationId": "listRestoreRedundancies",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementListOperationsResultRestoreRedundancyRequestRestoreRedundancyResults"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "restore-redundancy-operation-controller"
+        ],
+        "summary": "start restore-redundancy",
+        "operationId": "startRestoreRedundancy",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreRedundancyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementOperationResultRestoreRedundancyRequestRestoreRedundancyResults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/operations/rebalances": {
+      "get": {
+        "tags": [
+          "rebalance-operation-controller"
+        ],
+        "summary": "list rebalances",
+        "operationId": "listRebalances",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementListOperationsResultRebalanceOperationRebalanceResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "rebalance-operation-controller"
+        ],
+        "summary": "start rebalance",
+        "operationId": "startRebalance",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RebalanceOperation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementOperationResultRebalanceOperationRebalanceResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/indexes": {
+      "get": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "list indexes",
+        "operationId": "listAllIndex",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementListResultIndexIndexInfo"
+                }
+              }
+            }
+          }
+        },
+        "x-jqFilter": ".result[] | .groups[] | .configuration | {name:.name,expression:.expression,regionPath:.regionPath}"
+      },
+      "post": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "create index",
+        "operationId": "createIndex",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Index"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Index already exists.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/gateways/receivers": {
+      "get": {
+        "tags": [
+          "gateway-management-controller"
+        ],
+        "summary": "list gateway-receivers",
+        "operationId": "listGatewayReceivers",
+        "parameters": [
+          {
+            "name": "group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementListResultGatewayReceiverGatewayReceiverInfo"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "gateway-management-controller"
+        ],
+        "summary": "create gateway-receiver",
+        "operationId": "createGatewayReceiver",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GatewayReceiver"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Gateway receiver already exists.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/diskstores": {
+      "get": {
+        "tags": [
+          "disk-store-controller"
+        ],
+        "summary": "list disk-stores",
+        "operationId": "listDiskStores",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementListResultDiskStoreDiskStoreInfo"
+                }
+              }
+            }
+          }
+        },
+        "x-jqFilter": ".result[] | .groups[] | .runtimeInfo[] + .configuration | {Member:.memberName,\"Disk Store Name\":.name}"
+      },
+      "post": {
+        "tags": [
+          "disk-store-controller"
+        ],
+        "summary": "create disk-store",
+        "operationId": "createDiskStore",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiskStore"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "409": {
+            "description": "Diskstore already exists.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/regions/{regionName}/indexes/{id}": {
+      "get": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "get index",
+        "operationId": "getIndex",
+        "parameters": [
+          {
+            "name": "regionName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementGetResultIndexIndexInfo"
+                }
+              }
+            }
+          }
+        },
+        "x-jqFilter": ".result | .groups[] | .configuration | {name:.name,expression:.expression}"
+      }
+    },
+    "/v1/regions/{id}": {
+      "get": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "get region",
+        "operationId": "getRegion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementGetResultRegionRuntimeRegionInfo"
+                }
+              }
+            }
+          }
+        },
+        "x-jqFilter": ".result | .groups[] | .runtimeInfo[] + .configuration | {name:.name,type:.type,entryCount:.entryCount}"
+      },
+      "delete": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "delete region",
+        "operationId": "deleteRegion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ping": {
+      "get": {
+        "tags": [
+          "ping-management-controller"
+        ],
+        "summary": "ping",
+        "operationId": "ping",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/operations/restoreRedundancy/{id}": {
+      "get": {
+        "tags": [
+          "restore-redundancy-operation-controller"
+        ],
+        "summary": "get restore-redundancy",
+        "operationId": "getRestoreRedundancy",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementOperationResultRestoreRedundancyRequestRestoreRedundancyResults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/operations/rebalances/{id}": {
+      "get": {
+        "tags": [
+          "rebalance-operation-controller"
+        ],
+        "summary": "get rebalance",
+        "operationId": "getRebalance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementOperationResultRebalanceOperationRebalanceResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/members": {
+      "get": {
+        "tags": [
+          "member-management-controller"
+        ],
+        "summary": "list members",
+        "operationId": "listMembers",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementListResultMemberMemberInformation"
+                }
+              }
+            }
+          }
+        },
+        "x-jqFilter": ".result[] | .groups[] | .runtimeInfo[] | {name:.memberName,status:.status}"
+      }
+    },
+    "/v1/members/{id}": {
+      "get": {
+        "tags": [
+          "member-management-controller"
+        ],
+        "summary": "get member",
+        "operationId": "getMember",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementGetResultMemberMemberInformation"
+                }
+              }
+            }
+          }
+        },
+        "x-jqFilter": ".result | .groups[] | .runtimeInfo[] | {name:.memberName,status:.status}"
+      }
+    },
+    "/v1/gateways/receivers/{id}": {
+      "get": {
+        "tags": [
+          "gateway-management-controller"
+        ],
+        "summary": "get gateway-receiver",
+        "operationId": "getGatewayReceiver",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementGetResultGatewayReceiverGatewayReceiverInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/diskstores/{id}": {
+      "get": {
+        "tags": [
+          "disk-store-controller"
+        ],
+        "summary": "get disk-store",
+        "operationId": "getDiskStore",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementGetResultDiskStoreDiskStoreInfo"
+                }
+              }
+            }
+          }
+        },
+        "x-jqFilter": ".result | .groups[] | .runtimeInfo[] + .configuration | {Member:.memberName,\"Disk Store Name\":.name}"
+      },
+      "delete": {
+        "tags": [
+          "disk-store-controller"
+        ],
+        "summary": "delete disk-store",
+        "operationId": "deleteDiskStore",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/deployments/{id}": {
+      "get": {
+        "tags": [
+          "deployment-management-controller"
+        ],
+        "summary": "get deployed",
+        "operationId": "getDeployed",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementGetResultDeploymentDeploymentInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "doc-links-controller"
+        ],
+        "summary": "get documentation-links",
+        "operationId": "getDocumentationLinks",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocLinks"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/regions/{regionName}/indexes/{indexName}": {
+      "delete": {
+        "tags": [
+          "region-management-controller"
+        ],
+        "summary": "delete region index",
+        "operationId": "deleteIndex",
+        "parameters": [
+          {
+            "name": "regionName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "indexName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterManagementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ClusterManagementResult": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
+      },
+      "Links": {
+        "type": "object"
+      },
+      "AutoSerializer": {
+        "type": "object",
+        "properties": {
+          "portable": {
+            "type": "boolean"
+          },
+          "patterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ClassName": {
+        "type": "object",
+        "properties": {
+          "className": {
+            "type": "string"
+          },
+          "initProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Pdx": {
+        "type": "object",
+        "properties": {
+          "readSerialized": {
+            "type": "boolean"
+          },
+          "pdxSerializer": {
+            "$ref": "#/components/schemas/ClassName"
+          },
+          "autoSerializer": {
+            "$ref": "#/components/schemas/AutoSerializer"
+          },
+          "ignoreUnreadFields": {
+            "type": "boolean"
+          },
+          "diskStoreName": {
+            "type": "string"
+          }
+        }
+      },
+      "Eviction": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ENTRY_COUNT",
+              "MEMORY_SIZE",
+              "HEAP_PERCENTAGE"
+            ]
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "LOCAL_DESTROY",
+              "OVERFLOW_TO_DISK"
+            ]
+          },
+          "objectSizer": {
+            "$ref": "#/components/schemas/ClassName"
+          },
+          "memorySizeMb": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "entryCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "Expiration": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ENTRY_TIME_TO_LIVE",
+              "ENTRY_IDLE_TIME",
+              "LEGACY"
+            ]
+          },
+          "timeInSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "DESTROY",
+              "INVALIDATE",
+              "LEGACY"
+            ]
+          }
+        }
+      },
+      "Region": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PARTITION",
+              "PARTITION_PERSISTENT",
+              "PARTITION_PROXY",
+              "REPLICATE",
+              "REPLICATE_PERSISTENT",
+              "REPLICATE_PROXY",
+              "LEGACY"
+            ]
+          },
+          "keyConstraint": {
+            "type": "string"
+          },
+          "valueConstraint": {
+            "type": "string"
+          },
+          "diskStoreName": {
+            "type": "string"
+          },
+          "redundantCopies": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expirations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Expiration"
+            }
+          },
+          "eviction": {
+            "$ref": "#/components/schemas/Eviction"
+          }
+        }
+      },
+      "Index": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "expression": {
+            "type": "string"
+          },
+          "regionPath": {
+            "type": "string"
+          },
+          "indexType": {
+            "type": "string",
+            "enum": [
+              "KEY",
+              "RANGE",
+              "HASH_DEPRECATED"
+            ]
+          }
+        }
+      },
+      "RestoreRedundancyRequest": {
+        "type": "object",
+        "properties": {
+          "includeRegions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "excludeRegions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reassignPrimaries": {
+            "type": "boolean"
+          },
+          "operator": {
+            "type": "string"
+          }
+        }
+      },
+      "ClusterManagementOperationResultRestoreRedundancyRequestRestoreRedundancyResults": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "operationStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "operationEnd": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "operationId": {
+            "type": "string"
+          },
+          "operation": {
+            "$ref": "#/components/schemas/RestoreRedundancyRequest"
+          },
+          "operationResult": {
+            "$ref": "#/components/schemas/RestoreRedundancyResults"
+          },
+          "throwable": {
+            "type": "object",
+            "properties": {
+              "stackTrace": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "classLoaderName": {
+                      "type": "string"
+                    },
+                    "moduleName": {
+                      "type": "string"
+                    },
+                    "moduleVersion": {
+                      "type": "string"
+                    },
+                    "methodName": {
+                      "type": "string"
+                    },
+                    "fileName": {
+                      "type": "string"
+                    },
+                    "lineNumber": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "className": {
+                      "type": "string"
+                    },
+                    "nativeMethod": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              },
+              "message": {
+                "type": "string"
+              },
+              "suppressed": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "stackTrace": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "classLoaderName": {
+                            "type": "string"
+                          },
+                          "moduleName": {
+                            "type": "string"
+                          },
+                          "moduleVersion": {
+                            "type": "string"
+                          },
+                          "methodName": {
+                            "type": "string"
+                          },
+                          "fileName": {
+                            "type": "string"
+                          },
+                          "lineNumber": {
+                            "type": "integer",
+                            "format": "int32"
+                          },
+                          "className": {
+                            "type": "string"
+                          },
+                          "nativeMethod": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "localizedMessage": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "localizedMessage": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "RegionRedundancyStatus": {
+        "type": "object",
+        "properties": {
+          "regionName": {
+            "type": "string"
+          },
+          "configuredRedundancy": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "actualRedundancy": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "SATISFIED",
+              "NOT_SATISFIED",
+              "NO_REDUNDANT_COPIES"
+            ]
+          }
+        }
+      },
+      "RestoreRedundancyResults": {
+        "type": "object",
+        "properties": {
+          "zeroRedundancyRegionResults": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RegionRedundancyStatus"
+            }
+          },
+          "underRedundancyRegionResults": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RegionRedundancyStatus"
+            }
+          },
+          "satisfiedRedundancyRegionResults": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RegionRedundancyStatus"
+            }
+          },
+          "totalPrimaryTransfersCompleted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPrimaryTransferTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "includedRegionsWithNoMembers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "regionResults": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RegionRedundancyStatus"
+            }
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RebalanceOperation": {
+        "type": "object",
+        "properties": {
+          "includeRegions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "excludeRegions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "simulate": {
+            "type": "boolean"
+          },
+          "operator": {
+            "type": "string"
+          }
+        }
+      },
+      "ClusterManagementOperationResultRebalanceOperationRebalanceResult": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "operationStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "operationEnd": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "operationId": {
+            "type": "string"
+          },
+          "operation": {
+            "$ref": "#/components/schemas/RebalanceOperation"
+          },
+          "operationResult": {
+            "$ref": "#/components/schemas/RebalanceResult"
+          },
+          "throwable": {
+            "type": "object",
+            "properties": {
+              "stackTrace": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "classLoaderName": {
+                      "type": "string"
+                    },
+                    "moduleName": {
+                      "type": "string"
+                    },
+                    "moduleVersion": {
+                      "type": "string"
+                    },
+                    "methodName": {
+                      "type": "string"
+                    },
+                    "fileName": {
+                      "type": "string"
+                    },
+                    "lineNumber": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "className": {
+                      "type": "string"
+                    },
+                    "nativeMethod": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              },
+              "message": {
+                "type": "string"
+              },
+              "suppressed": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "stackTrace": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "classLoaderName": {
+                            "type": "string"
+                          },
+                          "moduleName": {
+                            "type": "string"
+                          },
+                          "moduleVersion": {
+                            "type": "string"
+                          },
+                          "methodName": {
+                            "type": "string"
+                          },
+                          "fileName": {
+                            "type": "string"
+                          },
+                          "lineNumber": {
+                            "type": "integer",
+                            "format": "int32"
+                          },
+                          "className": {
+                            "type": "string"
+                          },
+                          "nativeMethod": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "localizedMessage": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "localizedMessage": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "RebalanceRegionResult": {
+        "type": "object",
+        "properties": {
+          "bucketCreateTimeInMilliseconds": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "bucketTransferTimeInMilliseconds": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "bucketTransfersCompleted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "primaryTransferTimeInMilliseconds": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "primaryTransfersCompleted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bucketCreateBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "bucketCreatesCompleted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bucketTransferBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "timeInMilliseconds": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "numOfMembers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "regionName": {
+            "type": "string"
+          }
+        }
+      },
+      "RebalanceResult": {
+        "type": "object",
+        "properties": {
+          "rebalanceRegionResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RebalanceRegionResult"
+            }
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "GatewayReceiver": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string"
+          },
+          "gatewayTransportFilters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClassName"
+            }
+          },
+          "startPort": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "endPort": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maximumTimeBetweenPings": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "socketBufferSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "manualStart": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DiskDir": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "dirSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DiskStore": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "compactionThreshold": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "diskUsageCriticalPercentage": {
+            "type": "number",
+            "format": "float"
+          },
+          "diskUsageWarningPercentage": {
+            "type": "number",
+            "format": "float"
+          },
+          "maxOplogSizeInBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "queueSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timeInterval": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "writeBufferSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "directories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiskDir"
+            }
+          },
+          "allowForceCompaction": {
+            "type": "boolean"
+          },
+          "autoCompact": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ClusterManagementListResultRegionRuntimeRegionInfo": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityInfoRegionRuntimeRegionInfo"
+            }
+          }
+        }
+      },
+      "EntityGroupInfoRegionRuntimeRegionInfo": {
+        "type": "object",
+        "properties": {
+          "configuration": {
+            "$ref": "#/components/schemas/Region"
+          },
+          "runtimeInfo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuntimeRegionInfo"
+            }
+          }
+        }
+      },
+      "EntityInfoRegionRuntimeRegionInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityGroupInfoRegionRuntimeRegionInfo"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
+      },
+      "RuntimeRegionInfo": {
+        "type": "object",
+        "properties": {
+          "memberName": {
+            "type": "string"
+          },
+          "entryCount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ClusterManagementListResultIndexIndexInfo": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityInfoIndexIndexInfo"
+            }
+          }
+        }
+      },
+      "EntityGroupInfoIndexIndexInfo": {
+        "type": "object",
+        "properties": {
+          "configuration": {
+            "$ref": "#/components/schemas/Index"
+          },
+          "runtimeInfo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IndexInfo"
+            }
+          }
+        }
+      },
+      "EntityInfoIndexIndexInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityGroupInfoIndexIndexInfo"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
+      },
+      "IndexInfo": {
+        "type": "object",
+        "properties": {
+          "memberName": {
+            "type": "string"
+          }
+        }
+      },
+      "ClusterManagementGetResultIndexIndexInfo": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "result": {
+            "$ref": "#/components/schemas/EntityInfoIndexIndexInfo"
+          }
+        }
+      },
+      "ClusterManagementGetResultRegionRuntimeRegionInfo": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "result": {
+            "$ref": "#/components/schemas/EntityInfoRegionRuntimeRegionInfo"
+          }
+        }
+      },
+      "ClusterManagementListOperationsResultRestoreRedundancyRequestRestoreRedundancyResults": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClusterManagementOperationResultRestoreRedundancyRequestRestoreRedundancyResults"
+            }
+          },
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
+      },
+      "ClusterManagementListOperationsResultRebalanceOperationRebalanceResult": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClusterManagementOperationResultRebalanceOperationRebalanceResult"
+            }
+          },
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
+      },
+      "CacheServerInfo": {
+        "type": "object",
+        "properties": {
+          "bindAddress": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxConnections": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxThreads": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "running": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ClusterManagementListResultMemberMemberInformation": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityInfoMemberMemberInformation"
+            }
+          }
+        }
+      },
+      "EntityGroupInfoMemberMemberInformation": {
+        "type": "object",
+        "properties": {
+          "configuration": {
+            "$ref": "#/components/schemas/Member"
+          },
+          "runtimeInfo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberInformation"
+            }
+          }
+        }
+      },
+      "EntityInfoMemberMemberInformation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityGroupInfoMemberMemberInformation"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
+      },
+      "Member": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "MemberInformation": {
+        "type": "object",
+        "properties": {
+          "memberName": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "workingDirPath": {
+            "type": "string"
+          },
+          "groups": {
+            "type": "string"
+          },
+          "logFilePath": {
+            "type": "string"
+          },
+          "statArchiveFilePath": {
+            "type": "string"
+          },
+          "serverBindAddress": {
+            "type": "string"
+          },
+          "locators": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "heapUsage": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "maxHeapSize": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "initHeapSize": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cacheXmlFilePath": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "processId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "locatorPort": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "httpServicePort": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "httpServiceBindAddress": {
+            "type": "string"
+          },
+          "clientCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cpuUsage": {
+            "type": "number",
+            "format": "double"
+          },
+          "hostedRegions": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "offHeapMemorySize": {
+            "type": "string"
+          },
+          "webSSL": {
+            "type": "boolean"
+          },
+          "cacheServerInfo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CacheServerInfo"
+            }
+          },
+          "coordinator": {
+            "type": "boolean"
+          },
+          "secured": {
+            "type": "boolean"
+          },
+          "server": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ClusterManagementGetResultMemberMemberInformation": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "result": {
+            "$ref": "#/components/schemas/EntityInfoMemberMemberInformation"
+          }
+        }
+      },
+      "ClusterManagementListResultGatewayReceiverGatewayReceiverInfo": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityInfoGatewayReceiverGatewayReceiverInfo"
+            }
+          }
+        }
+      },
+      "EntityGroupInfoGatewayReceiverGatewayReceiverInfo": {
+        "type": "object",
+        "properties": {
+          "configuration": {
+            "$ref": "#/components/schemas/GatewayReceiver"
+          },
+          "runtimeInfo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GatewayReceiverInfo"
+            }
+          }
+        }
+      },
+      "EntityInfoGatewayReceiverGatewayReceiverInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityGroupInfoGatewayReceiverGatewayReceiverInfo"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
+      },
+      "GatewayReceiverInfo": {
+        "type": "object",
+        "properties": {
+          "memberName": {
+            "type": "string"
+          },
+          "running": {
+            "type": "boolean"
+          },
+          "port": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hostnameForSenders": {
+            "type": "string"
+          },
+          "bindAddress": {
+            "type": "string"
+          },
+          "senderCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "connectedSenders": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ClusterManagementGetResultGatewayReceiverGatewayReceiverInfo": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "result": {
+            "$ref": "#/components/schemas/EntityInfoGatewayReceiverGatewayReceiverInfo"
+          }
+        }
+      },
+      "ClusterManagementListResultDiskStoreDiskStoreInfo": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityInfoDiskStoreDiskStoreInfo"
+            }
+          }
+        }
+      },
+      "DiskStoreInfo": {
+        "type": "object",
+        "properties": {
+          "memberName": {
+            "type": "string"
+          }
+        }
+      },
+      "EntityGroupInfoDiskStoreDiskStoreInfo": {
+        "type": "object",
+        "properties": {
+          "configuration": {
+            "$ref": "#/components/schemas/DiskStore"
+          },
+          "runtimeInfo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiskStoreInfo"
+            }
+          }
+        }
+      },
+      "EntityInfoDiskStoreDiskStoreInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityGroupInfoDiskStoreDiskStoreInfo"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
+      },
+      "ClusterManagementGetResultDiskStoreDiskStoreInfo": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "result": {
+            "$ref": "#/components/schemas/EntityInfoDiskStoreDiskStoreInfo"
+          }
+        }
+      },
+      "ClusterManagementListResultDeploymentDeploymentInfo": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityInfoDeploymentDeploymentInfo"
+            }
+          }
+        }
+      },
+      "Deployment": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string"
+          },
+          "deployedTime": {
+            "type": "string"
+          },
+          "deployedBy": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          }
+        }
+      },
+      "DeploymentInfo": {
+        "type": "object",
+        "properties": {
+          "memberName": {
+            "type": "string"
+          },
+          "jarLocation": {
+            "type": "string"
+          },
+          "lastModified": {
+            "type": "string"
+          }
+        }
+      },
+      "EntityGroupInfoDeploymentDeploymentInfo": {
+        "type": "object",
+        "properties": {
+          "configuration": {
+            "$ref": "#/components/schemas/Deployment"
+          },
+          "runtimeInfo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeploymentInfo"
+            }
+          }
+        }
+      },
+      "EntityInfoDeploymentDeploymentInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityGroupInfoDeploymentDeploymentInfo"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
+      },
+      "ClusterManagementGetResultDeploymentDeploymentInfo": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "result": {
+            "$ref": "#/components/schemas/EntityInfoDeploymentDeploymentInfo"
+          }
+        }
+      },
+      "ClusterManagementGetResultPdxPdxInfo": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "ILLEGAL_ARGUMENT",
+              "UNAUTHENTICATED",
+              "UNAUTHORIZED",
+              "ENTITY_EXISTS",
+              "ENTITY_NOT_FOUND",
+              "ERROR",
+              "FAIL_TO_PERSIST",
+              "ACCEPTED",
+              "IN_PROGRESS"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "result": {
+            "$ref": "#/components/schemas/EntityInfoPdxPdxInfo"
+          }
+        }
+      },
+      "EntityGroupInfoPdxPdxInfo": {
+        "type": "object",
+        "properties": {
+          "configuration": {
+            "$ref": "#/components/schemas/Pdx"
+          },
+          "runtimeInfo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PdxInfo"
+            }
+          }
+        }
+      },
+      "EntityInfoPdxPdxInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityGroupInfoPdxPdxInfo"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
+      },
+      "PdxInfo": {
+        "type": "object",
+        "properties": {
+          "memberName": {
+            "type": "string"
+          },
+          "readSerialized": {
+            "type": "boolean"
+          },
+          "diskStoreName": {
+            "type": "string"
+          },
+          "ignoreUnreadFields": {
+            "type": "boolean"
+          },
+          "pdxSerializer": {
+            "type": "string"
+          }
+        }
+      },
+      "DocLinks": {
+        "type": "object",
+        "properties": {
+          "latest": {
+            "type": "string"
+          },
+          "supported": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

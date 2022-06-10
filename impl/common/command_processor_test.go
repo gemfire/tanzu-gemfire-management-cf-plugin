@@ -65,16 +65,17 @@ var _ = Describe("CommandProcessor", func() {
 
 	Context("ProcessCommand", func() {
 		Context("Exercise the request helper", func() {
-			Context("Root and v1 not found, error on experimental", func() {
+			Context("Root, v1 and v3 not found, error on experimental", func() {
 				It("Returns an error indicating API docs are not found for experimental", func() {
 					requester.ReturnsOnCall(0, "", 404, nil)
 					requester.ReturnsOnCall(1, "", 404, nil)
-					requester.ReturnsOnCall(2, "", 500, errors.New("unable to get endpoints"))
+					requester.ReturnsOnCall(2, "", 404, nil)
+					requester.ReturnsOnCall(3, "", 500, errors.New("unable to get endpoints"))
 					err = commandProcessor.ProcessCommand(&commandData)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(Equal("Unable to reach /management/experimental/api-docs. Error: unable to get endpoints"))
 					Expect(len(commandData.AvailableEndpoints)).To(BeZero())
-					Expect(requester.CallCount()).To(Equal(3))
+					Expect(requester.CallCount()).To(Equal(4))
 				})
 			})
 
@@ -300,6 +301,68 @@ var _ = Describe("CommandProcessor", func() {
 						_, query, userProvided := formatter.FormatResponseArgsForCall(0)
 						Expect(userProvided).To(BeFalse())
 						Expect(query).To(Equal(".result[] | .runtimeInfo[] | {name:.memberName,status:.status}"))
+					})
+				})
+
+				Context("When default JQ is not provided", func() {
+
+					BeforeEach(func() {
+						commandData.UserCommand.Command = "list gateway-receivers"
+					})
+
+					It("Calls the formatter with hard-coded '.' JQ string", func() {
+						err := commandProcessor.ProcessCommand(&commandData)
+						Expect(err).NotTo(HaveOccurred())
+						_, query, userProvided := formatter.FormatResponseArgsForCall(0)
+						Expect(userProvided).To(BeFalse())
+						Expect(query).To(Equal("."))
+					})
+				})
+			})
+		})
+
+		Context("Table format", func() {
+
+			BeforeEach(func() {
+				JSONBytes, err := ioutil.ReadFile("../../testdata/api-docs-115.json")
+				Expect(err).NotTo(HaveOccurred())
+				fakeResponse = string(JSONBytes)
+				requester.ReturnsOnCall(0, "", 404, nil)
+				requester.ReturnsOnCall(1, fakeResponse, 200, nil)
+
+				commandData.UserCommand.Command = "list members"
+			})
+
+			Context("When user provides JQ string", func() {
+
+				BeforeEach(func() {
+					commandData.UserCommand.Parameters = map[string]string{"--table": "."}
+				})
+
+				It("Calls the formatter with the user provided JQ string", func() {
+					err := commandProcessor.ProcessCommand(&commandData)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(formatter.FormatResponseCallCount()).To(Equal(1))
+					_, query, userProvided := formatter.FormatResponseArgsForCall(0)
+					Expect(userProvided).To(BeTrue())
+					Expect(query).To(Equal("."))
+				})
+			})
+
+			Context("When user does not provide JQ string", func() {
+
+				BeforeEach(func() {
+					commandData.UserCommand.Parameters = map[string]string{"--table": ""}
+				})
+
+				Context("When default JQ string is provided", func() {
+
+					It("Calls the formatter with the default JQ string", func() {
+						err := commandProcessor.ProcessCommand(&commandData)
+						Expect(err).NotTo(HaveOccurred())
+						_, query, userProvided := formatter.FormatResponseArgsForCall(0)
+						Expect(userProvided).To(BeFalse())
+						Expect(query).To(Equal(".result[] | .groups[] | .runtimeInfo[] | {name:.memberName,status:.status}"))
 					})
 				})
 

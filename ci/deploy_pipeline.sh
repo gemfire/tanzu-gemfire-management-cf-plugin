@@ -37,13 +37,13 @@ BLESSED_SECRET='n41r3zdlwKCtln'"w22plhTJUhE"/9iBWQmh4p26fPY
 
 # Version(s) of GemFire for stand-alone testing, whitespace-separated
 # 3-digit indicates a released version, anything else is latest nightly build"
-STANDALONE_GEMFIRE_VERSIONS="9.9.5 9.10.6 9.10 1.13 1.14 develop"
+STANDALONE_GEMFIRE_VERSIONS="9.10 9.15 develop"
 
 # Version(s) of PCC+stemcell for testing as plugin, whitespace-separated.
 # Last one in the list will be taken from blessed bucket, the rest from pivnet
 # Special string latest gives latest stemcell, for example 1.9+456 1.10+latest
 # See https://docs.google.com/spreadsheets/d/1iYp71cfXVXCeJF5mm9Wh6KoVCjjm64eAICprjwSK1Zk/edit and https://bosh.io/stemcells/
-PCC_VERSIONS="1.11+621 1.12+621 1.13+latest"
+# PCC_VERSIONS="1.11+621 1.12+621 1.13+latest"
 
 cat << EOF > pipeline.yml
 ---
@@ -133,7 +133,7 @@ cat << EOF >> pipeline.yml
   type: registry-image
   source:
     repository: golang
-    tag: latest
+    tag: 1.16
 
 - name: tanzu-gemfire-management-cf-plugin-ci-dockerfile
   type: git

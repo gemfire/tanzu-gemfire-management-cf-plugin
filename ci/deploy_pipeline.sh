@@ -133,7 +133,7 @@ cat << EOF >> pipeline.yml
   type: registry-image
   source:
     repository: golang
-    tag: 1.16
+    tag: 1.17
 
 - name: tanzu-gemfire-management-cf-plugin-ci-dockerfile
   type: git

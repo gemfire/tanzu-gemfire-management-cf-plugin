@@ -32,12 +32,12 @@ PIVNET_API_TOKEN=c90e06904710409eb60d55459e3b3dbd-r
 PIVNET_API_TOKEN_LATEST=4b4b8fadaac9460dbdc0f6dd08c2939a-r
 
 # Blessed PCC tile from https://pcc1.ci.cf-app.com/teams/main/pipelines/cloudcache-1.10.x
-BLESSED_KEY="AKIAJPMW5"G'JQJPVJVR6Q'
-BLESSED_SECRET='n41r3zdlwKCtln'"w22plhTJUhE"/9iBWQmh4p26fPY
+BLESSED_KEY="AKIA2Y"Q'N4EUUPTCLPF4Z'
+BLESSED_SECRET="EweMcMs"2F'1nohm0KUEKTKuc'/CyF98nF/Btqfp6+Y
 
 # Version(s) of GemFire for stand-alone testing, whitespace-separated
 # 3-digit indicates a released version, anything else is latest nightly build"
-STANDALONE_GEMFIRE_VERSIONS="9.10 9.15 develop"
+STANDALONE_GEMFIRE_VERSIONS="9.10 9.15 10.0 develop"
 
 # Version(s) of PCC+stemcell for testing as plugin, whitespace-separated.
 # Last one in the list will be taken from blessed bucket, the rest from pivnet

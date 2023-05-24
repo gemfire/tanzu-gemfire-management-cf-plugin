@@ -232,6 +232,7 @@ jobs:
   - get: tanzu-gemfire-management-cf-plugin-ci-dockerfile
     trigger: true
   - put: tanzu-gemfire-management-cf-plugin-ci-image
+    inputs: detect
     params:
       build: tanzu-gemfire-management-cf-plugin-ci-dockerfile/ci/docker
       tag_as_latest: true
@@ -326,6 +327,7 @@ for pccstemvers in $PCC_VERSIONS; do
     - get: tanzu-gemfire-management-cf-plugin-ci-image
     - get: golang-image
     - put: pcc-env-$pccver
+      inputs: detect
       tags: [nimbus]
       params:
         action: claim
@@ -368,6 +370,7 @@ cat << EOF >> pipeline.yml
     ensure:
       aggregate:
       - put: pcc-env-$pccver
+        inputs: detect
         tags: [nimbus]
         params:
           action: unclaim
